@@ -5,6 +5,9 @@ import NavigationBar from "../components/layout/NavigationBar";
 export const metadata: Metadata = {
   title: "POPRCM Admin",
   description: "Admin dashboard for POPRCM",
+  icons: {
+    icon: "/LogoNoBrand.png",
+  },
 };
 
 export default function RootLayout({
@@ -14,7 +17,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <body className="bg-gray-50">
+      <body>
         <div className="flex min-h-screen">
           <NavigationBar />
           <main className="flex-1 overflow-auto">

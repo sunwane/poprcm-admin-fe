@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import GradientAvatar from '../ui/GradientAvatar';
 
 export default function NavigationBar() {
     const pathname = usePathname();
@@ -21,24 +22,27 @@ export default function NavigationBar() {
     };
 
     return (
-        <div className="border-r border-gray-200 h-screen max-w-64 w-64 bg-white shadow-lg flex flex-col">
+        <div className="border-r border-gray-200 h-screen max-w-64 w-64 bg-white shadow-lg sticky top-0 flex flex-col">
             {/* Logo Section */}
             <div className="p-6 border-b border-gray-200">
-                <img className="w-40 h-auto" src="/Logo.png" alt="Logo"/>
+                <img className="w-48" src="/Logo.png" alt="Logo"/>
             </div>
             
             {/* Navigation Menu */}
-            <nav className="flex-1 p-4">
-                <ul className="space-y-2">
+            <nav className="py-3">
+                <div className="uppercase pb-3 px-3 text-sm font-semibold text-blue-950">
+                    Menu chính
+                </div>
+                <ul className="space-y-1 px-3">
                     {menuItems.map((item) => (
                         <li key={item.path}>
                             <Link 
                                 href={item.path}
                                 className={`
-                                    block p-3 rounded-lg transition-all duration-200 font-medium
+                                    block py-3 pl-4 pr-3 transition-all duration-200 font-medium text-sm
                                     ${isActiveLink(item.path) 
-                                        ? 'bg-linear-to-r from-purple-600 to-blue-600 text-white shadow-md' 
-                                        : 'text-gray-700 hover:bg-purple-50 hover:text-purple-700 hover:shadow-sm'
+                                        ? 'bg-blue-50 text-blue-800 border-l-5 shadow-md' 
+                                        : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600 hover:shadow-sm'
                                     }
                                 `}
                             >
@@ -51,10 +55,8 @@ export default function NavigationBar() {
             
             {/* User Profile Section */}
             <div className="p-4 border-t border-gray-200">
-                <div className="flex items-center space-x-3 mb-4 p-3 bg-gray-50 rounded-lg">
-                    <div className="w-10 h-10 bg-linear-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
-                        A
-                    </div>
+                <div className="flex items-center space-x-2.5 px-1 py-3">
+                    <GradientAvatar initial="A" />
                     <div className="flex-1">
                         <div className="text-sm font-medium text-gray-900">Admin User</div>
                         <div className="text-xs text-gray-500">admin@example.com</div>
@@ -62,9 +64,8 @@ export default function NavigationBar() {
                 </div>
                 
                 <button 
-                    className="w-full p-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-2"
+                    className="w-full p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-1"
                     onClick={() => {
-                        // Handle logout logic here
                         console.log('Đăng xuất');
                     }}
                 >

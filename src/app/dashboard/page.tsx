@@ -55,29 +55,6 @@ export default function Dashboard() {
             ))}
           </div>
         </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h2 className="text-xl font-bold text-(--text-title)] mb-4">Thao tác nhanh</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <button className="p-4 bg-linear-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all">
-              <div className="text-lg mb-2">➕</div>
-              <div className="text-sm font-medium">Thêm phim mới</div>
-            </button>
-            <button className="p-4 bg-linear-to-r from-green-500 to-teal-500 text-white rounded-lg hover:from-green-600 hover:to-teal-600 transition-all">
-              <div className="text-lg mb-2">📊</div>
-              <div className="text-sm font-medium">Xem báo cáo</div>
-            </button>
-            <button className="p-4 bg-linear-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all">
-              <div className="text-lg mb-2">🎭</div>
-              <div className="text-sm font-medium">Thêm diễn viên</div>
-            </button>
-            <button className="p-4 bg-linear-to-r from-indigo-500 to-purple-500 text-white rounded-lg hover:from-indigo-600 hover:to-purple-600 transition-all">
-              <div className="text-lg mb-2">⚙️</div>
-              <div className="text-sm font-medium">Cài đặt</div>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

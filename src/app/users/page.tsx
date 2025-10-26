@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { useUsers } from '@/hooks/useUsers';
-import { getGenderColor, getGenderDisplayName, formatDate, getInitials } from '@/utils/userUtils';
+import { getGenderColor, getGenderDisplayName, getRoleColor, formatDate, getInitials } from '@/utils/userUtils';
 import GradientAvatar from '@/components/ui/GradientAvatar';
 import GradientButton from '@/components/ui/GradientButton';
+import UserModal from '@/components/modalForm/UserModal';
+import SearchBar from '@/components/ui/SearchBar';
+import FormSelect from '@/components/ui/FormSelect';
 
 export default function Users() {
   const {
@@ -12,6 +14,7 @@ export default function Users() {
     showModal,
     editingUser,
     filterGender,
+    filterRole,
     searchQuery,
     filteredUsers,
     stats,
@@ -21,27 +24,9 @@ export default function Users() {
     handleCloseModal,
     handleSaveUser,
     setFilterGender,
+    setFilterRole,
     setSearchQuery,
   } = useUsers();
-
-  const [formData, setFormData] = useState({
-    username: '',
-    fullname: '',
-    email: '',
-    gender: 'male' as const,
-    avatarUrl: '',
-  });
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSaveUser(formData);
-    setFormData({ username: '', fullname: '', email: '', gender: 'male', avatarUrl: '' });
-  };
 
   if (loading) {
     return (
@@ -53,59 +38,66 @@ export default function Users() {
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      <div className="mb-8 flex justify-between items-center">
+
+      {/* Header */}
+      <div className="mb-4 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-(text-title) mb-2">Quản lí Người dùng</h1>
-          <p className="text-gray-600">Quản lí tài khoản người dùng hiện có trong hệ thống</p>
+          <h1 className="text-3xl font-bold text-(--text-title) mb-2">Quản lí Người dùng</h1>
         </div>
         <div className="flex items-center space-x-4">
-          <input
-            type="text"
-            placeholder="Tìm kiếm người dùng..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-white border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-          />
-          <select 
-            value={filterGender}
-            onChange={(e) => setFilterGender(e.target.value as any)}
-            className="bg-white border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-600 focus:border-transparent"
-          >
-            <option value="all">Tất cả giới tính</option>
-            <option value="male">Nam</option>
-            <option value="female">Nữ</option>
-          </select>
           <GradientButton onClick={handleOpenAddModal}>
-            Thêm Người dùng
+            <svg className="w-5 h-5 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 12h14m-7 7V5"/>
+            </svg>
+            <span>Thêm Người dùng</span>
           </GradientButton>
         </div>
       </div>
 
+      {/* Filters */}
+      <div className='mb-6 flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0'>
+        <SearchBar searchQuery={searchQuery} onChange={setSearchQuery} placeholder='Tìm kiếm tên người dùng...'/>
+        <div className="w-[288px]">
+          <FormSelect 
+            filter={filterGender}
+            onChange={(gender: string) => setFilterGender(gender as typeof filterGender)}
+            options={[
+              {value:'all', label:'Tất cả giới tính'},
+              {value:'male', label:'Nam'},
+              {value:'female', label:'Nữ'},
+            ]}
+          />
+        </div>
+        <div className="w-[288px]">
+          <FormSelect 
+            filter={filterRole}
+            onChange={(role: string) => setFilterRole(role as typeof filterRole)}
+            options={[
+              {value:'all', label:'Tất cả vai trò'},
+              {value:'admin', label:'Admin'},
+              {value:'user', label:'User'},
+            ]}
+          />
+        </div>
+      </div>
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="text-2xl font-bold text-(--text-primary) mb-1">{stats.total}</div>
           <div className="text-gray-600 text-sm">Tổng người dùng</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-(--text-primary) mb-1">{stats.admin}</div>
-          <div className="text-gray-600 text-sm">Tổng số tài khoản Admin</div>
+          <div className="text-2xl font-bold text-red-600 mb-1">{stats.admin}</div>
+          <div className="text-gray-600 text-sm">Admin</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-(--text-primary) mb-1">{stats.users}</div>
-          <div className="text-gray-600 text-sm">Tổng số tài khoản User</div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-blue-600 mb-1">{stats.male}</div>
-          <div className="text-gray-600 text-sm">Người dùng Nam</div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-pink-600 mb-1">{stats.female}</div>
-          <div className="text-gray-600 text-sm">Người dùng Nữ</div>
+          <div className="text-2xl font-bold text-gray-600 mb-1">{stats.users}</div>
+          <div className="text-gray-600 text-sm">User</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="text-2xl font-bold text-green-600 mb-1">{stats.thisMonth}</div>
-          <div className="text-gray-600 text-sm">Người dùng mới tháng này</div>
+          <div className="text-gray-600 text-sm">Tháng này</div>
         </div>
       </div>
 
@@ -118,17 +110,18 @@ export default function Users() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Người dùng</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Username</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Email</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Giới tính</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Ngày tạo</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Thao tác</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Người dùng</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Username</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Email</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Vai trò</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Giới tính</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Ngày tạo</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr key={user.id} className="hover:bg-blue-50">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium mr-3 overflow-hidden">
@@ -139,8 +132,8 @@ export default function Users() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <GradientAvatar initial={getInitials(user.fullname)} 
-                          />)}
+                          <GradientAvatar initial={getInitials(user.fullname)} />
+                        )}
                       </div>
                       <div>
                         <div className="font-medium text-(--text-primary)">{user.fullname}</div>
@@ -150,6 +143,11 @@ export default function Users() {
                   </td>
                   <td className="px-6 py-4 text-gray-600">@{user.username}</td>
                   <td className="px-6 py-4 text-gray-600">{user.email}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor((user.role || '').toString())}`}>
+                      {user.role || ''}
+                    </span>
+                  </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getGenderColor(user.gender)}`}>
                       {getGenderDisplayName(user.gender)}
@@ -179,80 +177,13 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-(--text-title) mb-4">
-              {editingUser ? 'Chỉnh sửa người dùng' : 'Thêm người dùng mới'}
-            </h3>
-            <form onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="username"
-                  placeholder="Username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  required
-                />
-                <input
-                  type="text"
-                  name="fullname"
-                  placeholder="Họ và tên"
-                  value={formData.fullname}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  required
-                />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  required
-                />
-                <select 
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                >
-                  <option value="male">Nam</option>
-                  <option value="female">Nữ</option>
-                  <option value="other">Khác</option>
-                </select>
-              </div>
-              <input
-                type="url"
-                name="avatarUrl"
-                placeholder="URL Avatar (tùy chọn)"
-                value={formData.avatarUrl}
-                onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent mt-4"
-              />
-              <div className="flex space-x-3 mt-6">
-                <button 
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  Hủy
-                </button>
-                <button 
-                  type="submit"
-                  className="flex-1 bg-linear-to-r from-purple-500 to-blue-500 text-white py-3 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all"
-                >
-                  {editingUser ? 'Cập nhật' : 'Thêm mới'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* User Modal */}
+      <UserModal
+        isOpen={showModal}
+        editingUser={editingUser}
+        onClose={handleCloseModal}
+        onSave={handleSaveUser}
+      />
     </div>
   );
 }

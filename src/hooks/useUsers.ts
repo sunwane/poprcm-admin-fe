@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { User, FilterGender } from '@/types/User';
+import { User, FilterGender, FilterRole } from '@/types/User';
 import { UserService } from '@/services/userService';
 
 export const useUsers = () => {
@@ -8,6 +8,7 @@ export const useUsers = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [filterGender, setFilterGender] = useState<FilterGender>('all');
+  const [filterRole, setFilterRole] = useState<FilterRole>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Load users on mount
@@ -30,21 +31,22 @@ export const useUsers = () => {
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
       const genderMatch = filterGender === 'all' || user.gender === filterGender;
+      const roleMatch = filterRole === 'all' || user.role === filterRole;
       const searchMatch = searchQuery === '' || 
         user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase());
-      return genderMatch && searchMatch;
+      return genderMatch && roleMatch && searchMatch;
     });
-  }, [users, filterGender, searchQuery]);
+  }, [users, filterGender, filterRole, searchQuery]);
 
   // Calculate stats
   const stats = useMemo(() => ({
     total: users.length,
     male: users.filter(u => u.gender === 'male').length,
     female: users.filter(u => u.gender === 'female').length,
-    admin: users.filter(u => u.role?.name === 'Admin').length,
-    users: users.filter(u => u.role?.name === 'User').length,
+    admin: users.filter(u => u.role === 'ADMIN').length,
+    users: users.filter(u => u.role === 'USER').length,
     thisMonth: users.filter(u => {
       const now = new Date();
       const userDate = u.createdAt;
@@ -107,6 +109,7 @@ export const useUsers = () => {
     showModal,
     editingUser,
     filterGender,
+    filterRole,
     searchQuery,
     filteredUsers,
     stats,
@@ -118,6 +121,7 @@ export const useUsers = () => {
     handleCloseModal,
     handleSaveUser,
     setFilterGender,
+    setFilterRole,
     setSearchQuery,
   };
 };

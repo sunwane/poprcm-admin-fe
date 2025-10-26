@@ -6,16 +6,8 @@ export interface User {
     gender: string;
     avatarUrl?: string;
     createdAt: Date;
-    role?: RoleResponse;
-}
-
-export interface RoleResponse {
-    name: string;
-    permissions?: PermissionResponse[];
-}
-
-export interface PermissionResponse {
-    name: string;
+    role?: String;
 }
 
 export type FilterGender = 'all' | 'male' | 'female';
+export type FilterRole = 'all' | 'Admin' | 'User';

@@ -9,7 +9,7 @@ export default function NavigationBar() {
     
     const menuItems = [
         { name: 'Tổng quan', path: '/dashboard' },
-        { name: 'Quản lí thể loại', path: '/categories' },
+        { name: 'Quản lí thể loại', path: '/genres' },
         { name: 'Quản lí series', path: '/series' },
         { name: 'Quản lí phim', path: '/movies' },
         { name: 'Quản lí diễn viên', path: '/actors' },

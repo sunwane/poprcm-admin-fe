@@ -1,112 +1,174 @@
 'use client';
 
-import { useState } from 'react';
+import { useGenres } from '@/hooks/useGenres';
+import { getMovieCountColor } from '@/utils/genresUtils';
+import GradientButton from '@/components/ui/GradientButton';
+import GenreModal from '@/components/modalForm/GenreModal';
+import SearchBar from '@/components/ui/SearchBar';
+import FormSelect from '@/components/ui/FormSelect';
+import Pagination from '@/components/ui/Pagination';
 
-export default function Categories() {
-  const [categories, setCategories] = useState([
-    { id: 1, name: 'Hành động', description: 'Phim hành động kịch tính', movieCount: 245, status: 'active' },
-    { id: 2, name: 'Tình cảm', description: 'Phim tình cảm lãng mạn', movieCount: 189, status: 'active' },
-    { id: 3, name: 'Kinh dị', description: 'Phim kinh dị hồi hộp', movieCount: 156, status: 'active' },
-    { id: 4, name: 'Hài hước', description: 'Phim hài vui nhộn', movieCount: 198, status: 'active' },
-    { id: 5, name: 'Khoa học viễn tưởng', description: 'Phim sci-fi tương lai', movieCount: 134, status: 'inactive' },
-  ]);
+export default function Genres() {
+  const {
+    loading,
+    showModal,
+    editingGenre,
+    searchQuery,
+    sortBy,
+    sortOrder,
+    filteredGenres,
+    paginatedGenres,
+    movieCounts,
+    stats,
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    handleEdit,
+    handleDelete,
+    handleOpenAddModal,
+    handleCloseModal,
+    handleSaveGenre,
+    handlePageChange,
+    handleItemsPerPageChange,
+    handleSort,
+    setSearchQuery,
+  } = useGenres();
 
-  const [showModal, setShowModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
-
-  const handleEdit = (category) => {
-    setEditingCategory(category);
-    setShowModal(true);
-  };
-
-  const handleDelete = (id) => {
-    if (confirm('Bạn có chắc chắn muốn xóa thể loại này?')) {
-      setCategories(categories.filter(cat => cat.id !== id));
-    }
-  };
+  if (loading) {
+    return (
+      <div className="p-8 bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-lg">Đang tải...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-      <div className="mb-8 flex justify-between items-center">
+      {/* Header */}
+      <div className="mb-4 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-(--text-title) mb-2">Quản lí thể loại</h1>
-          <p className="text-gray-600">Quản lí các thể loại phim trong hệ thống</p>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Quản lý Thể loại</h1>
         </div>
-        <button 
-          onClick={() => {
-            setEditingCategory(null);
-            setShowModal(true);
-          }}
-          className="bg-linear-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all flex items-center space-x-2"
-        >
-          <span>➕</span>
-          <span>Thêm thể loại mới</span>
-        </button>
+        <div className="flex items-center space-x-4">
+          <GradientButton onClick={handleOpenAddModal}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 12h14m-7 7V5"/>
+            </svg>
+            <span>Thêm Thể loại</span>
+          </GradientButton>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className='mb-6 flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0'>
+        <SearchBar 
+          searchQuery={searchQuery} 
+          onChange={setSearchQuery} 
+          placeholder='Tìm kiếm thể loại...'
+        />
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-(--text-primary)] mb-1">{categories.length}</div>
-          <div className="text-gray-600 text-sm">Tổng số thể loại</div>
+          <div className="text-2xl font-bold text-blue-600 mb-1">{stats.total}</div>
+          <div className="text-gray-600 text-sm">Tổng thể loại</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-green-600 mb-1">{categories.filter(c => c.status === 'active').length}</div>
-          <div className="text-gray-600 text-sm">Đang hoạt động</div>
+          <div className="text-2xl font-bold text-green-600 mb-1">{stats.totalMovies}</div>
+          <div className="text-gray-600 text-sm">Tổng phim</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-(--text-primary)] mb-1">{categories.reduce((sum, cat) => sum + cat.movieCount, 0)}</div>
-          <div className="text-gray-600 text-sm">Tổng số phim</div>
+          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.genresWithMovies}</div>
+          <div className="text-gray-600 text-sm">Thể loại có phim</div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="text-2xl font-bold text-purple-600 mb-1">{stats.avgMoviesPerGenre}</div>
+          <div className="text-gray-600 text-sm">TB phim/thể loại</div>
         </div>
       </div>
 
-      {/* Categories Table */}
+      {/* Genres Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-(--text-title)]">Danh sách thể loại</h2>
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-gray-800">
+            Danh sách Thể loại ({filteredGenres.length})
+          </h2>
+          
+          {/* Items per page selector */}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</span>
+            <FormSelect
+              size='small'
+              filter={itemsPerPage.toString()}
+              onChange={(value: string) => handleItemsPerPageChange(parseInt(value))}
+              options={[
+                { value: '5', label: '5' },
+                { value: '10', label: '10' },
+                { value: '20', label: '20' },
+                { value: '50', label: '50' },
+              ]}
+            />
+            <span className="text-sm text-gray-600">mục/trang</span>
+          </div>
         </div>
+        
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Tên thể loại</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Mô tả</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Số lượng phim</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Trạng thái</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Thao tác</th>
+                <th 
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => handleSort('id')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>ID</span>
+                    {sortBy === 'id' && (
+                      <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => handleSort('name')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Tên thể loại</span>
+                    {sortBy === 'name' && (
+                      <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
+                  </div>
+                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Số phim</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {categories.map((category) => (
-                <tr key={category.id} className="hover:bg-gray-50">
+              {paginatedGenres.map((genre) => (
+                <tr key={genre.id} className="hover:bg-blue-50 transition-colors">
+                  <td className="px-6 py-4 text-gray-600 font-mono">{genre.id}</td>
                   <td className="px-6 py-4">
-                    <div className="font-medium text-(--text-primary)]">{category.name}</div>
-                  </td>
-                  <td className="px-6 py-4 text-gray-600">{category.description}</td>
-                  <td className="px-6 py-4">
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">
-                      {category.movieCount} phim
-                    </span>
+                    <div className="font-medium text-gray-800">{genre.genresName}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      category.status === 'active' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {category.status === 'active' ? 'Hoạt động' : 'Tạm dừng'}
+                    <span className={`px-2 py-1 rounded-full text-sm font-medium ${getMovieCountColor(movieCounts[genre.id] || 0)}`}>
+                      {movieCounts[genre.id] || 0}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex space-x-2">
                       <button 
-                        onClick={() => handleEdit(category)}
+                        onClick={() => handleEdit(genre)}
                         className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
                       >
                         Sửa
                       </button>
                       <button 
-                        onClick={() => handleDelete(category.id)}
+                        onClick={() => handleDelete(genre.id)}
                         className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
                       >
                         Xóa
@@ -118,41 +180,24 @@ export default function Categories() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          itemsPerPage={itemsPerPage}
+          totalItems={filteredGenres.length}
+        />
       </div>
 
-      {/* Modal placeholder - bạn có thể thêm modal form sau */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold text-(--text-title)] mb-4">
-              {editingCategory ? 'Chỉnh sửa thể loại' : 'Thêm thể loại mới'}
-            </h3>
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Tên thể loại"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <textarea
-                placeholder="Mô tả thể loại"
-                rows={3}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
-            <div className="flex space-x-3 mt-6">
-              <button 
-                onClick={() => setShowModal(false)}
-                className="flex-1 bg-gray-500 text-white py-2 rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                Hủy
-              </button>
-              <button className="flex-1 bg-linear-to-r from-purple-500 to-blue-500 text-white py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all">
-                {editingCategory ? 'Cập nhật' : 'Thêm mới'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Genre Modal */}
+      <GenreModal
+        isOpen={showModal}
+        editingGenre={editingGenre}
+        onClose={handleCloseModal}
+        onSave={handleSaveGenre}
+      />
     </div>
   );
 }

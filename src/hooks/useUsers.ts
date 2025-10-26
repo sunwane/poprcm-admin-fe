@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { User, FilterGender, FilterRole } from '@/types/User';
-import { UserService } from '@/services/userService';
+import { UserService } from '@/services/UserService';
 
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);

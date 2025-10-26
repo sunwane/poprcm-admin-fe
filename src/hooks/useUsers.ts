@@ -10,6 +10,10 @@ export const useUsers = () => {
   const [filterGender, setFilterGender] = useState<FilterGender>('all');
   const [filterRole, setFilterRole] = useState<FilterRole>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Load users on mount
   useEffect(() => {
@@ -39,6 +43,21 @@ export const useUsers = () => {
       return genderMatch && roleMatch && searchMatch;
     });
   }, [users, filterGender, filterRole, searchQuery]);
+
+  // Paginated users
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredUsers.slice(startIndex, endIndex);
+  }, [filteredUsers, currentPage, itemsPerPage]);
+
+  // Pagination info
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterGender, filterRole, searchQuery]);
 
   // Calculate stats
   const stats = useMemo(() => ({
@@ -102,6 +121,15 @@ export const useUsers = () => {
     }
   };
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (newItemsPerPage: number) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1);
+  };
+
   return {
     // State
     users,
@@ -112,7 +140,13 @@ export const useUsers = () => {
     filterRole,
     searchQuery,
     filteredUsers,
+    paginatedUsers,
     stats,
+    
+    // Pagination
+    currentPage,
+    totalPages,
+    itemsPerPage,
     
     // Actions
     handleEdit,
@@ -120,6 +154,8 @@ export const useUsers = () => {
     handleOpenAddModal,
     handleCloseModal,
     handleSaveUser,
+    handlePageChange,
+    handleItemsPerPageChange,
     setFilterGender,
     setFilterRole,
     setSearchQuery,

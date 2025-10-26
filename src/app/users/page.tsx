@@ -7,6 +7,7 @@ import GradientButton from '@/components/ui/GradientButton';
 import UserModal from '@/components/modalForm/UserModal';
 import SearchBar from '@/components/ui/SearchBar';
 import FormSelect from '@/components/ui/FormSelect';
+import Pagination from '@/components/ui/Pagination';
 
 export default function Users() {
   const {
@@ -17,12 +18,18 @@ export default function Users() {
     filterRole,
     searchQuery,
     filteredUsers,
+    paginatedUsers, // Sử dụng paginatedUsers thay vì filteredUsers
     stats,
+    currentPage,
+    totalPages,
+    itemsPerPage,
     handleEdit,
     handleDelete,
     handleOpenAddModal,
     handleCloseModal,
     handleSaveUser,
+    handlePageChange,
+    handleItemsPerPageChange,
     setFilterGender,
     setFilterRole,
     setSearchQuery,
@@ -103,9 +110,29 @@ export default function Users() {
 
       {/* Users Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-6 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-(--text-title)">Danh sách Người dùng ({filteredUsers.length})</h2>
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+          <h2 className="text-xl font-bold text-(--text-title)">
+            Danh sách Người dùng ({filteredUsers.length})
+          </h2>
+          
+          {/* Items per page selector */}
+          <div className="flex items-center space-x-2 max-w-100">
+            <span className="text-sm text-gray-600 text-nowrap">Hiển thị:</span>
+            <FormSelect
+              size='small'
+              filter={itemsPerPage.toString()}
+              onChange={(value: string) => handleItemsPerPageChange(parseInt(value))}
+              options={[
+                { value: '5', label: '5' },
+                { value: '10', label: '10' },
+                { value: '20', label: '20' },
+                { value: '50', label: '50' },
+              ]}
+            />
+            <span className="text-sm text-gray-600">mục/trang</span>
+          </div>
         </div>
+        
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
@@ -120,7 +147,7 @@ export default function Users() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filteredUsers.map((user) => (
+              {paginatedUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-blue-50">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
@@ -175,6 +202,15 @@ export default function Users() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          itemsPerPage={itemsPerPage}
+          totalItems={filteredUsers.length}
+        />
       </div>
 
       {/* User Modal */}

@@ -18,8 +18,10 @@ export default function Users() {
     filterRole,
     searchQuery,
     filteredUsers,
-    paginatedUsers, // Sử dụng paginatedUsers thay vì filteredUsers
+    paginatedUsers,
     stats,
+    sortBy,        // THÊM MỚI
+    sortOrder,     // THÊM MỚI
     currentPage,
     totalPages,
     itemsPerPage,
@@ -30,6 +32,7 @@ export default function Users() {
     handleSaveUser,
     handlePageChange,
     handleItemsPerPageChange,
+    handleSort,    // THÊM MỚI
     setFilterGender,
     setFilterRole,
     setSearchQuery,
@@ -43,9 +46,18 @@ export default function Users() {
     );
   }
 
+  // Helper function to render sort icon - THÊM MỚI
+  const renderSortIcon = (field: string) => {
+    if (sortBy !== field) return null;
+    return (
+      <svg className={`w-4 h-4 ml-1 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+      </svg>
+    );
+  };
+
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
-
       {/* Header */}
       <div className="mb-4 flex justify-between items-center">
         <div>
@@ -137,18 +149,47 @@ export default function Users() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Người dùng</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Username</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Email</th>
+                {/* CẬP NHẬT: Thêm onClick và sort icon cho các cột có thể sort */}
+                <th 
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => handleSort('id')}
+                >
+                  <div className="flex items-center">
+                    <span>Người dùng</span>
+                    {renderSortIcon('id')}
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center">
+                    <span>Username</span>
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center">
+                    <span>Email</span>
+                  </div>
+                </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Vai trò</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Giới tính</th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Ngày tạo</th>
+                <th 
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => handleSort('createdAt')}
+                >
+                  <div className="flex items-center">
+                    <span>Ngày tạo</span>
+                    {renderSortIcon('createdAt')}
+                  </div>
+                </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Thao tác</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {paginatedUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-blue-50">
+                <tr key={user.id} className="hover:bg-blue-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-medium mr-3 overflow-hidden">

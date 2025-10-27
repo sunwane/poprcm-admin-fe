@@ -11,6 +11,10 @@ export const useUsers = () => {
   const [filterRole, setFilterRole] = useState<FilterRole>('all');
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Sorting states
+  const [sortBy, setSortBy] = useState<'id' | 'createdAt'>('id');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -31,9 +35,9 @@ export const useUsers = () => {
     loadUsers();
   }, []);
 
-  // Filter users
+  // Filter and sort users
   const filteredUsers = useMemo(() => {
-    return users.filter(user => {
+    let filtered = users.filter(user => {
       const genderMatch = filterGender === 'all' || user.gender === filterGender;
       const roleMatch = filterRole === 'all' || user.role === filterRole;
       const searchMatch = searchQuery === '' || 
@@ -42,7 +46,32 @@ export const useUsers = () => {
         user.email.toLowerCase().includes(searchQuery.toLowerCase());
       return genderMatch && roleMatch && searchMatch;
     });
-  }, [users, filterGender, filterRole, searchQuery]);
+
+    // Apply sorting
+    return [...filtered].sort((a, b) => {
+      let aValue: string | number | Date;
+      let bValue: string | number | Date;
+      
+      switch (sortBy) {
+        case 'id':
+          aValue = a.id;
+          bValue = b.id;
+          break;
+        case 'createdAt':
+          aValue = a.createdAt.getTime();
+          bValue = b.createdAt.getTime();
+          break;
+        default:
+          aValue = a.id;
+          bValue = b.id;
+      }
+      
+      if (sortOrder === 'desc') {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    });
+  }, [users, filterGender, filterRole, searchQuery, sortBy, sortOrder]);
 
   // Paginated users
   const paginatedUsers = useMemo(() => {
@@ -54,10 +83,10 @@ export const useUsers = () => {
   // Pagination info
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
-  // Reset to first page when filters change
+  // Reset to first page when filters or sorting change
   useEffect(() => {
     setCurrentPage(1);
-  }, [filterGender, filterRole, searchQuery]);
+  }, [filterGender, filterRole, searchQuery, sortBy, sortOrder]);
 
   // Calculate stats
   const stats = useMemo(() => ({
@@ -130,6 +159,16 @@ export const useUsers = () => {
     setCurrentPage(1);
   };
 
+  // Handle sorting
+  const handleSort = (field: 'id' | 'createdAt') => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(field);
+      setSortOrder('asc');
+    }
+  };
+
   return {
     // State
     users,
@@ -142,6 +181,10 @@ export const useUsers = () => {
     filteredUsers,
     paginatedUsers,
     stats,
+    
+    // Sorting
+    sortBy,
+    sortOrder,
     
     // Pagination
     currentPage,
@@ -156,6 +199,7 @@ export const useUsers = () => {
     handleSaveUser,
     handlePageChange,
     handleItemsPerPageChange,
+    handleSort,
     setFilterGender,
     setFilterRole,
     setSearchQuery,

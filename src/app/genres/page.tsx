@@ -69,21 +69,17 @@ export default function Genres() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="text-2xl font-bold text-blue-600 mb-1">{stats.total}</div>
           <div className="text-gray-600 text-sm">Tổng thể loại</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-green-600 mb-1">{stats.totalMovies}</div>
-          <div className="text-gray-600 text-sm">Tổng phim</div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.genresWithMovies}</div>
+          <div className="text-2xl font-bold text-green-600 mb-1">{stats.genresWithMovies}</div>
           <div className="text-gray-600 text-sm">Thể loại có phim</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-purple-600 mb-1">{stats.avgMoviesPerGenre}</div>
+          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.avgMoviesPerGenre}</div>
           <div className="text-gray-600 text-sm">TB phim/thể loại</div>
         </div>
       </div>

@@ -1,3 +1,5 @@
+import { User } from "@/types/User";
+
 export const getGenderColor = (gender: string): string => {
   switch (gender) {
     case 'male': return 'bg-blue-100 text-blue-800';
@@ -39,4 +41,35 @@ export const getInitials = (fullname: string): string => {
 
 export const formatDateTime = (date: Date): string => {
   return date.toLocaleString('vi-VN');
+};
+
+// Hàm sắp xếp người dùng
+export const sortUsers = (
+  users: User[], 
+  sortBy: 'id' | 'createdAt' = 'id', 
+  order: 'asc' | 'desc' = 'asc'
+): User[] => {
+  return [...users].sort((a, b) => {
+    let aValue: string | number | Date;
+    let bValue: string | number | Date;
+    
+    switch (sortBy) {
+      case 'id':
+        aValue = a.id;
+        bValue = b.id;
+        break;
+      case 'createdAt':
+        aValue = a.createdAt.getTime();
+        bValue = b.createdAt.getTime();
+        break;
+      default:
+        aValue = a.id;
+        bValue = b.id;
+    }
+    
+    if (order === 'desc') {
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+    }
+    return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+  });
 };

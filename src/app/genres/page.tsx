@@ -45,27 +45,28 @@ export default function Genres() {
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="mb-4 flex justify-between items-center">
+      <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Quản lý Thể loại</h1>
+          <p className="text-gray-600">Quản lý tất cả thể loại hiện có trong hệ thống</p>
         </div>
-        <div className="flex items-center space-x-4">
-          <GradientButton onClick={handleOpenAddModal}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 12h14m-7 7V5"/>
-            </svg>
-            <span>Thêm Thể loại</span>
-          </GradientButton>
+        <div className="flex items-center w-full max-w-2/5">
+          <div className="flex-1 mx-4 max-w-md">
+            <SearchBar 
+                searchQuery={searchQuery} 
+                onChange={setSearchQuery} 
+                placeholder='Tìm kiếm thể loại...'
+              />
+          </div>
+          <div className="flex items-center space-x-4">
+            <GradientButton onClick={handleOpenAddModal}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 12h14m-7 7V5"/>
+              </svg>
+              <span>Thêm Thể loại</span>
+            </GradientButton>
+          </div>
         </div>
-      </div>
-
-      {/* Filters */}
-      <div className='mb-6 flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0'>
-        <SearchBar 
-          searchQuery={searchQuery} 
-          onChange={setSearchQuery} 
-          placeholder='Tìm kiếm thể loại...'
-        />
       </div>
 
       {/* Stats Cards */}

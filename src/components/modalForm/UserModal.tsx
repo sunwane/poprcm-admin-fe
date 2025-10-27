@@ -9,12 +9,12 @@ import FormInput from '../ui/FormInput';
 
 interface UserModalProps {
   isOpen: boolean;
-  editingUser: User | null;
+  // editingUser: User | null;
   onClose: () => void;
   onSave: (userData: Partial<User>) => void;
 }
 
-export default function UserModal({ isOpen, editingUser, onClose, onSave }: UserModalProps) {
+export default function UserModal({ isOpen, onClose, onSave }: UserModalProps) {
   const [formData, setFormData] = useState({
     username: '',
     fullname: '',
@@ -30,16 +30,16 @@ export default function UserModal({ isOpen, editingUser, onClose, onSave }: User
 
   // Update form data when editing user
   useEffect(() => {
-    if (editingUser) {
-      setFormData({
-        username: editingUser.username,
-        fullname: editingUser.fullname,
-        email: editingUser.email,
-        gender: editingUser.gender as 'male' | 'female',
-        role: editingUser.role?.valueOf() || 'USER',
-        avatarUrl: editingUser.avatarUrl || '',
-      });
-    } else {
+    // if (editingUser) {
+    //   setFormData({
+    //     username: editingUser.username,
+    //     fullname: editingUser.fullname,
+    //     email: editingUser.email,
+    //     gender: editingUser.gender as 'male' | 'female',
+    //     role: editingUser.role?.valueOf() || 'USER',
+    //     avatarUrl: editingUser.avatarUrl || '',
+    //   });
+    // } else {
       setFormData({
         username: '',
         fullname: '',
@@ -48,10 +48,11 @@ export default function UserModal({ isOpen, editingUser, onClose, onSave }: User
         role: 'USER',
         avatarUrl: '',
       });
-    }
+    // }
     setAvatarFile(null);
     setUploadError('');
-  }, [editingUser, isOpen]);
+  // }, [editingUser, isOpen]);
+  }, [isOpen]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -162,7 +163,8 @@ export default function UserModal({ isOpen, editingUser, onClose, onSave }: User
       <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold text-(--text-title)">
-            {editingUser ? 'Chỉnh sửa người dùng' : 'Thêm người dùng mới'}
+            {/* {editingUser ? 'Chỉnh sửa người dùng' : 'Thêm người dùng mới'} */}
+            Thêm người dùng mới
           </h3>
           <button
             onClick={handleClose}
@@ -287,7 +289,8 @@ export default function UserModal({ isOpen, editingUser, onClose, onSave }: User
                     Đang tải lên...
                   </>
                 ) : (
-                  editingUser ? 'Cập nhật' : 'Thêm mới'
+                  // editingUser ? 'Cập nhật' : 'Thêm mới'
+                  'Thêm mới'
                 )}
               </GradientButton>
             </div>

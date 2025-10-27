@@ -13,7 +13,7 @@ export default function Users() {
   const {
     loading,
     showModal,
-    editingUser,
+    // editingUser,
     filterGender,
     filterRole,
     searchQuery,
@@ -25,7 +25,7 @@ export default function Users() {
     currentPage,
     totalPages,
     itemsPerPage,
-    handleEdit,
+    // handleEdit,
     handleDelete,
     handleOpenAddModal,
     handleCloseModal,
@@ -59,14 +59,14 @@ export default function Users() {
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="mb-4 flex justify-between items-center">
+      <div className="mb-5 flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-(--text-title) mb-2">Quản lí Người dùng</h1>
         </div>
         <div className="flex items-center space-x-4">
           <GradientButton onClick={handleOpenAddModal}>
-            <svg className="w-5 h-5 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 12h14m-7 7V5"/>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 12h14m-7 7V5"/>
             </svg>
             <span>Thêm Người dùng</span>
           </GradientButton>
@@ -225,12 +225,6 @@ export default function Users() {
                   <td className="px-6 py-4">
                     <div className="flex space-x-2">
                       <button 
-                        onClick={() => handleEdit(user)}
-                        className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
-                      >
-                        Sửa
-                      </button>
-                      <button 
                         onClick={() => handleDelete(user.id)}
                         className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
                       >
@@ -257,7 +251,7 @@ export default function Users() {
       {/* User Modal */}
       <UserModal
         isOpen={showModal}
-        editingUser={editingUser}
+        // editingUser={editingUser}
         onClose={handleCloseModal}
         onSave={handleSaveUser}
       />

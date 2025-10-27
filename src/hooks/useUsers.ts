@@ -6,7 +6,7 @@ export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  // const [editingUser, setEditingUser] = useState<User | null>(null);
   const [filterGender, setFilterGender] = useState<FilterGender>('all');
   const [filterRole, setFilterRole] = useState<FilterRole>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -103,10 +103,10 @@ export const useUsers = () => {
   }), [users]);
 
   // Actions
-  const handleEdit = (user: User) => {
-    setEditingUser(user);
-    setShowModal(true);
-  };
+  // const handleEdit = (user: User) => {
+  //   setEditingUser(user);
+  //   setShowModal(true);
+  // };
 
   const handleDelete = async (id: string) => {
     if (confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
@@ -120,30 +120,30 @@ export const useUsers = () => {
   };
 
   const handleOpenAddModal = () => {
-    setEditingUser(null);
+    // setEditingUser(null);
     setShowModal(true);
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setEditingUser(null);
+    // setEditingUser(null);
   };
 
   const handleSaveUser = async (userData: Partial<User>) => {
     try {
-      if (editingUser) {
-        // Update existing user
-        const updatedUser = await UserService.updateUser(editingUser.id, userData);
-        if (updatedUser) {
-          setUsers(users.map(user => 
-            user.id === editingUser.id ? updatedUser : user
-          ));
-        }
-      } else {
+      // if (editingUser) {
+      //   // Update existing user
+      //   const updatedUser = await UserService.updateUser(editingUser.id, userData);
+      //   if (updatedUser) {
+      //     setUsers(users.map(user => 
+      //       user.id === editingUser.id ? updatedUser : user
+      //     ));
+      //   }
+      // } else {
         // Add new user
         const newUser = await UserService.addUser(userData as Omit<User, 'id' | 'createdAt'>);
         setUsers([...users, newUser]);
-      }
+      // }
       handleCloseModal();
     } catch (error) {
       console.error('Error saving user:', error);
@@ -174,7 +174,7 @@ export const useUsers = () => {
     users,
     loading,
     showModal,
-    editingUser,
+    // editingUser,
     filterGender,
     filterRole,
     searchQuery,
@@ -192,7 +192,7 @@ export const useUsers = () => {
     itemsPerPage,
     
     // Actions
-    handleEdit,
+    // handleEdit,
     handleDelete,
     handleOpenAddModal,
     handleCloseModal,

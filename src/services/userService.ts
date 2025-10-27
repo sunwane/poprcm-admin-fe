@@ -49,26 +49,26 @@ export class UserService {
     //   .then(data => data as User);
   }
 
-  static updateUser(id: string, userData: Partial<User>): Promise<User | null> {
-    //fake API call
-    const index = this.users.findIndex(u => u.id === id);
-    if (index === -1) return Promise.resolve(null);
+  // static updateUser(id: string, userData: Partial<User>): Promise<User | null> {
+  // //   fake API call
+  //   const index = this.users.findIndex(u => u.id === id);
+  //   if (index === -1) return Promise.resolve(null);
     
-    this.users[index] = { ...this.users[index], ...userData };
-    return Promise.resolve(this.users[index]);
+  //   this.users[index] = { ...this.users[index], ...userData };
+  //   return Promise.resolve(this.users[index]);
 
-    //real API call example:
-    // return fetch(`/api/users/${id}`, {
-    //   method: 'PUT',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(userData),
-    // })
-    //   .then(response => {
-    //     if (!response.ok) return null;
-    //     return response.json();
-    //   })
-    //   .then(data => data as User);
-  }
+  // //   real API call example:
+  //   return fetch(`/api/users/${id}`, {
+  //     method: 'PUT',
+  //     headers: { 'Content-Type': 'application/json' },
+  //     body: JSON.stringify(userData),
+  //   })
+  //     .then(response => {
+  //       if (!response.ok) return null;
+  //       return response.json();
+  //     })
+  //     .then(data => data as User);
+  // }
 
   static deleteUser(id: string): Promise<boolean> {
     //fake API call

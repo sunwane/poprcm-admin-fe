@@ -1,4 +1,4 @@
-import { Genre } from '@/types/Genres';
+import { Genre, OphimGenreResponse } from '@/types/Genres';
 
 // Format tên thể loại
 export const formatGenreName = (name: string): string => {
@@ -38,8 +38,8 @@ export const sortGenres = (genres: Genre[], sortBy: 'name' | 'id' = 'name', orde
       aValue = a.genresName.toLowerCase();
       bValue = b.genresName.toLowerCase();
     } else {
-      aValue = a.id;
-      bValue = b.id;
+      aValue = Number(a.id);
+      bValue = Number(b.id);
     }
     
     if (order === 'desc') {
@@ -66,4 +66,77 @@ export const getMovieCountColor = (count: number): string => {
   if (count < 20) return 'text-blue-700 bg-blue-100';
   if (count < 50) return 'text-green-700 bg-green-100';
   return 'text-purple-700 bg-purple-100';
+};
+
+// Chuyển đổi từ API response sang Genre type
+export const normalizeGenreFromApi = (apiGenre: OphimGenreResponse, index: number): Genre => {
+  return {
+    id: (index + 1).toString(), // Vì API không có id số, ta tạo id từ index
+    genresName: apiGenre.name,
+  };
+};
+
+// Chuyển đổi danh sách genres từ API - CẬP NHẬT với validation tốt hơn
+export const normalizeGenresFromApi = (apiGenres: OphimGenreResponse[]): Genre[] => {
+  // Kiểm tra nếu apiGenres không phải là array
+  if (!Array.isArray(apiGenres)) {
+    console.error('Expected array but got:', typeof apiGenres, apiGenres);
+    throw new Error('API response items is not an array');
+  }
+  
+  console.log('Normalizing', apiGenres.length, 'genres from API');
+  
+  return apiGenres.map((apiGenre, index) => {
+    // Validate từng item
+    if (!apiGenre || typeof apiGenre !== 'object') {
+      console.warn('Invalid genre item at index', index, ':', apiGenre);
+      return {
+        id: (index + 1).toString(),
+        genresName: 'Unknown Genre'
+      };
+    }
+    
+    if (!apiGenre.name) {
+      console.warn('Genre missing name at index', index, ':', apiGenre);
+      return {
+        id: (index + 1).toString(),
+        genresName: 'Unnamed Genre'
+      };
+    }
+    
+    return normalizeGenreFromApi(apiGenre, index);
+  });
+};
+
+// Utility để gọi API với error handling
+export const fetchWithErrorHandling = async (url: string, options?: RequestInit) => {
+  try {
+    console.log('Fetching from:', url);
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+        ...options?.headers,
+      },
+      ...options,
+    });
+
+    console.log('Response status:', response.status);
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Parsed JSON data type:', typeof data);
+    console.log('Has data property:', 'data' in data);
+    console.log('Has items in data:', data.data && 'items' in data.data);
+    
+    return data;
+  } catch (error) {
+    console.error('API fetch error:', error);
+    throw error;
+  }
 };

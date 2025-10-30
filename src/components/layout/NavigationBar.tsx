@@ -13,6 +13,7 @@ export default function NavigationBar() {
         { name: 'Quản lí series', path: '/series' },
         { name: 'Quản lí phim', path: '/movies' },
         { name: 'Quản lí diễn viên', path: '/actors' },
+        { name: 'Quản lí quốc gia', path: '/country' },
         { name: 'Quản lí người dùng', path: '/users' },
         { name: 'Cài đặt tài khoản', path: '/settings' },
     ];

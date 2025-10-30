@@ -25,7 +25,7 @@ export const useGenres = () => {
         setGenres(genresData);
         
         // Load movie counts for each genre
-        const counts: Record<number, number> = {};
+        const counts: Record<string, number> = {};
         for (const genre of genresData) {
           counts[genre.id] = await GenresService.getMovieCountByGenre(genre.id);
         }
@@ -82,14 +82,14 @@ export const useGenres = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Bạn có chắc chắn muốn xóa thể loại này?')) {
       try {
         await GenresService.deleteGenre(id);
         setGenres(genres.filter(genre => genre.id !== id));
         // Remove from movieCounts
         const newMovieCounts = { ...movieCounts };
-        delete newMovieCounts[id];
+        delete newMovieCounts[Number(id)];
         setMovieCounts(newMovieCounts);
       } catch (error) {
         console.error('Error deleting genre:', error);

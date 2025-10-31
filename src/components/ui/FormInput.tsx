@@ -17,7 +17,7 @@ export default function FormInput( { type = "text", name, placeholder = "", valu
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-3 focus:ring-blue-500 focus:outline-transparent"
+        className="w-full p-3 border bg-white border-gray-300 rounded-lg focus:ring-3 focus:ring-blue-500 focus:outline-transparent"
         required={required}
         disabled={disabled}
         autoComplete={autoComplete}

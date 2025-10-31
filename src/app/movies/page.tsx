@@ -1,285 +1,352 @@
 'use client';
 
-import { useState } from 'react';
+import { useMovies } from '@/hooks/useMovies';
+import { 
+  getStatusColor, 
+  getStatusText, 
+  getTypeColor, 
+  getTypeText,
+  getLangColor,
+  formatViewCount,
+  formatDate,
+  getRatingColor,
+  getCountryNames 
+} from '@/utils/movieUtils';
+import GradientButton from '@/components/ui/GradientButton';
+import MovieModal from '@/components/modalForm/MovieModal';
+import SearchBar from '@/components/ui/SearchBar';
+import FormSelect from '@/components/ui/FormSelect';
+import Pagination from '@/components/ui/Pagination';
 
 export default function Movies() {
-  const [moviesList, setMoviesList] = useState([
-    { 
-      id: 1, 
-      title: 'Avatar: The Way of Water', 
-      category: 'Khoa học viễn tưởng', 
-      duration: 192, 
-      releaseDate: '2022-12-16',
-      status: 'released',
-      rating: 7.6,
-      director: 'James Cameron',
-      revenue: '2.32B'
-    },
-    { 
-      id: 2, 
-      title: 'Top Gun: Maverick', 
-      category: 'Hành động', 
-      duration: 130, 
-      releaseDate: '2022-05-27',
-      status: 'released',
-      rating: 8.3,
-      director: 'Joseph Kosinski',
-      revenue: '1.49B'
-    },
-    { 
-      id: 3, 
-      title: 'Black Panther: Wakanda Forever', 
-      category: 'Siêu anh hùng', 
-      duration: 161, 
-      releaseDate: '2022-11-11',
-      status: 'released',
-      rating: 6.7,
-      director: 'Ryan Coogler',
-      revenue: '859M'
-    },
-    { 
-      id: 4, 
-      title: 'The Batman', 
-      category: 'Hành động', 
-      duration: 176, 
-      releaseDate: '2022-03-04',
-      status: 'released',
-      rating: 7.8,
-      director: 'Matt Reeves',
-      revenue: '771M'
-    },
-    { 
-      id: 5, 
-      title: 'Spider-Man: No Way Home 2', 
-      category: 'Siêu anh hùng', 
-      duration: 150, 
-      releaseDate: '2024-07-15',
-      status: 'upcoming',
-      rating: 0,
-      director: 'Jon Watts',
-      revenue: 'TBD'
-    },
-  ]);
+  const {
+    loading,
+    showModal,
+    editingMovie,
+    viewMode,
+    searchQuery,
+    yearFilter,
+    typeFilter,
+    statusFilter,
+    langFilter,
+    sortBy,
+    sortOrder,
+    paginatedMovies,
+    stats,
+    filterOptions,
+    currentPage,
+    totalPages,
+    itemsPerPage,
+    handleEdit,
+    handleDelete,
+    handleOpenAddModal,
+    handleCloseModal,
+    handleSaveMovie,
+    handleViewModeToggle,
+    handlePageChange,
+    handleItemsPerPageChange,
+    handleSort,
+    handleClearFilters,
+    setSearchQuery,
+    setYearFilter,
+    setTypeFilter,
+    setStatusFilter,
+    setLangFilter,
+  } = useMovies();
 
-  const [viewMode, setViewMode] = useState('grid');
-  const [showModal, setShowModal] = useState(false);
-  const [editingMovie, setEditingMovie] = useState(null);
-  const [filterStatus, setFilterStatus] = useState('all');
-
-  const handleEdit = (movie) => {
-    setEditingMovie(movie);
-    setShowModal(true);
-  };
-
-  const handleDelete = (id) => {
-    if (confirm('Bạn có chắc chắn muốn xóa phim này?')) {
-      setMoviesList(moviesList.filter(movie => movie.id !== id));
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'released': return 'bg-green-100 text-green-800';
-      case 'upcoming': return 'bg-blue-100 text-blue-800';
-      case 'in-production': return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getStatusText = (status) => {
-    switch (status) {
-      case 'released': return 'Đã phát hành';
-      case 'upcoming': return 'Sắp ra mắt';
-      case 'in-production': return 'Đang sản xuất';
-      case 'cancelled': return 'Đã hủy';
-      default: return 'Không xác định';
-    }
-  };
-
-  const filteredMovies = filterStatus === 'all' 
-    ? moviesList 
-    : moviesList.filter(movie => movie.status === filterStatus);
+  if (loading) {
+    return (
+      <div className="p-8 bg-gray-50 min-h-screen flex items-center justify-center">
+        <div className="text-lg">Đang tải...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
+      {/* Header */}
       <div className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-(--text-title)] mb-2">Quản lí Phim</h1>
-          <p className="text-gray-600">Quản lí danh sách phim trong hệ thống</p>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Quản lý Phim</h1>
+          <p className="text-gray-600">Quản lý tất cả phim trong hệ thống</p>
         </div>
         <div className="flex items-center space-x-4">
-          <select 
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-white border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          >
-            <option value="all">Tất cả trạng thái</option>
-            <option value="released">Đã phát hành</option>
-            <option value="upcoming">Sắp ra mắt</option>
-            <option value="in-production">Đang sản xuất</option>
-            <option value="cancelled">Đã hủy</option>
-          </select>
+          {/* View Mode Toggle */}
           <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-            <button 
-              onClick={() => setViewMode('grid')}
-              className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
-                viewMode === 'grid' 
-                  ? 'bg-purple-500 text-white' 
-                  : 'text-gray-600 hover:text-purple-600'
+            <button
+              onClick={() => handleViewModeToggle('table')}
+              className={`px-3 py-2 rounded-md transition-colors ${
+                viewMode === 'table'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-600 hover:text-blue-500'
               }`}
             >
-              🔲 Grid
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
             </button>
-            <button 
-              onClick={() => setViewMode('list')}
-              className={`px-3 py-2 rounded text-sm font-medium transition-colors ${
-                viewMode === 'list' 
-                  ? 'bg-purple-500 text-white' 
-                  : 'text-gray-600 hover:text-purple-600'
+            <button
+              onClick={() => handleViewModeToggle('grid')}
+              className={`px-3 py-2 rounded-md transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-600 hover:text-blue-500'
               }`}
             >
-              📋 List
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+              </svg>
             </button>
           </div>
-          <button 
-            onClick={() => {
-              setEditingMovie(null);
-              setShowModal(true);
-            }}
-            className="bg-linear-to-r from-purple-500 to-blue-500 text-white px-6 py-3 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all flex items-center space-x-2"
-          >
-            <span>➕</span>
-            <span>Thêm phim mới</span>
-          </button>
+          
+          <GradientButton onClick={handleOpenAddModal}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 12h14m-7 7V5"/>
+            </svg>
+            <span>Thêm Phim</span>
+          </GradientButton>
         </div>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-(--text-primary)] mb-1">{moviesList.length}</div>
+          <div className="text-2xl font-bold text-blue-600 mb-1">{stats.total}</div>
           <div className="text-gray-600 text-sm">Tổng phim</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-green-600 mb-1">{moviesList.filter(m => m.status === 'released').length}</div>
-          <div className="text-gray-600 text-sm">Đã phát hành</div>
+          <div className="text-2xl font-bold text-purple-600 mb-1">{stats.totalMovies}</div>
+          <div className="text-gray-600 text-sm">Phim lẻ</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-blue-600 mb-1">{moviesList.filter(m => m.status === 'upcoming').length}</div>
-          <div className="text-gray-600 text-sm">Sắp ra mắt</div>
+          <div className="text-2xl font-bold text-green-600 mb-1">{stats.totalSeries}</div>
+          <div className="text-gray-600 text-sm">Phim bộ</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-(--text-primary)] mb-1">
-            {Math.round(moviesList.filter(m => m.rating > 0).reduce((sum, m) => sum + m.rating, 0) / moviesList.filter(m => m.rating > 0).length * 10) / 10}
+          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.averageRating}</div>
+          <div className="text-gray-600 text-sm">Điểm TB</div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
+            <SearchBar 
+              searchQuery={searchQuery} 
+              onChange={setSearchQuery} 
+              placeholder='Tìm kiếm phim...'
+            />
           </div>
-          <div className="text-gray-600 text-sm">Điểm trung bình</div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Năm phát hành</label>
+            <input
+              type="number"
+              placeholder="2024"
+              value={yearFilter || ''}
+              onChange={(e) => setYearFilter(e.target.value ? parseInt(e.target.value) : null)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Loại phim</label>
+            <FormSelect
+              filter={typeFilter}
+              onChange={setTypeFilter}
+              options={[
+                { value: 'all', label: 'Tất cả' },
+                { value: 'Movie', label: 'Phim lẻ' },
+                { value: 'Series', label: 'Phim bộ' },
+                { value: 'hoathinh', label: 'Hoạt hình' }
+              ]}
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+            <FormSelect
+              filter={statusFilter}
+              onChange={setStatusFilter}
+              options={[
+                { value: 'all', label: 'Tất cả' },
+                { value: 'Completed', label: 'Hoàn thành' },
+                { value: 'Ongoing', label: 'Đang chiếu' },
+                { value: 'Hiatus', label: 'Tạm dừng' }
+              ]}
+            />
+          </div>
+          
+          <div>
+            <button
+              onClick={handleClearFilters}
+              className="w-full bg-gray-500 text-white px-4 py-3 rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              Xóa filter
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Content based on view mode */}
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredMovies.map((movie) => (
-            <div key={movie.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="aspect-3/4 bg-gray-200 relative">
-                <div className="absolute inset-0 flex items-center justify-center text-gray-500">
-                  🎬 Poster
-                </div>
-                <div className="absolute top-2 right-2">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(movie.status)}`}>
-                    {getStatusText(movie.status)}
-                  </span>
-                </div>
-                {movie.rating > 0 && (
-                  <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-medium">
-                    ⭐ {movie.rating}
-                  </div>
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="font-bold text-(--text-primary)] mb-2 truncate">{movie.title}</h3>
-                <p className="text-gray-600 text-sm mb-1">{movie.category}</p>
-                <p className="text-gray-500 text-xs mb-2">Đạo diễn: {movie.director}</p>
-                <div className="flex justify-between text-sm text-gray-500 mb-3">
-                  <span>{movie.duration} phút</span>
-                  <span>{new Date(movie.releaseDate).getFullYear()}</span>
-                  <span>{movie.revenue}</span>
-                </div>
-                <div className="flex space-x-2">
-                  <button 
-                    onClick={() => handleEdit(movie)}
-                    className="flex-1 bg-blue-500 text-white py-2 px-3 rounded text-sm hover:bg-blue-600 transition-colors"
-                  >
-                    Sửa
-                  </button>
-                  <button 
-                    onClick={() => handleDelete(movie.id)}
-                    className="flex-1 bg-red-500 text-white py-2 px-3 rounded text-sm hover:bg-red-600 transition-colors"
-                  >
-                    Xóa
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
+      {viewMode === 'table' ? (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100">
-            <h2 className="text-xl font-bold text-(--text-title)]">Danh sách Phim</h2>
+          <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h2 className="text-xl font-bold text-gray-800">
+              Danh sách Phim ({stats.filteredCount})
+            </h2>
+            
+            {/* Items per page selector */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</span>
+              <FormSelect
+                size='small'
+                filter={itemsPerPage.toString()}
+                onChange={(value: string) => handleItemsPerPageChange(parseInt(value))}
+                options={[
+                  { value: '5', label: '5' },
+                  { value: '10', label: '10' },
+                  { value: '20', label: '20' },
+                  { value: '50', label: '50' },
+                ]}
+              />
+              <span className="text-sm text-gray-600">mục/trang</span>
+            </div>
           </div>
+          
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Tên phim</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Thể loại</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Đạo diễn</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Thời lượng</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Ngày phát hành</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Đánh giá</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Doanh thu</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Trạng thái</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-500">Thao tác</th>
+                  <th 
+                    className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('id')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Poster & Thông tin</span>
+                      {sortBy === 'id' && (
+                        <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('releaseYear')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Năm</span>
+                      {sortBy === 'releaseYear' && (
+                        <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Loại</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Thời lượng</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Tập</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Trạng thái</th>
+                  <th 
+                    className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('view')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Lượt xem</span>
+                      {sortBy === 'view' && (
+                        <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Ngôn ngữ</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Điểm</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Quốc gia</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Ngày tạo</th>
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredMovies.map((movie) => (
-                  <tr key={movie.id} className="hover:bg-gray-50">
+                {paginatedMovies.map((movie) => (
+                  <tr key={movie.id} className="hover:bg-blue-50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-(--text-primary)]">{movie.title}</div>
+                      <div className="flex items-center space-x-4">
+                        <img 
+                          src={movie.posterUrl || '/placeholder-poster.png'} 
+                          alt={movie.title}
+                          className="w-16 h-24 object-cover rounded-lg shadow-sm"
+                          onError={(e) => {
+                            e.currentTarget.src = '/placeholder-poster.png';
+                          }}
+                        />
+                        <div>
+                          <div className="font-medium text-gray-800">{movie.title}</div>
+                          <div className="text-sm text-gray-500">{movie.originalName}</div>
+                          <div className="text-xs text-gray-400 font-mono">ID: {movie.id}</div>
+                        </div>
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{movie.category}</td>
-                    <td className="px-6 py-4 text-gray-600">{movie.director}</td>
-                    <td className="px-6 py-4">{movie.duration} phút</td>
-                    <td className="px-6 py-4">{new Date(movie.releaseDate).toLocaleDateString('vi-VN')}</td>
+                    <td className="px-6 py-4 text-gray-600">{movie.releaseYear}</td>
                     <td className="px-6 py-4">
-                      {movie.rating > 0 ? (
-                        <span className="flex items-center">
-                          ⭐ {movie.rating}
-                        </span>
-                      ) : (
-                        <span className="text-gray-400">Chưa có</span>
-                      )}
+                      <span className={`px-2 py-1 rounded-full text-sm font-medium ${getTypeColor(movie.type)}`}>
+                        {getTypeText(movie.type)}
+                      </span>
                     </td>
-                    <td className="px-6 py-4 font-medium text-green-600">{movie.revenue}</td>
+                    <td className="px-6 py-4 text-gray-600">{movie.duration}</td>
+                    <td className="px-6 py-4 text-gray-600">
+                      {movie.totalEpisodes ? `${movie.totalEpisodes} tập` : '-'}
+                    </td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(movie.status)}`}>
+                      <span className={`px-2 py-1 rounded-full text-sm font-medium ${getStatusColor(movie.status)}`}>
                         {getStatusText(movie.status)}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-600">{formatViewCount(movie.view)}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 rounded-full text-sm font-medium ${getLangColor(movie.lang)}`}>
+                        {movie.lang}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-1">
+                        <div className={`px-2 py-1 rounded text-xs font-medium ${getRatingColor(movie.rating)}`}>
+                          ⭐ {movie.rating}
+                        </div>
+                        {movie.tmdbScore && (
+                          <div className="text-xs text-gray-500">TMDB: {movie.tmdbScore}</div>
+                        )}
+                        {movie.imdbScore && (
+                          <div className="text-xs text-gray-500">IMDB: {movie.imdbScore}</div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {getCountryNames(movie)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {formatDate(movie.createdAt)}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex space-x-2">
                         <button 
+                          className="bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors"
+                          title="Chi tiết"
+                        >
+                          👁️
+                        </button>
+                        <button 
                           onClick={() => handleEdit(movie)}
-                          className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
+                          className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors"
                         >
                           Sửa
                         </button>
                         <button 
                           onClick={() => handleDelete(movie.id)}
-                          className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
+                          className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors"
                         >
                           Xóa
                         </button>
@@ -290,82 +357,132 @@ export default function Movies() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            itemsPerPage={itemsPerPage}
+            totalItems={stats.filteredCount}
+          />
+        </div>
+      ) : (
+        /* Grid View with blue theme */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {paginatedMovies.map((movie) => (
+            <div key={movie.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
+              <div className="aspect-3/4 bg-gray-200 relative">
+                <img 
+                  src={movie.posterUrl || '/placeholder-poster.png'} 
+                  alt={movie.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder-poster.png';
+                  }}
+                />
+                <div className="absolute top-2 right-2">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRatingColor(movie.rating)}`}>
+                    ⭐ {movie.rating}
+                  </span>
+                </div>
+                <div className="absolute top-2 left-2">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(movie.type)}`}>
+                    {getTypeText(movie.type)}
+                  </span>
+                </div>
+              </div>
+              <div className="p-4">
+                <div className="font-medium text-gray-800 mb-1 line-clamp-2">{movie.title}</div>
+                <div className="text-sm text-gray-500 mb-2 line-clamp-1">{movie.originalName}</div>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Năm:</span>
+                    <span>{movie.releaseYear}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Thời lượng:</span>
+                    <span>{movie.duration}</span>
+                  </div>
+                  
+                  {movie.totalEpisodes && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Tập:</span>
+                      <span>{movie.totalEpisodes} tập</span>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Lượt xem:</span>
+                    <span>{formatViewCount(movie.view)}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Ngôn ngữ:</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLangColor(movie.lang)}`}>
+                      {movie.lang}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Trạng thái:</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(movie.status)}`}>
+                      {getStatusText(movie.status)}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Quốc gia:</span>
+                    <span className="text-xs">{getCountryNames(movie)}</span>
+                  </div>
+                  
+                  {(movie.tmdbScore || movie.imdbScore) && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Điểm:</span>
+                      <div className="text-xs space-x-2">
+                        {movie.tmdbScore && <span>TMDB: {movie.tmdbScore}</span>}
+                        {movie.imdbScore && <span>IMDB: {movie.imdbScore}</span>}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex space-x-2 mt-4">
+                  <button 
+                    className="flex-1 bg-blue-500 text-white py-2 rounded text-sm hover:bg-blue-600 transition-colors"
+                    title="Chi tiết"
+                  >
+                    👁️ Chi tiết
+                  </button>
+                  <button 
+                    onClick={() => handleEdit(movie)}
+                    className="flex-1 bg-blue-600 text-white py-2 rounded text-sm hover:bg-blue-700 transition-colors"
+                  >
+                    ✏️ Sửa
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(movie.id)}
+                    className="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600 transition-colors"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-(--text-title)] mb-4">
-              {editingMovie ? 'Chỉnh sửa phim' : 'Thêm phim mới'}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <input
-                type="text"
-                placeholder="Tên phim"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                <option>Chọn thể loại</option>
-                <option>Hành động</option>
-                <option>Tình cảm</option>
-                <option>Kinh dị</option>
-                <option>Khoa học viễn tưởng</option>
-                <option>Siêu anh hùng</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Đạo diễn"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <input
-                type="number"
-                placeholder="Thời lượng (phút)"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <input
-                type="date"
-                placeholder="Ngày phát hành"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <input
-                type="number"
-                step="0.1"
-                placeholder="Đánh giá (0-10)"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <input
-                type="text"
-                placeholder="Doanh thu (VD: 1.2B)"
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-              <select className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                <option value="released">Đã phát hành</option>
-                <option value="upcoming">Sắp ra mắt</option>
-                <option value="in-production">Đang sản xuất</option>
-                <option value="cancelled">Đã hủy</option>
-              </select>
-            </div>
-            <textarea
-              placeholder="Mô tả phim"
-              rows={3}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent mt-4"
-            />
-            <div className="flex space-x-3 mt-6">
-              <button 
-                onClick={() => setShowModal(false)}
-                className="flex-1 bg-gray-500 text-white py-3 rounded-lg hover:bg-gray-600 transition-colors"
-              >
-                Hủy
-              </button>
-              <button className="flex-1 bg-linear-to-r from-purple-500 to-blue-500 text-white py-3 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-all">
-                {editingMovie ? 'Cập nhật' : 'Thêm mới'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Movie Modal */}
+      <MovieModal
+        isOpen={showModal}
+        editingMovie={editingMovie}
+        onClose={handleCloseModal}
+        onSave={handleSaveMovie}
+      />
     </div>
   );
 }
+

@@ -38,10 +38,10 @@ export default function ActorModal({ isOpen, editingActor, onClose, onSave }: Ac
       if (editingActor) {
         setFormData({
           originName: editingActor.originName,
-          tmdbId: editingActor.tmdbId,
-          profilePath: editingActor.profilePath,
+          tmdbId: editingActor.tmdbId || '',
+          profilePath: editingActor.profilePath || '',
           gender: editingActor.gender,
-          alsoKnownAs: editingActor.alsoKnownAs.length > 0 ? editingActor.alsoKnownAs : [''],
+          alsoKnownAs: editingActor.alsoKnownAs && editingActor.alsoKnownAs.length > 0 ? editingActor.alsoKnownAs : [''],
         });
       } else {
         setFormData({

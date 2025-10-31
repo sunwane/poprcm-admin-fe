@@ -1,19 +1,41 @@
+import { MovieActor } from "./Actor";
+import { Country } from "./Country";
+import { Genre } from "./Genres";
+
+export interface Episode {
+    id: number;
+    title: string;
+    episodeNumber: number;
+    createdAt: Date;
+    videoUrl: string;
+    m3u8Url?: string;
+    serverName: string; // e.g., "Vietsub", "ThuyetMinh"
+}
+
 export interface Movie {
     id: number;
     title: string;
+    originalName: string;
     description: string;
     releaseYear: number;
-    genreIds: number[];
-    type: string; // e.g., "Movie", "Series"
-    duration: number; // in minutes or episodes
-    country: string;
+    type: string; // e.g., "single", "series", 'hoathinh'
+    duration: string; // e.g., "120 min", "45 min/ep"
     posterUrl?: string;
     thumbnailUrl?: string;
     trailerUrl?: string;
+    totalEpisodes?: number;
     rating: number;
     director: string;
-    status: 'active' | 'inactive';
+    status: string; // e.g., "Ongoing", "Completed", "Hiatus"
     createdAt: Date;
-    viewCount: number;
+    modifiedAt: Date;
+    view: number;
     slug: string;
+    tmdbScore?: number;
+    imdbScore?: number;
+    lang: string; // vietsub, thuyet minh, etc.
+    country: Country[];
+    actors: MovieActor[];
+    genres: Genre[];
+    episodes?: Episode[];
 }

@@ -143,16 +143,6 @@ export class SeriesService {
     }));
   }
 
-  // Filter by number of seasons
-  static async filterBySeasons(seasons: number): Promise<Series[]> {
-    this.loadSeriesData();
-    const filteredSeries = this.series.filter(series => series.numberOfSeasons === seasons);
-    return filteredSeries.map(series => ({
-      ...series,
-      seriesMovies: this.populateSeriesMovies(series.id)
-    }));
-  }
-
   // Get recent series
   static async getRecentSeries(limit: number = 10): Promise<Series[]> {
     this.loadSeriesData();
@@ -188,7 +178,6 @@ export class SeriesService {
     total: number;
     ongoingSeries: number;
     completedSeries: number;
-    totalSeasons: number;
     totalMovies: number;
     averageMoviesPerSeries: number;
     newestYear: string;
@@ -199,7 +188,6 @@ export class SeriesService {
     const total = this.series.length;
     const ongoingSeries = this.series.filter(s => s.status === 'Ongoing').length;
     const completedSeries = this.series.filter(s => s.status === 'Completed').length;
-    const totalSeasons = this.series.reduce((sum, series) => sum + series.numberOfSeasons, 0);
     const totalMovies = mockSeriesMovies.length;
     const averageMoviesPerSeries = total > 0 ? totalMovies / total : 0;
     
@@ -211,9 +199,8 @@ export class SeriesService {
       total,
       ongoingSeries,
       completedSeries,
-      totalSeasons,
       totalMovies,
-      averageMoviesPerSeries: Math.round(averageMoviesPerSeries * 10) / 10,
+      averageMoviesPerSeries: Math.round(averageMoviesPerSeries),
       newestYear,
       oldestYear
     };

@@ -21,8 +21,8 @@ interface UseSeriesOptions {
 export const useSeries = (options: UseSeriesOptions = {}) => {
   const {
     initialPage = 1,
-    initialItemsPerPage = 12,
-    initialSortBy = 'name',
+    initialItemsPerPage = 10,
+    initialSortBy = 'id',
     initialSortOrder = 'asc'
   } = options;
 
@@ -36,7 +36,7 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
   const [editingSeries, setEditingSeries] = useState<Series | null>(null);
   
   // View state
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,7 +57,7 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
     ongoingSeries: 0,
     completedSeries: 0,
     totalSeasons: 0,
-    totalMovies: 0,
+    averageMoviesPerSeries: 0,
     filteredCount: 0
   });
 
@@ -167,7 +167,7 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
     setEditingSeries(null);
   };
 
-  const handleSaveSeries = async (seriesData: Omit<Series, 'id' | 'seriesMovies'>) => {
+  const handleSaveSeries = async (seriesData: Omit<Series, 'id'>) => {
     try {
       if (editingSeries) {
         await SeriesService.updateSeries(editingSeries.id, seriesData);
@@ -209,7 +209,7 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
     setSearchQuery('');
     setYearFilter('');
     setStatusFilter('all');
-    setSortBy('name');
+    setSortBy('id');
     setSortOrder('asc');
   };
 

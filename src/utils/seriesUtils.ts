@@ -11,16 +11,13 @@ export const getStatusColor = (status: string): string => {
   }
 };
 
-// Status text mappings
-export const getStatusText = (status: string): string => {
-  switch (status?.toLowerCase()) {
-    case 'ongoing': return 'Đang phát sóng';
-    case 'completed': return 'Đã hoàn thành';
-    case 'cancelled': return 'Đã hủy';
-    case 'hiatus': return 'Tạm dừng';
-    default: return 'Không xác định';
-  }
-};
+// Get available series statuses
+export const getSeriesStatuses = (): Array<{value: string, label: string}> => [
+  { value: 'Ongoing', label: 'Đang phát sóng' },
+  { value: 'Completed', label: 'Đã hoàn thành' },
+  { value: 'Cancelled', label: 'Đã hủy' },
+  { value: 'Hiatus', label: 'Tạm dừng' }
+];
 
 // Format release year
 export const formatReleaseYear = (year: string): string => {
@@ -81,18 +78,55 @@ export const calculateTotalMovies = (series: Series): number => {
   return series.seriesMovies?.length || 0;
 };
 
-// Get series by decade
-export const groupSeriesByDecade = (seriesList: Series[]): { [decade: string]: Series[] } => {
-  return seriesList.reduce((groups, series) => {
-    const year = parseInt(series.releaseYear);
-    if (isNaN(year)) return groups;
-    
-    const decade = `${Math.floor(year / 10) * 10}s`;
-    if (!groups[decade]) groups[decade] = [];
-    groups[decade].push(series);
-    
-    return groups;
-  }, {} as { [decade: string]: Series[] });
+// Validation utilities
+export const validateSeriesName = (name: string): { isValid: boolean; message?: string } => {
+  if (!name || name.trim().length === 0) {
+    return { isValid: false, message: 'Tên series không được để trống' };
+  }
+  
+  if (name.trim().length < 2) {
+    return { isValid: false, message: 'Tên series phải có ít nhất 2 ký tự' };
+  }
+  
+  if (name.trim().length > 200) {
+    return { isValid: false, message: 'Tên series không được quá 200 ký tự' };
+  }
+  
+  return { isValid: true };
+};
+
+export const validateReleaseYear = (year: string): { isValid: boolean; message?: string } => {
+  if (!year || year.trim().length === 0) {
+    return { isValid: false, message: 'Năm phát hành không được để trống' };
+  }
+  
+  const yearNum = parseInt(year);
+  if (isNaN(yearNum)) {
+    return { isValid: false, message: 'Năm phát hành phải là số' };
+  }
+  
+  const currentYear = new Date().getFullYear();
+  if (yearNum < 1900 || yearNum > currentYear + 10) {
+    return { isValid: false, message: `Năm phát hành phải từ 1900 đến ${currentYear + 10}` };
+  }
+  
+  return { isValid: true };
+};
+
+export const validateDescription = (description: string): { isValid: boolean; message?: string } => {
+  if (!description || description.trim().length === 0) {
+    return { isValid: false, message: 'Mô tả không được để trống' };
+  }
+  
+  if (description.trim().length < 10) {
+    return { isValid: false, message: 'Mô tả phải có ít nhất 10 ký tự' };
+  }
+  
+  if (description.trim().length > 1000) {
+    return { isValid: false, message: 'Mô tả không được quá 1000 ký tự' };
+  }
+  
+  return { isValid: true };
 };
 
 // Search and filter utilities
@@ -106,15 +140,6 @@ export const filterSeriesByYear = (seriesList: Series[], year: string): Series[]
   return seriesList.filter(series => series.releaseYear === year);
 };
 
-export const filterSeriesBySeasons = (seriesList: Series[], minSeasons: number, maxSeasons?: number): Series[] => {
-  return seriesList.filter(series => {
-    if (maxSeasons) {
-      return series.numberOfSeasons >= minSeasons && series.numberOfSeasons <= maxSeasons;
-    }
-    return series.numberOfSeasons >= minSeasons;
-  });
-};
-
 export const searchSeries = (seriesList: Series[], query: string): Series[] => {
   if (!query.trim()) return seriesList;
   
@@ -126,7 +151,7 @@ export const searchSeries = (seriesList: Series[], query: string): Series[] => {
 };
 
 // Sort utilities
-export type SeriesSortBy = 'name' | 'releaseYear' | 'numberOfSeasons' | 'movieCount' | 'averageRating';
+export type SeriesSortBy = 'id' | 'releaseYear' | 'movieCount' | 'averageRating';
 export type SortOrder = 'asc' | 'desc';
 
 export const sortSeries = (seriesList: Series[], sortBy: SeriesSortBy, order: SortOrder = 'asc'): Series[] => {
@@ -134,17 +159,13 @@ export const sortSeries = (seriesList: Series[], sortBy: SeriesSortBy, order: So
     let aValue: any, bValue: any;
     
     switch (sortBy) {
-      case 'name':
-        aValue = a.name.toLowerCase();
-        bValue = b.name.toLowerCase();
+      case 'id':
+        aValue = a.id;
+        bValue = b.id;
         break;
       case 'releaseYear':
         aValue = parseInt(a.releaseYear) || 0;
         bValue = parseInt(b.releaseYear) || 0;
-        break;
-      case 'numberOfSeasons':
-        aValue = a.numberOfSeasons;
-        bValue = b.numberOfSeasons;
         break;
       case 'movieCount':
         aValue = calculateTotalMovies(a);
@@ -184,73 +205,6 @@ export const paginateSeries = (seriesList: Series[], page: number, itemsPerPage:
   };
 };
 
-// Validation utilities
-export const validateSeriesName = (name: string): { isValid: boolean; message?: string } => {
-  if (!name || name.trim().length === 0) {
-    return { isValid: false, message: 'Tên series không được để trống' };
-  }
-  
-  if (name.trim().length < 2) {
-    return { isValid: false, message: 'Tên series phải có ít nhất 2 ký tự' };
-  }
-  
-  if (name.trim().length > 100) {
-    return { isValid: false, message: 'Tên series không được quá 100 ký tự' };
-  }
-  
-  return { isValid: true };
-};
-
-export const validateReleaseYear = (year: string): { isValid: boolean; message?: string } => {
-  if (!year || year.trim().length === 0) {
-    return { isValid: false, message: 'Năm phát hành không được để trống' };
-  }
-  
-  const yearNum = parseInt(year);
-  if (isNaN(yearNum)) {
-    return { isValid: false, message: 'Năm phát hành phải là số' };
-  }
-  
-  const currentYear = new Date().getFullYear();
-  if (yearNum < 1900 || yearNum > currentYear + 10) {
-    return { isValid: false, message: `Năm phát hành phải từ 1900 đến ${currentYear + 10}` };
-  }
-  
-  return { isValid: true };
-};
-
-export const validateNumberOfSeasons = (seasons: number): { isValid: boolean; message?: string } => {
-  if (!seasons || isNaN(seasons)) {
-    return { isValid: false, message: 'Số mùa không được để trống' };
-  }
-  
-  if (seasons < 1) {
-    return { isValid: false, message: 'Số mùa phải lớn hơn 0' };
-  }
-  
-  if (seasons > 50) {
-    return { isValid: false, message: 'Số mùa không được quá 50' };
-  }
-  
-  return { isValid: true };
-};
-
-export const validateDescription = (description: string): { isValid: boolean; message?: string } => {
-  if (!description || description.trim().length === 0) {
-    return { isValid: false, message: 'Mô tả không được để trống' };
-  }
-  
-  if (description.trim().length < 10) {
-    return { isValid: false, message: 'Mô tả phải có ít nhất 10 ký tự' };
-  }
-  
-  if (description.trim().length > 1000) {
-    return { isValid: false, message: 'Mô tả không được quá 1000 ký tự' };
-  }
-  
-  return { isValid: true };
-};
-
 // Series card utilities
 export const truncateDescription = (description: string, maxLength: number = 150): string => {
   if (description.length <= maxLength) return description;
@@ -265,12 +219,10 @@ export const getSeriesDisplayData = (series: Series) => {
     ...series,
     movieCount,
     averageRating,
-    formattedSeasons: formatSeasons(series.numberOfSeasons),
     formattedMovieCount: formatMovieCount(movieCount),
     formattedYear: formatReleaseYear(series.releaseYear),
     truncatedDescription: truncateDescription(series.description),
     statusColor: getStatusColor(series.status),
-    statusText: getStatusText(series.status),
     ratingColor: getRatingColor(averageRating)
   };
 };

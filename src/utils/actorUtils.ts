@@ -77,8 +77,8 @@ export const filterActorsByQuery = (actors: Actor[], searchQuery: string): Actor
   const query = searchQuery.toLowerCase().trim();
   return actors.filter(actor => 
     actor.originName.toLowerCase().includes(query) ||
-    actor.tmdbId.includes(query) ||
-    actor.alsoKnownAs.some(alias => alias.toLowerCase().includes(query))
+    (actor.tmdbId ?? '').includes(query) ||
+    (actor.alsoKnownAs ?? []).some(alias => alias.toLowerCase().includes(query))
   );
 };
 

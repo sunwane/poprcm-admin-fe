@@ -14,7 +14,6 @@ export interface Series {
     description: string;
     status: string;
     releaseYear: string;
-    numberOfSeasons: number;
     posterUrl: string;
     seriesMovies?: SeriesMovie[]; // Relationship data
 }

@@ -3,8 +3,6 @@
 import { useSeries } from '@/hooks/useSeries';
 import { 
   getStatusColor, 
-  getStatusText, 
-  formatSeasons,
   formatMovieCount,
   formatReleaseYear,
   calculateTotalMovies,
@@ -12,10 +10,13 @@ import {
   getRatingColor 
 } from '@/utils/seriesUtils';
 import GradientButton from '@/components/ui/GradientButton';
-import SeriesModal from '@/components/modalForm/SeriesModal';
+import SeriesModal from '@/components/modalForm/series/SeriesModal';
 import SearchBar from '@/components/ui/SearchBar';
 import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
+import ToggleButton from '@/components/ui/ToggleButton';
+import SeriesCard from '@/components/ui/SeriesCard';
+import FormInput from '@/components/ui/FormInput';
 
 export default function Series() {
   const {
@@ -59,39 +60,13 @@ export default function Series() {
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="mb-8 flex justify-between items-center">
+      <div className="mb-5 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Quản lý Series</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-1">Quản lý Series</h1>
           <p className="text-gray-600">Quản lý các series phim trong hệ thống</p>
         </div>
         <div className="flex items-center space-x-4">
-          {/* View Mode Toggle */}
-          <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
-            <button
-              onClick={() => handleViewModeToggle('table')}
-              className={`px-3 py-2 rounded-md transition-colors ${
-                viewMode === 'table'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-blue-500'
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-              </svg>
-            </button>
-            <button
-              onClick={() => handleViewModeToggle('grid')}
-              className={`px-3 py-2 rounded-md transition-colors ${
-                viewMode === 'grid'
-                  ? 'bg-blue-500 text-white'
-                  : 'text-gray-600 hover:text-blue-500'
-              }`}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-              </svg>
-            </button>
-          </div>
+          <ToggleButton viewMode={viewMode} onToggle={handleViewModeToggle} />
           
           <GradientButton onClick={handleOpenAddModal}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,7 +78,7 @@ export default function Series() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="text-2xl font-bold text-blue-600 mb-1">{stats.total}</div>
           <div className="text-gray-600 text-sm">Tổng series</div>
@@ -117,13 +92,13 @@ export default function Series() {
           <div className="text-gray-600 text-sm">Đã hoàn thành</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.totalMovies}</div>
-          <div className="text-gray-600 text-sm">Tổng phim</div>
+          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.averageMoviesPerSeries}</div>
+          <div className="text-gray-600 text-sm">TB phim/series</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-5">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
@@ -136,12 +111,12 @@ export default function Series() {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Năm phát hành</label>
-            <input
+            <FormInput
               type="text"
               placeholder="2024"
               value={yearFilter || ''}
               onChange={(e) => setYearFilter(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              name='year'
             />
           </div>
           
@@ -152,10 +127,10 @@ export default function Series() {
               onChange={setStatusFilter}
               options={[
                 { value: 'all', label: 'Tất cả' },
-                { value: 'Ongoing', label: 'Đang phát sóng' },
-                { value: 'Completed', label: 'Đã hoàn thành' },
-                { value: 'Cancelled', label: 'Đã hủy' },
-                { value: 'Hiatus', label: 'Tạm dừng' }
+                { value: 'Ongoing', label: 'Ongoing' },
+                { value: 'Completed', label: 'Completed' },
+                { value: 'Cancelled', label: 'Cancelled' },
+                { value: 'Hiatus', label: 'Hiatus' }
               ]}
             />
           </div>
@@ -180,7 +155,7 @@ export default function Series() {
             </h2>
             
             {/* Items per page selector */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1.5">
               <span className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</span>
               <FormSelect
                 size='small'
@@ -203,11 +178,11 @@ export default function Series() {
                 <tr>
                   <th 
                     className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('name')}
+                    onClick={() => handleSort('id')}
                   >
                     <div className="flex items-center space-x-1">
                       <span>Poster & Thông tin</span>
-                      {sortBy === 'name' && (
+                      {sortBy === 'id' && (
                         <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
@@ -221,19 +196,6 @@ export default function Series() {
                     <div className="flex items-center space-x-1">
                       <span>Năm</span>
                       {sortBy === 'releaseYear' && (
-                        <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      )}
-                    </div>
-                  </th>
-                  <th 
-                    className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
-                    onClick={() => handleSort('numberOfSeasons')}
-                  >
-                    <div className="flex items-center space-x-1">
-                      <span>Số mùa</span>
-                      {sortBy === 'numberOfSeasons' && (
                         <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
@@ -277,7 +239,7 @@ export default function Series() {
                   
                   return (
                     <tr key={series.id} className="hover:bg-blue-50 transition-colors">
-                      <td className="px-6 py-4">
+                      <td className="px-6 py-4 max-w-[400px]">
                         <div className="flex items-center space-x-4">
                           <img 
                             src={series.posterUrl || '/placeholder-poster.png'} 
@@ -288,24 +250,27 @@ export default function Series() {
                             }}
                           />
                           <div>
-                            <div className="font-medium text-gray-800">{series.name}</div>
-                            <div className="text-sm text-gray-500 line-clamp-2">{series.description}</div>
+                            <div className="font-semibold text-blue-950 mb-1">{series.name}</div>
+                            <div className="text-[13px] text-gray-500 line-clamp-2 mb-2">{series.description}</div>
                             <div className="text-xs text-gray-400 font-mono">ID: {series.id}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-gray-600">{formatReleaseYear(series.releaseYear)}</td>
-                      <td className="px-6 py-4 text-gray-600">{formatSeasons(series.numberOfSeasons)}</td>
                       <td className="px-6 py-4 text-gray-600">{formatMovieCount(movieCount)}</td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded-full text-sm font-medium ${getStatusColor(series.status)}`}>
-                          {getStatusText(series.status)}
+                        <span className={`px-3 py-2 rounded-full text-sm font-medium text-nowrap ${getStatusColor(series.status)}`}>
+                          {series.status}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         {averageRating > 0 ? (
-                          <div className={`px-2 py-1 rounded text-xs font-medium ${getRatingColor(averageRating)}`}>
-                            ⭐ {averageRating}
+                          <div className={`px-2.5 pr-3 py-2 rounded text-sm w-fit font-semibold flex space-x-1 ${getRatingColor(averageRating)}`}>
+                            <svg className="w-4 h-4 text-gray-800 dark:text-yellow-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M13.849 4.22c-.684-1.626-3.014-1.626-3.698 0L8.397 8.387l-4.552.361c-1.775.14-2.495 2.331-1.142 3.477l3.468 2.937-1.06 4.392c-.413 1.713 1.472 3.067 
+                              2.992 2.149L12 19.35l3.897 2.354c1.52.918 3.405-.436 2.992-2.15l-1.06-4.39 3.468-2.938c1.353-1.146.633-3.336-1.142-3.477l-4.552-.36-1.754-4.17Z"/>
+                            </svg>
+                            <div>{averageRating}</div>
                           </div>
                         ) : (
                           <span className="text-gray-400 text-sm">Chưa có</span>
@@ -314,20 +279,20 @@ export default function Series() {
                       <td className="px-6 py-4">
                         <div className="flex space-x-2">
                           <button 
-                            className="bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors"
+                            className="bg-gray-500 text-white px-2 py-1 rounded text-sm hover:bg-gray-600 transition-colors text-nowrap"
                             title="Chi tiết"
                           >
-                            👁️
+                            Chi tiết
                           </button>
                           <button 
                             onClick={() => handleEdit(series)}
-                            className="bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors"
+                            className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 transition-colors"
                           >
                             Sửa
                           </button>
                           <button 
                             onClick={() => handleDelete(series.id)}
-                            className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors"
+                            className="bg-red-500 text-white px-2 py-1 rounded text-sm hover:bg-red-600 transition-colors"
                           >
                             Xóa
                           </button>
@@ -350,86 +315,11 @@ export default function Series() {
           />
         </div>
       ) : (
-        /* Grid View */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {paginatedSeries.map((series) => {
-            const movieCount = calculateTotalMovies(series);
-            const averageRating = calculateAverageRating(series);
-            
-            return (
-              <div key={series.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-3/4 bg-gray-200 relative">
-                  <img 
-                    src={series.posterUrl || '/placeholder-poster.png'} 
-                    alt={series.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = '/placeholder-poster.png';
-                    }}
-                  />
-                  <div className="absolute top-2 right-2">
-                    {averageRating > 0 ? (
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRatingColor(averageRating)}`}>
-                        ⭐ {averageRating}
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                        Chưa có điểm
-                      </span>
-                    )}
-                  </div>
-                  <div className="absolute top-2 left-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(series.status)}`}>
-                      {getStatusText(series.status)}
-                    </span>
-                  </div>
-                </div>
-                <div className="p-4">
-                  <div className="font-medium text-gray-800 mb-1 line-clamp-1">{series.name}</div>
-                  <div className="text-sm text-gray-500 mb-3 line-clamp-2">{series.description}</div>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Năm:</span>
-                      <span>{formatReleaseYear(series.releaseYear)}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Số mùa:</span>
-                      <span>{formatSeasons(series.numberOfSeasons)}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Số phim:</span>
-                      <span>{formatMovieCount(movieCount)}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex space-x-2 mt-4">
-                    <button 
-                      className="flex-1 bg-blue-500 text-white py-2 rounded text-sm hover:bg-blue-600 transition-colors"
-                      title="Chi tiết"
-                    >
-                      👁️ Chi tiết
-                    </button>
-                    <button 
-                      onClick={() => handleEdit(series)}
-                      className="flex-1 bg-blue-600 text-white py-2 rounded text-sm hover:bg-blue-700 transition-colors"
-                    >
-                      ✏️ Sửa
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(series.id)}
-                      className="bg-red-500 text-white px-3 py-2 rounded text-sm hover:bg-red-600 transition-colors"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <SeriesCard 
+          series={paginatedSeries} 
+          onEdit={handleEdit} 
+          onDelete={handleDelete} 
+        />
       )}
 
       {/* Add pagination for grid view */}

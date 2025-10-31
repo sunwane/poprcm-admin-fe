@@ -98,8 +98,8 @@ export class ActorService {
     // Fake API call
     const filteredActors = this.actors.filter(actor => 
       actor.originName.toLowerCase().includes(query.toLowerCase()) ||
-      actor.tmdbId.includes(query) ||
-      actor.alsoKnownAs.some(alias => alias.toLowerCase().includes(query.toLowerCase()))
+      (actor.tmdbId ?? '').includes(query) ||
+      (actor.alsoKnownAs ?? []).some(alias => alias.toLowerCase().includes(query.toLowerCase()))
     );
     return Promise.resolve(filteredActors);
   }

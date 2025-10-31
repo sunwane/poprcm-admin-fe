@@ -1,7 +1,7 @@
-export default class AvatarService {
+export default class UploadService {
   private static UPLOAD_URL = '/api/upload/avatar';
   
-  static async uploadAvatar(file: File): Promise<string> {
+  static async uploadImage(file: File): Promise<string> {
     try {
       const formData = new FormData();
       formData.append('avatar', file);
@@ -28,7 +28,7 @@ export default class AvatarService {
     }
   }
 
-  static async deleteAvatar(avatarUrl: string): Promise<boolean> {
+  static async deleteImage(avatarUrl: string): Promise<boolean> {
     try {
       const response = await fetch('/api/upload/avatar', {
         method: 'DELETE',
@@ -46,7 +46,7 @@ export default class AvatarService {
   }
 
   // Fake upload cho development
-  static async fakeUploadAvatar(file: File): Promise<string> {
+  static async fakeUploadImage(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         // Simulate upload success/failure

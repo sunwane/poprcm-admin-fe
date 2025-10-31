@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '@/types/User';
 import AvatarUpload from '@/components/ui/AvatarUpload';
-import AvatarService from '@/services/AvatarService';
+import AvatarService from '@/services/UploadService';
 import { validateImageFile, compressImage } from '@/utils/uploadUtils';
 import GradientButton from '../ui/GradientButton';
 import FormSelect from '../ui/FormSelect';
@@ -93,8 +93,8 @@ export default function UserModal({ isOpen, onClose, onSave }: UserModalProps) {
       setIsUploading(true);
       // Use real service for production, fake for development
       const uploadedUrl = process.env.NODE_ENV === 'production' 
-        ? await AvatarService.uploadAvatar(file)
-        : await AvatarService.fakeUploadAvatar(file);
+        ? await AvatarService.uploadImage(file)
+        : await AvatarService.fakeUploadImage(file);
       
       return uploadedUrl;
     } catch (error) {

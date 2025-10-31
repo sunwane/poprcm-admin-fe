@@ -10,7 +10,8 @@ export const useCountries = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingCountry, setEditingCountry] = useState<Country | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'id'>('id');
+  // CẬP NHẬT: Thêm 'movieCount' vào sortBy type
+  const [sortBy, setSortBy] = useState<'name' | 'id' | 'movieCount'>('id');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
   // Pagination states
@@ -40,11 +41,39 @@ export const useCountries = () => {
     loadCountries();
   }, []);
 
-  // Filter and sort countries
+  // Filter and sort countries - CẬP NHẬT: Thêm sort theo movieCount
   const filteredCountries = useMemo(() => {
     let filtered = filterCountriesByName(countries, searchQuery);
-    return sortCountries(filtered, sortBy, sortOrder);
-  }, [countries, searchQuery, sortBy, sortOrder]);
+    
+    // Sort với movieCounts
+    return [...filtered].sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+      
+      switch (sortBy) {
+        case 'name':
+          aValue = a.countryName.toLowerCase();
+          bValue = b.countryName.toLowerCase();
+          break;
+        case 'id':
+          aValue = parseInt(a.id) || 0;
+          bValue = parseInt(b.id) || 0;
+          break;
+        case 'movieCount':
+          aValue = movieCounts[a.id] || 0;
+          bValue = movieCounts[b.id] || 0;
+          break;
+        default:
+          aValue = parseInt(a.id) || 0;
+          bValue = parseInt(b.id) || 0;
+      }
+      
+      if (sortOrder === 'desc') {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    });
+  }, [countries, searchQuery, sortBy, sortOrder, movieCounts]);
 
   // Paginated countries
   const paginatedCountries = useMemo(() => {
@@ -68,7 +97,6 @@ export const useCountries = () => {
     
     return {
       total: countries.length,
-      totalMovies,
       countriesWithMovies,
       avgMoviesPerCountry: countries.length > 0 ? Math.round(totalMovies / countries.length) : 0
     };
@@ -137,7 +165,8 @@ export const useCountries = () => {
     setCurrentPage(1);
   };
 
-  const handleSort = (field: 'name' | 'id') => {
+  // CẬP NHẬT: Thêm 'movieCount' vào handleSort
+  const handleSort = (field: 'name' | 'id' | 'movieCount') => {
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {

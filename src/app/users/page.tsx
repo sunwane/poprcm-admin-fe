@@ -61,7 +61,8 @@ export default function Users() {
       {/* Header */}
       <div className="mb-5 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-(--text-title) mb-2">Quản lí Người dùng</h1>
+          <h1 className="text-3xl font-bold text-(--text-title) mb-1">Quản lí Người dùng</h1>
+          <p className="text-gray-600">Quản lí tất cả người dùng hiện có trong hệ thống</p>
         </div>
         <div className="flex items-center space-x-4">
           <GradientButton onClick={handleOpenAddModal}>

@@ -70,14 +70,10 @@ export default function Countries() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="text-2xl font-bold text-blue-600 mb-1">{stats.total}</div>
           <div className="text-gray-600 text-sm">Tổng quốc gia</div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-green-600 mb-1">{stats.totalMovies}</div>
-          <div className="text-gray-600 text-sm">Tổng phim</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="text-2xl font-bold text-orange-600 mb-1">{stats.countriesWithMovies}</div>
@@ -144,7 +140,20 @@ export default function Countries() {
                     )}
                   </div>
                 </th>
-                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Số phim</th>
+                {/* CẬP NHẬT: Thêm onClick cho cột Số phim */}
+                <th 
+                  className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => handleSort('movieCount')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Số phim</span>
+                    {sortBy === 'movieCount' && (
+                      <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
+                  </div>
+                </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Thao tác</th>
               </tr>
             </thead>

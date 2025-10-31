@@ -5,12 +5,13 @@ import { filterGenresByName, sortGenres } from '@/utils/genresUtils';
 
 export const useGenres = () => {
   const [genres, setGenres] = useState<Genre[]>([]);
-  const [movieCounts, setMovieCounts] = useState<Record<number, number>>({});
+  const [movieCounts, setMovieCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingGenre, setEditingGenre] = useState<Genre | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'name' | 'id'>('id');
+  // CẬP NHẬT: Thêm 'movieCount' vào sortBy type
+  const [sortBy, setSortBy] = useState<'name' | 'id' | 'movieCount'>('id');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
   // Pagination states
@@ -40,11 +41,39 @@ export const useGenres = () => {
     loadGenres();
   }, []);
 
-  // Filter and sort genres
+  // Filter and sort genres - CẬP NHẬT: Thêm sort theo movieCount
   const filteredGenres = useMemo(() => {
     let filtered = filterGenresByName(genres, searchQuery);
-    return sortGenres(filtered, sortBy, sortOrder);
-  }, [genres, searchQuery, sortBy, sortOrder]);
+    
+    // Sort với movieCounts
+    return [...filtered].sort((a, b) => {
+      let aValue: string | number;
+      let bValue: string | number;
+      
+      switch (sortBy) {
+        case 'name':
+          aValue = a.genresName.toLowerCase();
+          bValue = b.genresName.toLowerCase();
+          break;
+        case 'id':
+          aValue = parseInt(a.id) || 0;
+          bValue = parseInt(b.id) || 0;
+          break;
+        case 'movieCount':
+          aValue = movieCounts[a.id] || 0;
+          bValue = movieCounts[b.id] || 0;
+          break;
+        default:
+          aValue = parseInt(a.id) || 0;
+          bValue = parseInt(b.id) || 0;
+      }
+      
+      if (sortOrder === 'desc') {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    });
+  }, [genres, searchQuery, sortBy, sortOrder, movieCounts]);
 
   // Paginated genres
   const paginatedGenres = useMemo(() => {
@@ -69,7 +98,6 @@ export const useGenres = () => {
     
     return {
       total: genres.length,
-      totalMovies,
       genresWithMovies,
       genresWithoutMovies,
       avgMoviesPerGenre: genres.length > 0 ? Math.round(totalMovies / genres.length) : 0
@@ -89,7 +117,7 @@ export const useGenres = () => {
         setGenres(genres.filter(genre => genre.id !== id));
         // Remove from movieCounts
         const newMovieCounts = { ...movieCounts };
-        delete newMovieCounts[Number(id)];
+        delete newMovieCounts[id];
         setMovieCounts(newMovieCounts);
       } catch (error) {
         console.error('Error deleting genre:', error);
@@ -139,7 +167,8 @@ export const useGenres = () => {
     setCurrentPage(1);
   };
 
-  const handleSort = (field: 'name' | 'id') => {
+  // CẬP NHẬT: Thêm 'movieCount' vào handleSort
+  const handleSort = (field: 'name' | 'id' | 'movieCount') => {
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {

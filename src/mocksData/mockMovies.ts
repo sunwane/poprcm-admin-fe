@@ -1,134 +1,7 @@
-import { Movie, Episode } from '@/types/Movies';
+import { Movie} from '@/types/Movies';
 import { mockGenres } from './mockGenres';
 import { mockCountries } from './mockCountries';
-
-// Mock Episodes
-export const mockEpisodes: Episode[] = [
-  // Episodes for Movie ID 1 (Avengers: Endgame)
-  {
-    id: 1,
-    title: 'Avengers: Endgame',
-    episodeNumber: 1,
-    createdAt: new Date('2024-01-15'),
-    videoUrl: 'https://example.com/videos/avengers-endgame.mp4',
-    m3u8Url: 'https://example.com/streams/avengers-endgame.m3u8',
-    serverName: 'Server 1'
-  },
-  
-  // Episodes for Movie ID 2 (Stranger Things - Series)
-  {
-    id: 2,
-    title: 'The Vanishing of Will Byers',
-    episodeNumber: 1,
-    createdAt: new Date('2024-01-20'),
-    videoUrl: 'https://example.com/videos/stranger-things-s1e1.mp4',
-    m3u8Url: 'https://example.com/streams/stranger-things-s1e1.m3u8',
-    serverName: 'Server 1'
-  },
-  {
-    id: 3,
-    title: 'The Weirdo on Maple Street',
-    episodeNumber: 2,
-    createdAt: new Date('2024-01-20'),
-    videoUrl: 'https://example.com/videos/stranger-things-s1e2.mp4',
-    m3u8Url: 'https://example.com/streams/stranger-things-s1e2.m3u8',
-    serverName: 'Server 1'
-  },
-  {
-    id: 4,
-    title: 'Holly, Jolly',
-    episodeNumber: 3,
-    createdAt: new Date('2024-01-20'),
-    videoUrl: 'https://example.com/videos/stranger-things-s1e3.mp4',
-    m3u8Url: 'https://example.com/streams/stranger-things-s1e3.m3u8',
-    serverName: 'Server 2'
-  },
-  
-  // Episodes for Movie ID 5 (Kingdom - Korean Series)
-  {
-    id: 5,
-    title: 'Episode 1',
-    episodeNumber: 1,
-    createdAt: new Date('2024-02-01'),
-    videoUrl: 'https://example.com/videos/kingdom-s1e1.mp4',
-    m3u8Url: 'https://example.com/streams/kingdom-s1e1.m3u8',
-    serverName: 'Server 1'
-  },
-  {
-    id: 6,
-    title: 'Episode 2',
-    episodeNumber: 2,
-    createdAt: new Date('2024-02-01'),
-    videoUrl: 'https://example.com/videos/kingdom-s1e2.mp4',
-    m3u8Url: 'https://example.com/streams/kingdom-s1e2.m3u8',
-    serverName: 'Server 1'
-  },
-  {
-    id: 7,
-    title: 'Episode 3',
-    episodeNumber: 3,
-    createdAt: new Date('2024-02-01'),
-    videoUrl: 'https://example.com/videos/kingdom-s1e3.mp4',
-    m3u8Url: 'https://example.com/streams/kingdom-s1e3.m3u8',
-    serverName: 'Server 2'
-  },
-  {
-    id: 8,
-    title: 'Episode 4',
-    episodeNumber: 4,
-    createdAt: new Date('2024-02-01'),
-    videoUrl: 'https://example.com/videos/kingdom-s1e4.mp4',
-    m3u8Url: 'https://example.com/streams/kingdom-s1e4.m3u8',
-    serverName: 'Server 2'
-  },
-  {
-    id: 9,
-    title: 'Episode 5',
-    episodeNumber: 5,
-    createdAt: new Date('2024-02-01'),
-    videoUrl: 'https://example.com/videos/kingdom-s1e5.mp4',
-    m3u8Url: 'https://example.com/streams/kingdom-s1e5.m3u8',
-    serverName: 'Server 3'
-  },
-  {
-    id: 10,
-    title: 'Episode 6',
-    episodeNumber: 6,
-    createdAt: new Date('2024-02-01'),
-    videoUrl: 'https://example.com/videos/kingdom-s1e6.mp4',
-    m3u8Url: 'https://example.com/streams/kingdom-s1e6.m3u8',
-    serverName: 'Server 3'
-  },
-  
-  // Episodes for Movie ID 8 (One Piece - Anime Series)
-  {
-    id: 11,
-    title: 'I\'m Luffy! The Man Who\'s Gonna Be King of the Pirates!',
-    episodeNumber: 1,
-    createdAt: new Date('2024-03-01'),
-    videoUrl: 'https://example.com/videos/one-piece-e1.mp4',
-    m3u8Url: 'https://example.com/streams/one-piece-e1.m3u8',
-    serverName: 'Server 1'
-  },
-  {
-    id: 12,
-    title: 'Enter the Great Swordsman!',
-    episodeNumber: 2,
-    createdAt: new Date('2024-03-01'),
-    videoUrl: 'https://example.com/videos/one-piece-e2.mp4',
-    m3u8Url: 'https://example.com/streams/one-piece-e2.m3u8',
-    serverName: 'Server 1'
-  },
-  {
-    id: 13,
-    title: 'Morgan versus Luffy!',
-    episodeNumber: 3,
-    createdAt: new Date('2024-03-01'),
-    videoUrl: 'https://example.com/videos/one-piece-e3.mp4',
-    m3u8Url: 'https://example.com/streams/one-piece-e3.m3u8',
-    serverName: 'Server 2'
-  }
-];
+import { mockEpisodes } from './mockEpisodes';
 
 // Mock Movies
 export const mockMovies: Movie[] = [
@@ -156,7 +29,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[5]], // Hoa Kỳ
     actors: [], // Remove actors array - will be populated by service
     genres: [mockGenres[0], mockGenres[4], mockGenres[5]], // Hành động, Khoa học viễn tưởng, Phiêu lưu
-    episodes: [mockEpisodes[0]]
+    episodes: [mockEpisodes[0]] // Avengers: Endgame episode
   },
   
   {
@@ -184,7 +57,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[5]], // Hoa Kỳ
     actors: [], // Empty - will be populated by service
     genres: [mockGenres[1], mockGenres[4], mockGenres[6]], // Kinh dị, Khoa học viễn tưởng, Tâm lý
-    episodes: mockEpisodes.slice(1, 4)
+    episodes: [mockEpisodes[1], mockEpisodes[2], mockEpisodes[3]] // Stranger Things 3 episodes
   },
   
   {
@@ -211,7 +84,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[0]], // Việt Nam
     actors: [], // Empty - will be populated by service
     genres: [mockGenres[3], mockGenres[13]], // Tình cảm, Gia đình
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
   
   {
@@ -238,7 +111,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[1]], // Hàn Quốc
     actors: [], // Empty - will be populated by service
     genres: [mockGenres[6], mockGenres[14]], // Tâm lý, Bí ẩn
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
   
   {
@@ -266,7 +139,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[1]], // Hàn Quốc
     actors: [], // Empty - will be populated by service
     genres: [mockGenres[0], mockGenres[1], mockGenres[12]], // Hành động, Kinh dị, Lịch sử
-    episodes: mockEpisodes.slice(4, 10)
+    episodes: [mockEpisodes[4], mockEpisodes[5], mockEpisodes[6], mockEpisodes[7], mockEpisodes[8], mockEpisodes[9]] // Kingdom 6 episodes
   },
   
   {
@@ -278,7 +151,7 @@ export const mockMovies: Movie[] = [
     type: 'Movie',
     duration: '125 min',
     posterUrl: 'https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg',
-    thumbnailUrl: 'https://image.tmdb.org/t/p/w500/Mp2dXudqhNc9Mmxe7ZjhomGUKLp.jpg',
+    thumbnailUrl: 'https://image.tmdb.org',
     trailerUrl: 'https://www.youtube.com/watch?v=ByXuk9QqQkk',
     rating: 9.3,
     director: 'Hayao Miyazaki',
@@ -293,7 +166,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[3]], // Nhật Bản
     actors: [], // Empty - will be populated by service
     genres: [mockGenres[9], mockGenres[5], mockGenres[13]], // Hoạt hình, Phiêu lưu, Gia đình
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
   
   {
@@ -320,7 +193,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[5], mockCountries[6]], // Hoa Kỳ, Anh
     actors: [], // Empty - will be populated by service
     genres: [mockGenres[0], mockGenres[6], mockGenres[14]], // Hành động, Tâm lý, Bí ẩn
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
   
   {
@@ -348,7 +221,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[3]], // Nhật Bản
     actors: [], // Empty - will be populated by service
     genres: [mockGenres[9], mockGenres[0], mockGenres[5]], // Hoạt hình, Hành động, Phiêu lưu
-    episodes: mockEpisodes.slice(10, 13)
+    episodes: [mockEpisodes[10], mockEpisodes[11], mockEpisodes[12]] // One Piece 3 episodes
   },
   
   {
@@ -375,7 +248,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[0]], // Việt Nam
     actors: [], // MovieActors for Cô Ba Sài Gòn
     genres: [mockGenres[3], mockGenres[12], mockGenres[10]], // Tình cảm, Lịch sử, Âm nhạc
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
   
   {
@@ -402,7 +275,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[1]], // Hàn Quốc
     actors: [], // MovieActors for Train to Busan
     genres: [mockGenres[0], mockGenres[1], mockGenres[6]], // Hành động, Kinh dị, Tâm lý
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
   
   {
@@ -429,7 +302,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[3]], // Nhật Bản
     actors: [], // MovieActors for Your Name
     genres: [mockGenres[9], mockGenres[3], mockGenres[4]], // Hoạt hình, Tình cảm, Khoa học viễn tưởng
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
   
   {
@@ -457,7 +330,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[1]], // Hàn Quốc
     actors: [], // MovieActors for Squid Game
     genres: [mockGenres[6], mockGenres[1], mockGenres[14]], // Tâm lý, Kinh dị, Bí ẩn
-    episodes: []
+    episodes: [] // No specific episodes for Squid Game in mockEpisodes
   },
 
   {
@@ -484,7 +357,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[5]], // Hoa Kỳ
     actors: [], // MovieActors for Spider-Man: Homecoming
     genres: [mockGenres[0], mockGenres[4], mockGenres[5]], // Hành động, Khoa học viễn tưởng, Phiêu lưu
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
 
   {
@@ -511,7 +384,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[5]], // Hoa Kỳ
     actors: [], // MovieActors for Spider-Man: Far From Home
     genres: [mockGenres[0], mockGenres[4], mockGenres[5]], // Hành động, Khoa học viễn tưởng, Phiêu lưu
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
 
   {
@@ -538,7 +411,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[5]], // Hoa Kỳ
     actors: [], // MovieActors for Spider-Man: No Way Home
     genres: [mockGenres[0], mockGenres[4], mockGenres[5]], // Hành động, Khoa học viễn tưởng, Phiêu lưu
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
 
   {
@@ -565,7 +438,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[5]], // Hoa Kỳ
     actors: [], // MovieActors for The Fast and the Furious
     genres: [mockGenres[0], mockGenres[7]], // Hành động, Tội phạm
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
 
   {
@@ -592,7 +465,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[5]], // Hoa Kỳ
     actors: [], // MovieActors for Fast & Furious 6
     genres: [mockGenres[0], mockGenres[7]], // Hành động, Tội phạm
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
 
   {
@@ -620,7 +493,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[0]], // Việt Nam
     actors: [], // MovieActors for Gia Đình Là Số 1 - Phần 1
     genres: [mockGenres[8], mockGenres[13]], // Hài, Gia đình
-    episodes: []
+    episodes: [] // No specific episodes for this series in mockEpisodes
   },
 
   {
@@ -648,7 +521,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[0]], // Việt Nam
     actors: [], // MovieActors for Gia Đình Là Số 1 - Phần 2
     genres: [mockGenres[8], mockGenres[13]], // Hài, Gia đình
-    episodes: []
+    episodes: [] // No specific episodes for this series in mockEpisodes
   },
 
   {
@@ -675,7 +548,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[5]], // Hoa Kỳ
     actors: [], // MovieActors for John Wick
     genres: [mockGenres[0], mockGenres[7]], // Hành động, Tội phạm
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
 
   {
@@ -702,7 +575,7 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[5]], // Hoa Kỳ
     actors: [], // MovieActors for John Wick: Chapter 2
     genres: [mockGenres[0], mockGenres[7]], // Hành động, Tội phạm
-    episodes: []
+    episodes: [] // No specific episode for this movie
   },
 
   {
@@ -729,20 +602,6 @@ export const mockMovies: Movie[] = [
     country: [mockCountries[5]], // Hoa Kỳ
     actors: [], // MovieActors for John Wick: Chapter 3
     genres: [mockGenres[0], mockGenres[7]], // Hành động, Tội phạm
-    episodes: []
+    episodes: [] // No specific episode for this movie
   }
 ];
-
-// Helper function to get episodes by movie ID
-export const getEpisodesByMovieId = (movieId: number): Episode[] => {
-  return mockEpisodes.filter(episode => {
-    const movie = mockMovies.find(m => m.id === movieId);
-    return movie && movie.episodes?.some(e => e.id === episode.id);
-  });
-};
-
-// Helper function to get random movie count for genres/countries/actors
-export const getRandomMovieCount = (id: string): number => {
-  const seed = parseInt(id) || 1;
-  return Math.abs(Math.floor((Math.sin(seed * 3) * 10000) % 30) + Math.floor(Math.random() * 15));
-};

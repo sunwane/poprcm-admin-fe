@@ -4,6 +4,8 @@ import { SeriesMovie } from '@/types/Series';
 import { MoviesService } from '@/services/MoviesService';
 import { useDebounce } from '@/hooks/useDebounce'; // Tạo hook debounce nếu chưa có
 
+// Hook to manage series movies, searching, adding, removing, and reordering
+
 export const useSeriesMovies = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Movie[]>([]);

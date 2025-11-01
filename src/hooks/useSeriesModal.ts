@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Series, SeriesMovie } from '@/types/Series';
+import { Movie } from '@/types/Movies';
 import { validateImageFile, compressImage } from '@/utils/uploadUtils';
 import { 
   validateSeriesName, 
   validateReleaseYear, 
   validateDescription 
 } from '@/utils/seriesUtils';
+import { useSeriesMovies } from '@/hooks/useSeriesMovies';
 
 interface FormErrors {
   name?: string;
@@ -16,7 +18,8 @@ interface FormErrors {
   submit?: string;
 }
 
-export const useSeriesForm = (editingSeries: Series | null, isOpen: boolean) => {
+export const useSeriesModal = (editingSeries: Series | null, isOpen: boolean) => {
+  // Tab and form state
   const [activeTab, setActiveTab] = useState<'info' | 'movies'>('info');
   const [formData, setFormData] = useState<Omit<Series, 'id'>>({
     name: '',
@@ -27,13 +30,32 @@ export const useSeriesForm = (editingSeries: Series | null, isOpen: boolean) => 
     seriesMovies: []
   });
 
+  // File and validation state
   const [posterFile, setPosterFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string>('');
 
-  // Initialize form data
+  // Drag and drop state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  // Series movies hook
+  const {
+    searchQuery,
+    searchResults,
+    isSearching,
+    showSearchResults,
+    setSearchQuery,
+    performSearch,
+    clearSearch,
+    moveSeriesMovie,
+    removeSeriesMovie,
+    addMovieToSeries
+  } = useSeriesMovies();
+
+  // Initialize form data when modal opens/closes
   useEffect(() => {
     if (isOpen) {
       setActiveTab('info');
@@ -60,8 +82,20 @@ export const useSeriesForm = (editingSeries: Series | null, isOpen: boolean) => 
       setErrors({});
       setIsSubmitting(false);
       setUploadError('');
+      // Reset drag state
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      clearSearch();
     }
-  }, [isOpen, editingSeries]);
+  }, [isOpen, editingSeries, clearSearch]);
+
+  // Update search when query changes
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const excludeMovieIds = (formData.seriesMovies ?? []).map(sm => sm.movieId);
+      performSearch(searchQuery, excludeMovieIds);
+    }
+  }, [searchQuery, formData.seriesMovies, performSearch]);
 
   // Handle input changes
   const handleInputChange = useCallback((field: keyof Omit<Series, 'id' | 'seriesMovies'>, value: string) => {
@@ -102,6 +136,54 @@ export const useSeriesForm = (editingSeries: Series | null, isOpen: boolean) => 
       setPosterFile(null);
       setFormData(prev => ({ ...prev, posterUrl: '' }));
     }
+  }, []);
+
+  // Movie management handlers
+  const handleAddMovie = useCallback((movie: Movie) => {
+    const updatedMovies = addMovieToSeries(formData.seriesMovies || [], movie);
+    handleSeriesMoviesChange(updatedMovies);
+    clearSearch();
+  }, [formData.seriesMovies, addMovieToSeries, handleSeriesMoviesChange, clearSearch]);
+
+  const handleRemoveMovie = useCallback((index: number) => {
+    const updatedMovies = removeSeriesMovie(formData.seriesMovies || [], index);
+    handleSeriesMoviesChange(updatedMovies);
+  }, [formData.seriesMovies, removeSeriesMovie, handleSeriesMoviesChange]);
+
+  // Drag and Drop handlers
+  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', '');
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null) return;
+    setDragOverIndex(index);
+  }, [draggedIndex]);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverIndex(null);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const updatedMovies = moveSeriesMovie(formData.seriesMovies || [], draggedIndex, dropIndex);
+    handleSeriesMoviesChange(updatedMovies);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  }, [draggedIndex, formData.seriesMovies, moveSeriesMovie, handleSeriesMoviesChange]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   }, []);
 
   // Validate form
@@ -145,13 +227,17 @@ export const useSeriesForm = (editingSeries: Series | null, isOpen: boolean) => 
     setErrors({});
     setUploadError('');
     setActiveTab('info');
-  }, []);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    clearSearch();
+  }, [clearSearch]);
 
+  // Computed values
   const canSwitchToMovies = () => formData.name.trim().length > 0;
   const isProcessing = isSubmitting || isUploading;
 
   return {
-    // State
+    // Form state
     activeTab,
     formData,
     posterFile,
@@ -160,11 +246,21 @@ export const useSeriesForm = (editingSeries: Series | null, isOpen: boolean) => 
     isUploading,
     uploadError,
     
+    // Search state
+    searchQuery,
+    searchResults,
+    isSearching,
+    showSearchResults,
+    
+    // Drag state
+    draggedIndex,
+    dragOverIndex,
+    
     // Computed
     canSwitchToMovies: canSwitchToMovies(),
     isProcessing,
     
-    // Actions
+    // Form actions
     setActiveTab,
     handleInputChange,
     handleSeriesMoviesChange,
@@ -173,8 +269,22 @@ export const useSeriesForm = (editingSeries: Series | null, isOpen: boolean) => 
     resetForm,
     setIsSubmitting,
     setErrors,
+    setUploadError,
     
-    // Setters for external use
-    setUploadError
+    // Search actions
+    setSearchQuery,
+    performSearch,
+    clearSearch,
+    
+    // Movie management actions
+    handleAddMovie,
+    handleRemoveMovie,
+    
+    // Drag and drop actions
+    handleDragStart,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleDragEnd
   };
 };

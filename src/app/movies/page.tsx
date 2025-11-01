@@ -18,7 +18,7 @@ import SearchBar from '@/components/ui/SearchBar';
 import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
 import ToggleButton from '@/components/ui/ToggleButton';
-import MoviesCard from '@/components/ui/MoviesCard';
+import MoviesCard from '@/components/feature/movies/MoviesCard';
 
 export default function Movies() {
   const {

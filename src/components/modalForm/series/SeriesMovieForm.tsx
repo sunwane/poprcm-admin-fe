@@ -1,93 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { SeriesMovie } from '@/types/Series';
 import { Movie } from '@/types/Movies';
-import { useSeriesMovies } from '@/hooks/useSeriesMovies';
 
-interface SeriesMovieManagerProps {
+interface SeriesMovieFormProps {
   seriesMovies: SeriesMovie[];
   onSeriesMoviesChange: (movies: SeriesMovie[]) => void;
   disabled?: boolean;
+  // Search props
+  searchQuery: string;
+  searchResults: Movie[];
+  isSearching: boolean;
+  showSearchResults: boolean;
+  onSearchQueryChange: (query: string) => void;
+  onAddMovie: (movie: Movie) => void;
+  onRemoveMovie: (index: number) => void;
+  // Drag props
+  draggedIndex: number | null;
+  dragOverIndex: number | null;
+  onDragStart: (e: React.DragEvent, index: number) => void;
+  onDragOver: (e: React.DragEvent, index: number) => void;
+  onDragLeave: () => void;
+  onDrop: (e: React.DragEvent, dropIndex: number) => void;
+  onDragEnd: () => void;
 }
 
-const SeriesMovieManager: React.FC<SeriesMovieManagerProps> = ({ 
+const SeriesMovieForm: React.FC<SeriesMovieFormProps> = ({ 
   seriesMovies, 
-  onSeriesMoviesChange, 
-  disabled = false 
+  disabled = false,
+  // Search props
+  searchQuery,
+  searchResults,
+  isSearching,
+  showSearchResults,
+  onSearchQueryChange,
+  onAddMovie,
+  onRemoveMovie,
+  // Drag props
+  draggedIndex,
+  dragOverIndex,
+  onDragStart,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  onDragEnd
 }) => {
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
-
-  const {
-    searchQuery,
-    searchResults,
-    isSearching,
-    showSearchResults,
-    setSearchQuery,
-    performSearch,
-    clearSearch,
-    moveSeriesMovie,
-    removeSeriesMovie,
-    addMovieToSeries
-  } = useSeriesMovies();
-
-  // Update search when query changes
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      const excludeMovieIds = seriesMovies.map(sm => sm.movieId);
-      performSearch(searchQuery, excludeMovieIds);
-    }
-  }, [searchQuery, seriesMovies, performSearch]);
-
-  // Add movie to series
-  const handleAddMovie = (movie: Movie) => {
-    const updatedMovies = addMovieToSeries(seriesMovies, movie);
-    onSeriesMoviesChange(updatedMovies);
-    clearSearch();
-  };
-
-  // Remove movie from series
-  const handleRemoveMovie = (index: number) => {
-    const updatedMovies = removeSeriesMovie(seriesMovies, index);
-    onSeriesMoviesChange(updatedMovies);
-  };
-
-  // Drag and Drop handlers
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    if (disabled) return;
-    setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/html', '');
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-    if (disabled || draggedIndex === null) return;
-    setDragOverIndex(index);
-  };
-
-  const handleDragLeave = () => {
-    setDragOverIndex(null);
-  };
-
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    if (disabled || draggedIndex === null || draggedIndex === dropIndex) {
-      setDraggedIndex(null);
-      setDragOverIndex(null);
-      return;
-    }
-
-    const updatedMovies = moveSeriesMovie(seriesMovies, draggedIndex, dropIndex);
-    onSeriesMoviesChange(updatedMovies);
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-    setDragOverIndex(null);
-  };
-
   return (
     <div className="bg-gray-50 rounded-xl p-6">
       <h4 className="text-lg font-semibold text-blue-800 mb-6">Quản lý phim trong series</h4>
@@ -105,7 +61,7 @@ const SeriesMovieManager: React.FC<SeriesMovieManagerProps> = ({
               type="text"
               placeholder="Tìm kiếm phim để thêm vào series..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => onSearchQueryChange(e.target.value)}
               disabled={disabled}
               className="w-full p-3 px-5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
             />
@@ -126,7 +82,7 @@ const SeriesMovieManager: React.FC<SeriesMovieManagerProps> = ({
               {searchResults.map((movie) => (
                 <div
                   key={movie.id}
-                  onClick={() => handleAddMovie(movie)}
+                  onClick={() => onAddMovie(movie)}
                   className="p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 flex items-center space-x-3"
                 >
                   <img
@@ -183,11 +139,11 @@ const SeriesMovieManager: React.FC<SeriesMovieManagerProps> = ({
               <div
                 key={seriesMovie.id}
                 draggable={!disabled}
-                onDragStart={(e) => handleDragStart(e, index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, index)}
-                onDragEnd={handleDragEnd}
+                onDragStart={(e) => onDragStart(e, index)}
+                onDragOver={(e) => onDragOver(e, index)}
+                onDragLeave={onDragLeave}
+                onDrop={(e) => onDrop(e, index)}
+                onDragEnd={onDragEnd}
                 className={`
                   bg-white border border-gray-200 rounded-lg p-3 flex items-center space-x-3 transition-all
                   ${disabled ? '' : 'cursor-move hover:shadow-md'}
@@ -236,7 +192,7 @@ const SeriesMovieManager: React.FC<SeriesMovieManagerProps> = ({
                 {/* Remove Button */}
                 {!disabled && (
                   <button
-                    onClick={() => handleRemoveMovie(index)}
+                    onClick={() => onRemoveMovie(index)}
                     className="text-red-500 hover:text-red-600 p-1 rounded transition-colors"
                     title="Xóa khỏi series"
                   >
@@ -254,4 +210,4 @@ const SeriesMovieManager: React.FC<SeriesMovieManagerProps> = ({
   );
 };
 
-export default SeriesMovieManager;
+export default SeriesMovieForm;

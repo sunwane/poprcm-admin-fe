@@ -15,7 +15,7 @@ import SearchBar from '@/components/ui/SearchBar';
 import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
 import ToggleButton from '@/components/ui/ToggleButton';
-import SeriesCard from '@/components/ui/SeriesCard';
+import SeriesCard from '@/components/feature/series/SeriesCard';
 import FormInput from '@/components/ui/FormInput';
 
 export default function Series() {
@@ -278,12 +278,6 @@ export default function Series() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex space-x-2">
-                          <button 
-                            className="bg-gray-500 text-white px-2 py-1 rounded text-sm hover:bg-gray-600 transition-colors text-nowrap"
-                            title="Chi tiết"
-                          >
-                            Chi tiết
-                          </button>
                           <button 
                             onClick={() => handleEdit(series)}
                             className="bg-blue-500 text-white px-2 py-1 rounded text-sm hover:bg-blue-600 transition-colors"

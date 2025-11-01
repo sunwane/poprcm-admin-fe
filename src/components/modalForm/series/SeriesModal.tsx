@@ -1,9 +1,9 @@
 import React from 'react';
 import { Series } from '@/types/Series';
 import SeriesInfoForm from './SeriesInfoForm';
-import SeriesMovieManager from './SeriesMovieManager';
 import GradientButton from '@/components/ui/GradientButton';
-import { useSeriesForm } from '@/hooks/useSeriesForm';
+import { useSeriesModal } from '@/hooks/useSeriesModal';
+import SeriesMovieForm from './SeriesMovieForm';
 
 interface SeriesModalProps {
   isOpen: boolean;
@@ -31,8 +31,23 @@ const SeriesModal: React.FC<SeriesModalProps> = ({
     handlePosterChange,
     validateForm,
     setIsSubmitting,
-    setErrors
-  } = useSeriesForm(editingSeries, isOpen);
+    setErrors,
+    // Search props for SeriesMovieManager
+    searchQuery,
+    searchResults,
+    isSearching,
+    showSearchResults,
+    setSearchQuery,
+    handleAddMovie,
+    handleRemoveMovie,
+    draggedIndex,
+    dragOverIndex,
+    handleDragStart,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleDragEnd
+  } = useSeriesModal(editingSeries, isOpen);
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,10 +151,26 @@ const SeriesModal: React.FC<SeriesModalProps> = ({
               />
             ) : (
               <div className="max-w-4xl mx-auto">
-                <SeriesMovieManager
+                <SeriesMovieForm
                   seriesMovies={formData.seriesMovies || []}
                   onSeriesMoviesChange={handleSeriesMoviesChange}
                   disabled={isProcessing}
+                  // Search props
+                  searchQuery={searchQuery}
+                  searchResults={searchResults}
+                  isSearching={isSearching}
+                  showSearchResults={showSearchResults}
+                  onSearchQueryChange={setSearchQuery}
+                  onAddMovie={handleAddMovie}
+                  onRemoveMovie={handleRemoveMovie}
+                  // Drag props
+                  draggedIndex={draggedIndex}
+                  dragOverIndex={dragOverIndex}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onDragEnd={handleDragEnd}
                 />
               </div>
             )}

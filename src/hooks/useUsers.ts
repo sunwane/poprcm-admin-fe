@@ -100,7 +100,8 @@ export const useUsers = () => {
       const userDate = u.createdAt;
       return userDate.getMonth() === now.getMonth() && userDate.getFullYear() === now.getFullYear();
     }).length,
-  }), [users]);
+    filteredCount: filteredUsers.length, // THÊM MỚI
+  }), [users, filteredUsers]);
 
   // Actions
   // const handleEdit = (user: User) => {
@@ -169,6 +170,13 @@ export const useUsers = () => {
     }
   };
 
+  // THÊM MỚI: Handle clear filters
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setFilterGender('all');
+    setFilterRole('all');
+  };
+
   return {
     // State
     users,
@@ -200,6 +208,7 @@ export const useUsers = () => {
     handlePageChange,
     handleItemsPerPageChange,
     handleSort,
+    handleClearFilters, // THÊM MỚI
     setFilterGender,
     setFilterRole,
     setSearchQuery,

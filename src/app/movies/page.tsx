@@ -9,7 +9,6 @@ import {
   getLangColor,
   formatViewCount,
   formatDate,
-  getRatingColor,
   getCountryNames 
 } from '@/utils/movieUtils';
 import GradientButton from '@/components/ui/GradientButton';
@@ -99,8 +98,8 @@ export default function Movies() {
           <div className="text-gray-600 text-sm">Phim bộ</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.averageRating}</div>
-          <div className="text-gray-600 text-sm">Điểm TB</div>
+          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.totalAnime}</div>
+          <div className="text-gray-600 text-sm">Hoạt hình</div>
         </div>
       </div>
 
@@ -289,9 +288,6 @@ export default function Movies() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="space-y-1">
-                        <div className={`px-2 py-1 rounded text-xs font-medium ${getRatingColor(movie.rating)}`}>
-                          ⭐ {movie.rating}
-                        </div>
                         {movie.tmdbScore && (
                           <div className="text-xs text-gray-500">TMDB: {movie.tmdbScore}</div>
                         )}

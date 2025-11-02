@@ -7,7 +7,6 @@ import {
   getTypeText,
   getLangColor,
   formatViewCount,
-  getRatingColor,
   getCountryNames 
 } from '@/utils/movieUtils';
 
@@ -31,11 +30,6 @@ export default function MoviesCard({ movies, onEdit, onDelete }: MoviesCardProps
                 e.currentTarget.src = '/placeholder-poster.png';
               }}
             />
-            <div className="absolute top-2 right-2">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRatingColor(movie.rating)}`}>
-                ⭐ {movie.rating}
-              </span>
-            </div>
             <div className="absolute top-2 left-2">
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(movie.type)}`}>
                 {getTypeText(movie.type)}

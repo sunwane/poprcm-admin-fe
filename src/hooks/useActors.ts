@@ -49,8 +49,8 @@ export const useActors = () => {
       const genderMatch = filterGender === 'all' || actor.gender.toLowerCase() === filterGender;
       const searchMatch = searchQuery === '' || 
         actor.originName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        actor.tmdbId.includes(searchQuery) ||
-        actor.alsoKnownAs.some(alias => alias.toLowerCase().includes(searchQuery.toLowerCase()));
+        actor.tmdbId?.includes(searchQuery) ||
+        actor.alsoKnownAs?.some(alias => alias.toLowerCase().includes(searchQuery.toLowerCase()));
       return genderMatch && searchMatch;
     });
 
@@ -81,9 +81,10 @@ export const useActors = () => {
       male: actors.filter(a => a.gender.toLowerCase() === 'male').length,
       female: actors.filter(a => a.gender.toLowerCase() === 'female').length,
       unknown: actors.filter(a => a.gender.toLowerCase() === 'unknown').length,
-      avgMoviesPerActor: actors.length > 0 ? Math.round(totalMovies / actors.length) : 0
+      avgMoviesPerActor: actors.length > 0 ? Math.round(totalMovies / actors.length) : 0,
+      filteredCount: filteredActors.length, // THÊM MỚI
     };
-  }, [actors, movieCounts]);
+  }, [actors, movieCounts, filteredActors]);
 
   // Actions
   const handleEdit = (actor: Actor) => {
@@ -158,6 +159,12 @@ export const useActors = () => {
     }
   };
 
+  // THÊM MỚI: Handle clear filters
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setFilterGender('all');
+  };
+
   return {
     // State
     actors,
@@ -189,6 +196,7 @@ export const useActors = () => {
     handlePageChange,
     handleItemsPerPageChange,
     handleSort,
+    handleClearFilters, // THÊM MỚI
     setFilterGender,
     setSearchQuery,
   };

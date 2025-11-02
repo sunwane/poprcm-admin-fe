@@ -20,8 +20,8 @@ export default function Users() {
     filteredUsers,
     paginatedUsers,
     stats,
-    sortBy,        // THÊM MỚI
-    sortOrder,     // THÊM MỚI
+    sortBy,
+    sortOrder,
     currentPage,
     totalPages,
     itemsPerPage,
@@ -32,7 +32,8 @@ export default function Users() {
     handleSaveUser,
     handlePageChange,
     handleItemsPerPageChange,
-    handleSort,    // THÊM MỚI
+    handleSort,
+    handleClearFilters,
     setFilterGender,
     setFilterRole,
     setSearchQuery,
@@ -46,7 +47,7 @@ export default function Users() {
     );
   }
 
-  // Helper function to render sort icon - THÊM MỚI
+  // Helper function to render sort icon
   const renderSortIcon = (field: string) => {
     if (sortBy !== field) return null;
     return (
@@ -61,8 +62,8 @@ export default function Users() {
       {/* Header */}
       <div className="mb-5 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-(--text-title) mb-1">Quản lí Người dùng</h1>
-          <p className="text-gray-600">Quản lí tất cả người dùng hiện có trong hệ thống</p>
+          <h1 className="text-3xl font-bold text-gray-800 mb-1">Quản lý Người dùng</h1>
+          <p className="text-gray-600">Quản lý tất cả người dùng hiện có trong hệ thống</p>
         </div>
         <div className="flex items-center space-x-4">
           <GradientButton onClick={handleOpenAddModal}>
@@ -74,37 +75,10 @@ export default function Users() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className='mb-6 flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0'>
-        <SearchBar searchQuery={searchQuery} onChange={setSearchQuery} placeholder='Tìm kiếm tên người dùng...'/>
-        <div className="w-[288px]">
-          <FormSelect 
-            filter={filterGender}
-            onChange={(gender: string) => setFilterGender(gender as typeof filterGender)}
-            options={[
-              {value:'all', label:'Tất cả giới tính'},
-              {value:'male', label:'Nam'},
-              {value:'female', label:'Nữ'},
-            ]}
-          />
-        </div>
-        <div className="w-[288px]">
-          <FormSelect 
-            filter={filterRole}
-            onChange={(role: string) => setFilterRole(role as typeof filterRole)}
-            options={[
-              {value:'all', label:'Tất cả vai trò'},
-              {value:'admin', label:'Admin'},
-              {value:'user', label:'User'},
-            ]}
-          />
-        </div>
-      </div>
-
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-(--text-primary) mb-1">{stats.total}</div>
+          <div className="text-2xl font-bold text-blue-600 mb-1">{stats.total}</div>
           <div className="text-gray-600 text-sm">Tổng người dùng</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -121,16 +95,65 @@ export default function Users() {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-5">
+        <div className="flex items-end space-x-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
+            <SearchBar 
+              searchQuery={searchQuery} 
+              onChange={setSearchQuery} 
+              placeholder='Tìm kiếm người dùng...'
+            />
+          </div>
+          
+          <div className="w-58">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Giới tính</label>
+            <FormSelect 
+              filter={filterGender}
+              onChange={(gender: string) => setFilterGender(gender as typeof filterGender)}
+              options={[
+                {value:'all', label:'Tất cả giới tính'},
+                {value:'male', label:'Nam'},
+                {value:'female', label:'Nữ'},
+              ]}
+            />
+          </div>
+          
+          <div className="w-58">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Vai trò</label>
+            <FormSelect 
+              filter={filterRole}
+              onChange={(role: string) => setFilterRole(role as typeof filterRole)}
+              options={[
+                {value:'all', label:'Tất cả vai trò'},
+                {value:'admin', label:'Admin'},
+                {value:'user', label:'User'},
+              ]}
+            />
+          </div>
+          
+          <div className='w-42'>
+            <button
+              onClick={handleClearFilters}
+              className="w-full bg-gray-500 text-white px-4 py-3 rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              Xóa filter
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Users Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-(--text-title)">
-            Danh sách Người dùng ({filteredUsers.length})
+          <h2 className="text-xl font-bold text-gray-800">
+            Danh sách Người dùng ({stats.filteredCount})
           </h2>
           
           {/* Items per page selector */}
-          <div className="flex items-center space-x-2 max-w-100">
-            <span className="text-sm text-gray-600 text-nowrap">Hiển thị:</span>
+          <div className="flex items-center space-x-1.5">
+            <span className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</span>
             <FormSelect
               size='small'
               filter={itemsPerPage.toString()}
@@ -150,39 +173,34 @@ export default function Users() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                {/* CẬP NHẬT: Thêm onClick và sort icon cho các cột có thể sort */}
                 <th 
                   className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => handleSort('id')}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center space-x-1">
                     <span>Người dùng</span>
-                    {renderSortIcon('id')}
+                    {sortBy === 'id' && (
+                      <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
                   </div>
                 </th>
-                <th 
-                  className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center">
-                    <span>Username</span>
-                  </div>
-                </th>
-                <th 
-                  className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer transition-colors"
-                >
-                  <div className="flex items-center">
-                    <span>Email</span>
-                  </div>
-                </th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Username</th>
+                <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Email</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Vai trò</th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Giới tính</th>
                 <th 
                   className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => handleSort('createdAt')}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center space-x-1">
                     <span>Ngày tạo</span>
-                    {renderSortIcon('createdAt')}
+                    {sortBy === 'createdAt' && (
+                      <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
                   </div>
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Thao tác</th>
@@ -205,7 +223,7 @@ export default function Users() {
                         )}
                       </div>
                       <div>
-                        <div className="font-medium text-(--text-primary)">{user.fullname}</div>
+                        <div className="font-medium text-gray-800">{user.fullname}</div>
                         <div className="text-sm text-gray-500">ID: {user.id}</div>
                       </div>
                     </div>
@@ -245,7 +263,7 @@ export default function Users() {
           totalPages={totalPages}
           onPageChange={handlePageChange}
           itemsPerPage={itemsPerPage}
-          totalItems={filteredUsers.length}
+          totalItems={stats.filteredCount}
         />
       </div>
 

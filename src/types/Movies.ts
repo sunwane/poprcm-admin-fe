@@ -24,7 +24,7 @@ export interface Movie {
     thumbnailUrl?: string;
     trailerUrl?: string;
     totalEpisodes?: number;
-    rating: number;
+    //rating: number;
     director: string;
     status: string; // e.g., "Ongoing", "Completed", "Hiatus"
     createdAt: Date;

@@ -25,7 +25,7 @@ export const useMovies = () => {
   const [langFilter, setLangFilter] = useState('all');
   
   // Sorting
-  const [sortBy, setSortBy] = useState<'id' | 'title' | 'releaseYear' | 'rating' | 'view' | 'createdAt'>('id');
+  const [sortBy, setSortBy] = useState<'id' | 'title' | 'releaseYear' | 'view' | 'createdAt'>('id');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
   // Pagination
@@ -94,7 +94,6 @@ export const useMovies = () => {
     const totalSeries = movies.filter(m => m.type === 'Series').length;
     const totalAnime = movies.filter(m => m.type === 'hoathinh').length;
     const totalViews = movies.reduce((sum, movie) => sum + movie.view, 0);
-    const averageRating = total > 0 ? movies.reduce((sum, movie) => sum + movie.rating, 0) / total : 0;
     const ongoingSeries = movies.filter(m => m.status === 'Ongoing').length;
     const completedMovies = movies.filter(m => m.status === 'Completed').length;
     
@@ -104,7 +103,6 @@ export const useMovies = () => {
       totalSeries,
       totalAnime,
       totalViews,
-      averageRating: Math.round(averageRating * 10) / 10,
       ongoingSeries,
       completedMovies,
       filteredCount: filteredAndSortedMovies.length
@@ -184,7 +182,7 @@ export const useMovies = () => {
     setCurrentPage(1);
   };
 
-  const handleSort = (field: 'id' | 'title' | 'releaseYear' | 'rating' | 'view' | 'createdAt') => {
+  const handleSort = (field: 'id' | 'title' | 'releaseYear' | 'view' | 'createdAt') => {
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {

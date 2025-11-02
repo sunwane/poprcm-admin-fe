@@ -56,21 +56,42 @@ export const formatDate = (date: Date | string): string => {
 
 // Get rating color based on average rating
 export const getRatingColor = (rating: number): string => {
-  if (rating >= 8.5) return 'bg-green-100 text-green-800';
-  if (rating >= 7.0) return 'bg-blue-100 text-blue-800';
-  if (rating >= 5.5) return 'bg-yellow-100 text-yellow-800';
-  return 'bg-red-100 text-red-800';
+  if (rating >= 8.5) return 'bg-green-100 text-green-800 border-green-600';
+  if (rating >= 7.0) return 'bg-blue-100 text-blue-800 border-blue-600';
+  if (rating >= 5.5) return 'bg-yellow-100 text-yellow-800 border-yellow-600';
+  return 'bg-red-100 text-red-700 border-red-600';
 };
 
 // Calculate average rating from series movies
 export const calculateAverageRating = (series: Series): number => {
   if (!series.seriesMovies || series.seriesMovies.length === 0) return 0;
-  
-  const moviesWithRating = series.seriesMovies.filter(sm => sm.movie && sm.movie.rating);
-  if (moviesWithRating.length === 0) return 0;
-  
-  const totalRating = moviesWithRating.reduce((sum, sm) => sum + (sm.movie?.rating || 0), 0);
-  return Math.round((totalRating / moviesWithRating.length) * 10) / 10;
+
+  // Lọc các movie có ít nhất một điểm số hợp lệ (IMDb hoặc TMDb)
+  const moviesWithValidRatings = series.seriesMovies.filter(sm => {
+    const imdbScore = sm.movie?.imdbScore || 0;
+    const tmdbScore = sm.movie?.tmdbScore || 0;
+    return imdbScore > 0 || tmdbScore > 0; // Chỉ lấy movie có ít nhất một điểm số hợp lệ
+  });
+
+  if (moviesWithValidRatings.length === 0) return 0;
+
+  // Tính tổng điểm trung bình của IMDb và TMDb cho các movie hợp lệ
+  const totalRating = moviesWithValidRatings.reduce((sum, sm) => {
+    const imdbScore = sm.movie?.imdbScore || 0;
+    const tmdbScore = sm.movie?.tmdbScore || 0;
+
+    // Tính trung bình của IMDb và TMDb (nếu cả hai đều tồn tại)
+    const averageScore = imdbScore > 0 && tmdbScore > 0
+      ? (imdbScore + tmdbScore) / 2
+      : imdbScore > 0
+      ? imdbScore
+      : tmdbScore;
+
+    return sum + averageScore;
+  }, 0);
+
+  // Tính điểm trung bình của series
+  return Math.round((totalRating / moviesWithValidRatings.length) * 10) / 10;
 };
 
 // Calculate total episodes/movies in series

@@ -33,6 +33,7 @@ export default function Actors() {
     handlePageChange,
     handleItemsPerPageChange,
     handleSort,
+    handleClearFilters,
     setFilterGender,
     setSearchQuery,
   } = useActors();
@@ -73,29 +74,8 @@ export default function Actors() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className='mb-6 flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0'>
-        <SearchBar 
-          searchQuery={searchQuery} 
-          onChange={setSearchQuery} 
-          placeholder='Tìm kiếm tên diễn viên, TMDB ID...'
-        />
-        <div className="w-[288px]">
-          <FormSelect 
-            filter={filterGender}
-            onChange={(gender: string) => setFilterGender(gender as typeof filterGender)}
-            options={[
-              {value:'all', label:'Tất cả giới tính'},
-              {value:'male', label:'Nam'},
-              {value:'female', label:'Nữ'},
-              {value:'unknown', label:'Không rõ'},
-            ]}
-          />
-        </div>
-      </div>
-
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="text-2xl font-bold text-blue-600 mb-1">{stats.total}</div>
           <div className="text-gray-600 text-sm">Tổng diễn viên</div>
@@ -114,15 +94,52 @@ export default function Actors() {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-5">
+        <div className="flex items-end space-x-4">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
+            <SearchBar 
+              searchQuery={searchQuery} 
+              onChange={setSearchQuery} 
+              placeholder='Tìm kiếm tên diễn viên, TMDB ID...'
+            />
+          </div>
+          
+          <div className="w-72">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Giới tính</label>
+            <FormSelect 
+              filter={filterGender}
+              onChange={(gender: string) => setFilterGender(gender as typeof filterGender)}
+              options={[
+                {value:'all', label:'Tất cả giới tính'},
+                {value:'male', label:'Nam'},
+                {value:'female', label:'Nữ'},
+                {value:'unknown', label:'Không rõ'},
+              ]}
+            />
+          </div>
+          
+          <div className="w-42">
+            <button
+              onClick={handleClearFilters}
+              className="w-full bg-gray-500 text-white px-4 py-3 rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              Xóa filter
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Actors Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-800">
-            Danh sách Diễn viên ({filteredActors.length})
+            Danh sách Diễn viên ({stats.filteredCount})
           </h2>
           
           {/* Items per page selector */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1.5">
             <span className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</span>
             <FormSelect
               size='small'
@@ -147,9 +164,13 @@ export default function Actors() {
                   className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => handleSort('id')}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center space-x-1">
                     <span>Diễn viên</span>
-                    {renderSortIcon('id')}
+                    {sortBy === 'id' && (
+                      <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
                   </div>
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Giới tính</th>
@@ -158,9 +179,13 @@ export default function Actors() {
                   className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
                   onClick={() => handleSort('movieCount')}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center space-x-1">
                     <span>Số phim</span>
-                    {renderSortIcon('movieCount')}
+                    {sortBy === 'movieCount' && (
+                      <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    )}
                   </div>
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Thao tác</th>
@@ -204,9 +229,9 @@ export default function Actors() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="max-w-xs">
-                      {actor.alsoKnownAs.length > 0 ? (
+                      {(actor.alsoKnownAs ?? []).length > 0 ? (
                         <div className="space-y-1">
-                          {actor.alsoKnownAs.map((name, index) => (
+                          {(actor.alsoKnownAs ?? []).map((name, index) => (
                             <div key={index} className="text-sm text-gray-600 truncate">
                               {name}
                             </div>
@@ -250,7 +275,7 @@ export default function Actors() {
           totalPages={totalPages}
           onPageChange={handlePageChange}
           itemsPerPage={itemsPerPage}
-          totalItems={filteredActors.length}
+          totalItems={stats.filteredCount}
         />
       </div>
 

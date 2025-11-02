@@ -90,7 +90,7 @@ export const validateTotalEpisodes = (totalEpisodes: number | undefined, type: s
 // Sort movies
 export const sortMovies = (
   movies: Movie[], 
-  sortBy: 'id' | 'title' | 'releaseYear' | 'rating' | 'view' | 'createdAt' = 'id', 
+  sortBy: 'id' | 'title' | 'releaseYear' | 'view' | 'createdAt' = 'id', 
   order: 'asc' | 'desc' = 'asc'
 ): Movie[] => {
   return [...movies].sort((a, b) => {
@@ -105,10 +105,6 @@ export const sortMovies = (
       case 'releaseYear':
         aValue = a.releaseYear;
         bValue = b.releaseYear;
-        break;
-      case 'rating':
-        aValue = a.rating;
-        bValue = b.rating;
         break;
       case 'view':
         aValue = a.view;
@@ -270,15 +266,6 @@ export const formatDate = (date: Date): string => {
     month: '2-digit',
     day: '2-digit'
   }).format(new Date(date));
-};
-
-// Get rating color
-export const getRatingColor = (rating: number): string => {
-  if (rating >= 8.5) return 'text-green-700 bg-green-100';
-  if (rating >= 7.0) return 'text-blue-700 bg-blue-100';
-  if (rating >= 6.0) return 'text-yellow-700 bg-yellow-100';
-  if (rating >= 4.0) return 'text-orange-700 bg-orange-100';
-  return 'text-red-700 bg-red-100';
 };
 
 // Get available movie types

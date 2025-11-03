@@ -72,15 +72,15 @@ export default function Countries() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-blue-600 mb-1">{stats.total}</div>
+          <div className="text-2xl font-bold text-blue-900 mb-1">{stats.total}</div>
           <div className="text-gray-600 text-sm">Tổng quốc gia</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.countriesWithMovies}</div>
+          <div className="text-2xl font-bold text-green-600 mb-1">{stats.countriesWithMovies}</div>
           <div className="text-gray-600 text-sm">Quốc gia có phim</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-purple-600 mb-1">{stats.avgMoviesPerCountry}</div>
+          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.avgMoviesPerCountry}</div>
           <div className="text-gray-600 text-sm">TB phim/quốc gia</div>
         </div>
       </div>

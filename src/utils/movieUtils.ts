@@ -63,15 +63,6 @@ export const validateReleaseYear = (year: number): { isValid: boolean; error?: s
   return { isValid: true };
 };
 
-// Validate rating
-export const validateRating = (rating: number): { isValid: boolean; error?: string } => {
-  if (rating < 0 || rating > 10) {
-    return { isValid: false, error: 'Đánh giá phải từ 0 đến 10' };
-  }
-  
-  return { isValid: true };
-};
-
 // Validate total episodes for series
 export const validateTotalEpisodes = (totalEpisodes: number | undefined, type: string): { isValid: boolean; error?: string } => {
   if (type === 'Series' || type === 'Phim bộ') {
@@ -87,17 +78,37 @@ export const validateTotalEpisodes = (totalEpisodes: number | undefined, type: s
   return { isValid: true };
 };
 
-// Sort movies
+// Thêm hàm tính điểm trung bình cho movie
+const getMovieRating = (movie: Movie): number => {
+  const imdbScore = movie.imdbScore || 0;
+  const tmdbScore = movie.tmdbScore || 0;
+
+  // Nếu cả hai điểm đều không hợp lệ, trả về -1 để xếp xuống dưới cùng
+  if (imdbScore === 0 && tmdbScore === 0) return -1;
+
+  // Tính trung bình của IMDb và TMDb (nếu cả hai đều hợp lệ)
+  if (imdbScore > 0 && tmdbScore > 0) {
+    return (imdbScore + tmdbScore) / 2;
+  }
+
+  // Nếu chỉ có IMDb hoặc TMDb hợp lệ, lấy điểm đó
+  return imdbScore > 0 ? imdbScore : tmdbScore;
+};
+
 export const sortMovies = (
   movies: Movie[], 
-  sortBy: 'id' | 'title' | 'releaseYear' | 'view' | 'createdAt' = 'id', 
-  order: 'asc' | 'desc' = 'asc'
+  sortBy: 'id' | 'title' | 'releaseYear' | 'view' | 'createdAt' | 'modifiedAt' | 'rating', 
+  sortOrder: 'asc' | 'desc'
 ): Movie[] => {
   return [...movies].sort((a, b) => {
-    let aValue: string | number | Date;
-    let bValue: string | number | Date;
-    
+    let aValue: any;
+    let bValue: any;
+
     switch (sortBy) {
+      case 'id':
+        aValue = a.id;
+        bValue = b.id;
+        break;
       case 'title':
         aValue = a.title.toLowerCase();
         bValue = b.title.toLowerCase();
@@ -114,15 +125,30 @@ export const sortMovies = (
         aValue = new Date(a.createdAt);
         bValue = new Date(b.createdAt);
         break;
+      case 'modifiedAt':
+        aValue = new Date(a.modifiedAt);
+        bValue = new Date(b.modifiedAt);
+        break;
+      case 'rating':
+        aValue = getMovieRating(a);
+        bValue = getMovieRating(b);
+        
+        // Xử lý đặc biệt cho rating: những movie không có điểm (-1) sẽ được xếp xuống dưới cùng
+        if (aValue === -1 && bValue === -1) return 0;
+        if (aValue === -1) return sortOrder === 'asc' ? 1 : 1;
+        if (bValue === -1) return sortOrder === 'asc' ? -1 : -1;
+        break;
       default:
-        aValue = Number(a.id);
-        bValue = Number(b.id);
+        return 0;
     }
-    
-    if (order === 'desc') {
-      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+
+    if (aValue < bValue) {
+      return sortOrder === 'asc' ? -1 : 1;
     }
-    return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    if (aValue > bValue) {
+      return sortOrder === 'asc' ? 1 : -1;
+    }
+    return 0;
   });
 };
 

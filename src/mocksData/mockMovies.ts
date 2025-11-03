@@ -487,8 +487,8 @@ export const mockMovies: Movie[] = [
     modifiedAt: new Date('2024-03-01'),
     view: 5000000,
     slug: 'gia-dinh-la-so-1-phan-1',
-    tmdbScore: 8.5,
-    imdbScore: 8.5,
+    tmdbScore: 0,
+    imdbScore: 0,
     lang: 'Vietsub',
     country: [mockCountries[0]], // Việt Nam
     actors: [], // MovieActors for Gia Đình Là Số 1 - Phần 1

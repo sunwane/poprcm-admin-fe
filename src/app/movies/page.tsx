@@ -66,46 +66,105 @@ export default function Movies() {
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="mb-8 flex justify-between items-center">
+      <div className="mb-5 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Quản lý Phim</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-1">Quản lý Phim</h1>
           <p className="text-gray-600">Quản lý tất cả phim trong hệ thống</p>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
           <ToggleButton viewMode={viewMode} onToggle={handleViewModeToggle} />
           
           <GradientButton onClick={handleOpenAddModal}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 12h14m-7 7V5"/>
-            </svg>
-            <span>Thêm Phim</span>
+            <span className='text-nowrap'>Thêm thủ công</span>
           </GradientButton>
+          <button 
+            className='bg-linear-to-br from-green-500 to-green-800 rounded-lg text-white text-nowrap px-6 py-3 hover:from-green-400 hover:to-green-800 transition-all flex items-center space-x-2'
+            onClick={handleOpenAddModal}>
+            <span className='text-nowrap'>Thêm tự động</span>
+          </button>
+          <button 
+            onClick={handleOpenAddModal}
+            className='bg-linear-to-br from-gray-400 to-gray-700 rounded-lg text-white text-nowrap px-6 py-3 hover:from-gray-400 hover:to-gray-800 transition-all flex items-center space-x-2'>
+            <span>Cập nhật</span>
+          </button>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-blue-600 mb-1">{stats.total}</div>
-          <div className="text-gray-600 text-sm">Tổng phim</div>
+      <div className="grid grid-cols-6 gap-2.5 mb-4 p-3 rounded-xl shadow-sm border border-gray-100 bg-gray-100">
+        {/* Tổng phim - nổi bật */}
+        <div className="md:col-span-2 md:row-span-2 bg-linear-to-r from-blue-700 to-blue-400 saturate-70 text-white rounded-xl shadow-lg p-6">
+          <div className="text-3xl font-bold mb-2">{stats.total}</div>
+          <div className="text-blue-100 text-sm">Tổng phim</div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-purple-600 mb-1">{stats.totalMovies}</div>
-          <div className="text-gray-600 text-sm">Phim lẻ</div>
+
+        {/* Row 1: Loại phim */}
+        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
+          <div className="text-xl font-bold text-blue-700 mb-1">{stats.totalMovies}</div>
+          <div className="text-gray-600 text-xs">Phim lẻ</div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-green-600 mb-1">{stats.totalSeries}</div>
-          <div className="text-gray-600 text-sm">Phim bộ</div>
+        
+        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
+          <div className="text-xl font-bold text-blue-600 mb-1">{stats.totalSeries}</div>
+          <div className="text-gray-600 text-xs">Phim bộ</div>
         </div>
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.totalAnime}</div>
-          <div className="text-gray-600 text-sm">Hoạt hình</div>
+        
+        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
+          <div className="text-lg font-bold text-cyan-600 mb-1">{stats.totalAnime}</div>
+          <div className="text-gray-600 text-xs">Hoạt hình</div>
+        </div>
+
+        {/* Điểm trung bình - nổi bật */}
+        <div className="items-center bg-linear-to-r from-green-600 to-green-400 saturate-60 text-white rounded-xl shadow-lg p-6 md:row-span-2">
+          <div className="text-2xl font-bold mb-1.5">{stats.averageRating}</div>
+          <div className="text-cyan-100 text-sm">Điểm TB</div>
+        </div>
+
+        {/* Row 2: Trạng thái */}
+        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
+          <div className="text-lg font-bold text-teal-600 mb-1">{stats.ongoingSeries}</div>
+          <div className="text-gray-600 text-xs">Đang chiếu</div>
+        </div>
+        
+        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
+          <div className="text-lg font-bold text-green-600 mb-1">{stats.completedMovies}</div>
+          <div className="text-gray-600 text-xs">Hoàn thành</div>
+        </div>
+        
+        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
+          <div className="text-lg font-bold text-gray-600 mb-1">{stats.hiatusMovies}</div>
+          <div className="text-gray-600 text-xs">Tạm dừng</div>
+        </div>
+
+        {/* Row 3: Thông tin ngày */}
+        <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="text-lg font-bold text-blue-700 mb-1">
+            {stats.latestAddedDate ? new Date(stats.latestAddedDate).toLocaleDateString('vi-VN') : 'N/A'}
+          </div>
+          <div className="text-gray-600 text-xs">Ngày thêm gần nhất</div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="text-lg font-bold text-blue-600 mb-1">{stats.moviesAddedOnLatestDate}</div>
+          <div className="text-gray-600 text-xs">Thêm mới hôm nay</div>
+        </div>
+        
+        <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="text-lg font-bold text-indigo-700 mb-1">
+            {stats.latestUpdatedDate ? new Date(stats.latestUpdatedDate).toLocaleDateString('vi-VN') : 'N/A'}
+          </div>
+          <div className="text-gray-600 text-xs">Ngày cập nhật gần nhất</div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="text-lg font-bold text-indigo-600 mb-1">{stats.moviesUpdatedOnLatestDate || 0}</div>
+          <div className="text-gray-600 text-xs">Cập nhật hôm nay</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-4 items-end">
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">Tìm kiếm</label>
             <SearchBar 
@@ -153,6 +212,20 @@ export default function Movies() {
               ]}
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Ngôn ngữ</label>
+            <FormSelect
+              filter={langFilter}
+              onChange={setLangFilter}
+              options={[
+                { value: 'all', label: 'Tất cả' },
+                { value: 'Vietsub', label: 'Vietsub' },
+                { value: 'Thuyết minh', label: 'Thuyết minh' },
+                { value: 'Vietsub + Thuyết minh', label: 'Vietsub + Thuyết minh' }
+              ]}
+            />
+          </div>
           
           <div>
             <button
@@ -196,10 +269,10 @@ export default function Movies() {
               <thead className="bg-gray-50">
                 <tr>
                   <th 
-                    className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                    className="pl-6 px-2 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('id')}
                   >
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-1 min-w-[250px] max-w-[250px]">
                       <span>Poster & Thông tin</span>
                       {sortBy === 'id' && (
                         <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,7 +282,7 @@ export default function Movies() {
                     </div>
                   </th>
                   <th 
-                    className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                    className="px-3 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('releaseYear')}
                   >
                     <div className="flex items-center space-x-1">
@@ -221,12 +294,10 @@ export default function Movies() {
                       )}
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Loại</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Thời lượng</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Tập</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Trạng thái</th>
+                  <th className="px-3 py-4 text-left text-sm font-medium text-gray-600">Loại</th>
+                  <th className="px-3 py-4 text-left text-sm font-medium text-gray-600">Trạng thái</th>
                   <th 
-                    className="px-6 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                    className="px-3 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
                     onClick={() => handleSort('view')}
                   >
                     <div className="flex items-center space-x-1">
@@ -238,17 +309,41 @@ export default function Movies() {
                       )}
                     </div>
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Ngôn ngữ</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Điểm</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Quốc gia</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Ngày tạo</th>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-600">Thao tác</th>
+                  <th className="px-3 py-4 text-left text-sm font-medium text-gray-600">Ngôn ngữ</th>
+                  <th 
+                    className="px-3 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('rating')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Điểm</span>
+                      {sortBy === 'rating' && (
+                        <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-3 py-4 text-left text-sm font-medium text-gray-600">Quốc gia</th>
+                  <th 
+                    className="px-3 py-4 text-left text-sm font-medium text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('modifiedAt')}
+                  >
+                    <div className="flex items-center space-x-1">
+                      <span>Ngày sửa</span>
+                      {sortBy === 'modifiedAt' && (
+                        <svg className={`w-4 h-4 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      )}
+                    </div>
+                  </th>
+                  <th className="px-3 py-4 text-left text-sm font-medium text-gray-600">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {paginatedMovies.map((movie) => (
                   <tr key={movie.id} className="hover:bg-blue-50 transition-colors">
-                    <td className="px-6 py-4">
+                    <td className="pl-6 pr-2 py-4 min-w-[250px] max-w-[250px]">
                       <div className="flex items-center space-x-4">
                         <img 
                           src={movie.posterUrl || '/placeholder-poster.png'} 
@@ -259,56 +354,58 @@ export default function Movies() {
                           }}
                         />
                         <div>
-                          <div className="font-medium text-gray-800">{movie.title}</div>
-                          <div className="text-sm text-gray-500">{movie.originalName}</div>
-                          <div className="text-xs text-gray-400 font-mono">ID: {movie.id}</div>
+                          <div className="font-bold text-blue-900 truncate max-w-[180px] mb-[-0.5]">{movie.title}</div>
+                          <div className="text-[13px] text-gray-500 truncate max-w-[180px] mb-2">{movie.originalName}</div>
+                          <div className="text-xs text-gray-400 font-mono max-w-[200px] truncate">ID: {movie.id}</div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{movie.releaseYear}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-sm font-medium ${getTypeColor(movie.type)}`}>
+                    <td className="px-3 py-4 text-gray-600">{movie.releaseYear}</td>
+                    <td className="px-3 py-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium text-nowrap ${getTypeColor(movie.type)}`}>
                         {getTypeText(movie.type)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{movie.duration}</td>
-                    <td className="px-6 py-4 text-gray-600">
-                      {movie.totalEpisodes ? `${movie.totalEpisodes} tập` : '-'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-sm font-medium ${getStatusColor(movie.status)}`}>
+                    <td className="px-3 py-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium text-nowrap ${getStatusColor(movie.status)}`}>
                         {getStatusText(movie.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-600">{formatViewCount(movie.view)}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-sm font-medium ${getLangColor(movie.lang)}`}>
+                    <td className="px-3 py-4 text-gray-600">{formatViewCount(movie.view)}</td>
+                    <td className="px-3 py-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium text-nowrap ${getLangColor(movie.lang)}`}>
                         {movie.lang}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-3 py-4">
                       <div className="space-y-1">
-                        {movie.tmdbScore && (
-                          <div className="text-xs text-gray-500">TMDB: {movie.tmdbScore}</div>
-                        )}
-                        {movie.imdbScore && (
-                          <div className="text-xs text-gray-500">IMDB: {movie.imdbScore}</div>
+                        {(movie.tmdbScore ?? 0) > 0 || (movie.imdbScore ?? 0) > 0 ? (
+                          <>
+                            {(movie.tmdbScore ?? 0) > 0 && (
+                              <div className="text-xs text-blue-500 bg-blue-50 py-1 px-2 rounded text-center w-fit">TMDB: {movie.tmdbScore}</div>
+                            )}
+                            {(movie.imdbScore ?? 0) > 0 && (
+                              <div className="text-xs  text-yellow-500 bg-yellow-50 py-1 px-2 rounded text-center w-fit">IMDB: {movie.imdbScore}</div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="text-xs text-gray-400">Chưa có điểm</div>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
+                    <td className="px-3 py-4 text-sm text-gray-600">
                       {getCountryNames(movie)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {formatDate(movie.createdAt)}
+                    <td className="px-3 py-4 text-sm text-gray-600">
+                      {formatDate(movie.modifiedAt || movie.createdAt)}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex space-x-2">
+                    <td className="px-3 py-4">
+                      <div className="flex space-x-1">
                         <button 
                           className="bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors"
                           title="Chi tiết"
                         >
-                          👁️
+                          Xem
                         </button>
                         <button 
                           onClick={() => handleEdit(movie)}
@@ -370,4 +467,3 @@ export default function Movies() {
     </div>
   );
 }
-

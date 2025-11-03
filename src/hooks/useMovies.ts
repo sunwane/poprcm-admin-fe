@@ -25,7 +25,7 @@ export const useMovies = () => {
   const [langFilter, setLangFilter] = useState('all');
   
   // Sorting
-  const [sortBy, setSortBy] = useState<'id' | 'title' | 'releaseYear' | 'view' | 'createdAt'>('id');
+  const [sortBy, setSortBy] = useState<'id' | 'title' | 'releaseYear' | 'view' | 'createdAt' | 'modifiedAt' | 'rating'>('id');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
   // Pagination
@@ -96,7 +96,45 @@ export const useMovies = () => {
     const totalViews = movies.reduce((sum, movie) => sum + movie.view, 0);
     const ongoingSeries = movies.filter(m => m.status === 'Ongoing').length;
     const completedMovies = movies.filter(m => m.status === 'Completed').length;
+    const hiatusMovies = movies.filter(m => m.status === 'Hiatus').length;
     
+    // Tính trung bình điểm IMDb và TMDb
+    const validRatings = movies
+      .map(movie => {
+        const imdbScore = movie.imdbScore || 0;
+        const tmdbScore = movie.tmdbScore || 0;
+
+        // Nếu cả hai điểm đều không hợp lệ, bỏ qua movie này
+        if (imdbScore === 0 && tmdbScore === 0) return null;
+
+        // Tính trung bình của IMDb và TMDb (nếu cả hai đều hợp lệ)
+        if (imdbScore > 0 && tmdbScore > 0) {
+          return (imdbScore + tmdbScore) / 2;
+        }
+
+        // Nếu chỉ có IMDb hoặc TMDb hợp lệ, lấy điểm đó
+        return imdbScore > 0 ? imdbScore : tmdbScore;
+      })
+      .filter(score => score !== null); // Loại bỏ các giá trị null
+
+    const averageRating =
+      validRatings.length > 0
+        ? validRatings.reduce((sum, score) => sum + (score || 0), 0) /
+          validRatings.length
+        : 0;
+
+    const latestAddedDate = movies.reduce((latest, movie) => {
+      return new Date(movie.createdAt) > new Date(latest) ? movie.createdAt : latest;
+    }, movies[0]?.createdAt || null);
+
+    const latestUpdatedDate = movies.reduce((latest, movie) => {
+      return new Date(movie.modifiedAt) > new Date(latest) ? movie.modifiedAt : latest;
+    }, movies[0]?.modifiedAt || null);
+
+      // Đếm số lượng movie được thêm vào ngày cuối cùng
+    const moviesAddedOnLatestDate = movies.filter(movie => { movie.createdAt === latestAddedDate}).length;
+    const moviesUpdatedOnLatestDate = movies.filter(movie => { movie.modifiedAt === latestUpdatedDate}).length;
+
     return {
       total,
       totalMovies,
@@ -105,6 +143,12 @@ export const useMovies = () => {
       totalViews,
       ongoingSeries,
       completedMovies,
+      hiatusMovies,
+      latestAddedDate,
+      latestUpdatedDate,
+      moviesAddedOnLatestDate,
+      moviesUpdatedOnLatestDate,
+      averageRating: Math.round(averageRating * 10) / 10,
       filteredCount: filteredAndSortedMovies.length
     };
   }, [movies, filteredAndSortedMovies]);
@@ -182,7 +226,7 @@ export const useMovies = () => {
     setCurrentPage(1);
   };
 
-  const handleSort = (field: 'id' | 'title' | 'releaseYear' | 'view' | 'createdAt') => {
+  const handleSort = (field: 'id' | 'title' | 'releaseYear' | 'view' | 'createdAt' | 'modifiedAt' | 'rating') => {
     if (sortBy === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {

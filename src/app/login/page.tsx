@@ -1,95 +1,87 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import FormInput from '@/components/ui/FormInput';
 
 export default function Login() {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const router = useRouter();
-  const { login } = useAuth();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-        console.log('Login attempt with:', formData);
-        
-        // Sử dụng login từ useAuth hook
-        const response = await login(formData);
-        console.log('Login response:', response);
-        console.log('Login successful, redirecting to dashboard...');
-
-        // Chuyển hướng đến trang dashboard
-        router.push('/dashboard');
-    } catch (err: any) {
-        console.error('Login error:', err);
-        setError(err.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
-    }
-    setLoading(false);
-};
+  const { 
+    loginForm, 
+    loginLoading, 
+    loginError, 
+    updateLoginForm, 
+    handleLoginSubmit 
+  } = useAuth();
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="max-w-md w-full space-y-8 p-8">
+    <div className="relative h-screen overflow-hidden flex items-center justify-center">
+      {/* Background xoay và phóng to */}
+      <div className="absolute inset-0 bg-[url('/loginBackground.png')] bg-cover bg-center transform -rotate-12 scale-135"></div>
+
+      {/* Overlay gradient radial */}
+      <div className="absolute inset-0 bg-blue-500 opacity-100 mix-blend-overlay"></div>
+
+      {/* Overlay gradient radial */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_70%_at_center,transparent_0%,transparent_40%,#333333_85%,#333333_100%)]"></div>
+
+      {/* Overlay gradient radial */}
+      <div className="absolute inset-0 bg-white opacity-80 mix-blend-hard-light"></div>
+
+      {/* Nội dung đăng nhập */}
+      <div className="relative max-w-lg w-full space-y-8 p-8 bg-white border border-gray-200 rounded-xl shadow-lg">
         {/* Logo */}
         <div className="text-center">
-          <img
-            className="mx-auto h-20 w-auto"
-            src="/Logo.png"
-            alt="POPRCM Admin"
-          />
-          <h2 className="mt-6 text-center text-3xl font-bold text-blue-800">
+          <div className="bg-sky-50 border border-blue-100 shadow-md w-fit mx-auto rounded-xl px-3.5 py-2.5 mb-3">
+            <img
+              className="mx-auto h-12 w-auto mb-0.5"
+              src="/LogoNoBrand.png"
+              alt="POPRCM Admin"
+            />
+            <div className="text-center text-[15px] font-extrabold tracking-wider text-indigo-950">POPRCM</div>
+            <div className="text-center text-[10px] font-bold saturate-70 tracking-wide text-blue-600 mt-[-4]">Movies for you</div>
+          </div>
+          <h2 className="mt-1 text-center text-2xl font-bold text-blue-800">
             Đăng nhập hệ thống
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-1.5 text-center text-sm text-gray-600">
             Chỉ dành cho quản trị viên
           </p>
         </div>
 
-        {/* Login Form */}
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
+        {/* Form đăng nhập */}
+        <form className="mt-6 space-y-6" onSubmit={handleLoginSubmit}>
+          {loginError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-              {error}
+              {loginError}
             </div>
           )}
-          
+
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email
               </label>
-              <input
+              <FormInput
                 id="email"
                 name="email"
                 type="email"
                 required
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                value={loginForm.email}
+                onChange={(e) => updateLoginForm('email', e.target.value)}
                 placeholder="admin@poprcm.com"
               />
             </div>
-            
+
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Mật khẩu
               </label>
-              <input
+              <FormInput
                 id="password"
                 name="password"
                 type="password"
                 required
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                value={loginForm.password}
+                onChange={(e) => updateLoginForm('password', e.target.value)}
                 placeholder="••••••••"
               />
             </div>
@@ -98,14 +90,14 @@ export default function Login() {
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loginLoading}
               className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-medium text-white ${
-                loading 
-                  ? 'bg-gray-400 cursor-not-allowed' 
+                loginLoading
+                  ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
               } transition-colors`}
             >
-              {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
+              {loginLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </button>
           </div>
 

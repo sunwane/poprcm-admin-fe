@@ -1,33 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import GradientAvatar from '../ui/GradientAvatar';
-import AuthService from '@/services/AuthService';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function NavigationBar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  
-  useEffect(() => {
-      const userData = AuthService.getUser();
-      setUser(userData);
-  }, []);
-
-  const handleLogout = () => {
-      AuthService.logout();
-      router.push('/login');
-  };
+  const { user, logout } = useAuth();
   
   const menuItems = [
       { name: 'Tổng quan', path: '/dashboard' },
+      { name: 'Quản lí quốc gia', path: '/country' },
       { name: 'Quản lí thể loại', path: '/genres' },
       { name: 'Quản lí series', path: '/series' },
       { name: 'Quản lí phim', path: '/movies' },
       { name: 'Quản lí diễn viên', path: '/actors' },
-      { name: 'Quản lí quốc gia', path: '/country' },
       { name: 'Quản lí người dùng', path: '/users' },
   ];
 
@@ -105,7 +93,7 @@ export default function NavigationBar() {
               
               <button 
                   className="w-full p-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center justify-center space-x-1"
-                  onClick={handleLogout}
+                  onClick={logout}
               >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

@@ -4,24 +4,28 @@ import {
   LoginRequest,
   ChangePasswordRequest 
 } from '@/types/Auth';
+import { mockUsers } from '@/mocksData/mockUser';
 
 class AuthService {
   private baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
   async login(request: LoginRequest): Promise<AuthResponse> {
     try {
-      // Tạm thời mock response cho testing
-      if (request.email === 'admin@poprcm.com' && request.password === 'admin123') {
+      // Tìm user admin trong mockUsers
+      const adminUser = mockUsers.find(user => user.username === 'admin');
+      
+      if (request.email === adminUser?.email && request.password === 'admin123') {
         return {
           token: 'mock-jwt-token-' + Date.now(),
           user: {
-            id: '1',
-            username: 'admin',
-            fullname: 'Admin User',
-            email: 'admin@poprcm.com',
+            id: adminUser.id,
+            username: adminUser.username,
+            fullname: adminUser.fullname,
+            email: adminUser.email,
             role: 'admin',
-            createdAt: new Date(),
-            gender: 'male'
+            createdAt: adminUser.createdAt,
+            gender: adminUser.gender,
+            avatarUrl: adminUser.avatarUrl
           },
           message: 'Đăng nhập thành công'
         };
@@ -64,6 +68,32 @@ class AuthService {
       }
 
       return await response.json();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async sendVerificationCode(): Promise<{ message: string }> {
+    try {
+      // Mock implementation - simulate sending verification code
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // In real implementation, this would call the API
+      // const response = await fetch(`${this.baseURL}/auth/send-verification-code`, {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${this.getToken()}`
+      //   },
+      // });
+
+      // if (!response.ok) {
+      //   throw new Error('Gửi mã xác nhận thất bại');
+      // }
+
+      // return await response.json();
+      
+      return { message: 'Mã xác nhận đã được gửi qua email của bạn' };
     } catch (error) {
       throw error;
     }

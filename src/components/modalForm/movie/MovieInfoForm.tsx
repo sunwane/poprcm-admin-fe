@@ -2,7 +2,6 @@ import React from 'react';
 import { MovieFormData, MovieFormErrors } from '@/hooks/useMovieModal';
 import FormInput from '@/components/ui/FormInput';
 import FormSelect from '@/components/ui/FormSelect';
-import PosterUpload from '@/components/ui/PosterUpload';
 import { getMovieTypes, getMovieStatuses, getMovieLanguages } from '@/utils/movieUtils';
 
 interface MovieInfoFormProps {
@@ -11,7 +10,6 @@ interface MovieInfoFormProps {
   uploadError: string;
   isProcessing: boolean;
   onInputChange: <K extends keyof MovieFormData>(field: K, value: MovieFormData[K]) => void;
-  onPosterChange: (file: File | null, previewUrl: string) => void;
 }
 
 const MovieInfoForm: React.FC<MovieInfoFormProps> = ({
@@ -19,8 +17,7 @@ const MovieInfoForm: React.FC<MovieInfoFormProps> = ({
   errors,
   uploadError,
   isProcessing,
-  onInputChange,
-  onPosterChange
+  onInputChange
 }) => {
   const movieTypes = getMovieTypes();
   const movieStatuses = getMovieStatuses();
@@ -202,16 +199,30 @@ const MovieInfoForm: React.FC<MovieInfoFormProps> = ({
       {/* Right Column - URLs and Ratings */}
       <div>
         <div className="space-y-6">
-          {/* Poster Upload */}
+          {/* Poster URL */}
           <div className="bg-gray-50 rounded-xl p-6">
             <label className="block text-sm font-medium text-gray-700 mb-4">
-              Poster phim
+              Poster URL
             </label>
-            <PosterUpload
-              currentPoster={formData.posterUrl}
-              onPosterChange={onPosterChange}
+            <FormInput
+              name="posterUrl"
+              value={formData.posterUrl}
+              onChange={(e) => onInputChange('posterUrl', e.target.value)}
+              placeholder="https://example.com/poster.jpg"
               disabled={isProcessing}
             />
+            {formData.posterUrl && (
+              <div className="mt-4">
+                <img 
+                  src={formData.posterUrl} 
+                  alt="Poster preview" 
+                  className="w-32 h-48 object-cover rounded-lg border"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
             {uploadError && (
               <div className="mt-4 text-red-600 text-sm">
                 {uploadError}

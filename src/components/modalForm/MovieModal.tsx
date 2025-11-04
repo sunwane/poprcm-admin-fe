@@ -81,6 +81,17 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Must have basic info, countries, and genres to save
+    const hasBasicInfo = formData.title.trim() && formData.originalName.trim() && formData.description.trim();
+    const hasCountries = formData.selectedCountries.length > 0;
+    const hasGenres = formData.selectedGenres.length > 0;
+    
+    const canSaveMovie = hasBasicInfo && hasCountries && hasGenres;
+    
+    if (!canSaveMovie) {
+      return;
+    }
+    
     if (!validateForm()) {
       setActiveTab('info');
       return;
@@ -123,6 +134,29 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
     }
   };
 
+  // Handle save button click
+  const handleSaveClick = () => {
+    const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+    handleSubmit(fakeEvent);
+  };
+
+  // Handle next tab navigation
+  const handleNextTab = () => {
+    const hasBasicInfo = formData.title.trim() && formData.originalName.trim() && formData.description.trim();
+    const hasCountries = formData.selectedCountries.length > 0;
+    const hasGenres = formData.selectedGenres.length > 0;
+
+    if (activeTab === 'info' && hasBasicInfo) {
+      setActiveTab('countries');
+    } else if (activeTab === 'countries' && hasCountries) {
+      setActiveTab('genres');
+    } else if (activeTab === 'genres' && hasGenres) {
+      setActiveTab('actors');
+    } else if (activeTab === 'actors') {
+      setActiveTab('episodes');
+    }
+  };
+
   const handleClose = () => {
     if (!isSubmitting) {
       onClose();
@@ -134,8 +168,8 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
   const tabs = [
     { id: 'info', label: 'Thông tin phim', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
     { id: 'countries', label: 'Quốc gia', icon: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { id: 'actors', label: 'Diễn viên', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z' },
     { id: 'genres', label: 'Thể loại', icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z' },
+    { id: 'actors', label: 'Diễn viên', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z' },
     { id: 'episodes', label: `Tập phim (${formData.episodes.length})`, icon: 'M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2M7 4h10M7 4l-1 16h12L17 4M9 8v8m6-8v8' }
   ];
 
@@ -198,7 +232,6 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                     uploadError={uploadError}
                     isProcessing={isSubmitting}
                     onInputChange={handleInputChange}
-                    onPosterChange={handlePosterChange}
                   />
                 )}
 
@@ -222,24 +255,6 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                   />
                 )}
 
-                {activeTab === 'actors' && (
-                  <MovieActorsForm
-                    actors={filteredActors}
-                    selectedActors={formData.selectedActors}
-                    actorSearchTerm={actorSearchQuery}
-                    isProcessing={isSubmitting}
-                    onActorSearchChange={setActorSearchQuery}
-                    onAddActor={(actorId) => {
-                      const actor = filteredActors.find(a => a.id === actorId);
-                      if (actor) {
-                        handleAddActor(actor);
-                      }
-                    }}
-                    onRemoveActor={handleRemoveActor}
-                    onUpdateCharacterName={handleUpdateCharacterName}
-                  />
-                )}
-
                 {activeTab === 'genres' && (
                   <MovieGenresForm
                     genres={filteredGenres}
@@ -257,6 +272,24 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                         }
                       }
                     }}
+                  />
+                )}
+
+                {activeTab === 'actors' && (
+                  <MovieActorsForm
+                    actors={filteredActors}
+                    selectedActors={formData.selectedActors}
+                    actorSearchTerm={actorSearchQuery}
+                    isProcessing={isSubmitting}
+                    onActorSearchChange={setActorSearchQuery}
+                    onAddActor={(actorId) => {
+                      const actor = filteredActors.find(a => a.id === actorId);
+                      if (actor) {
+                        handleAddActor(actor);
+                      }
+                    }}
+                    onRemoveActor={handleRemoveActor}
+                    onUpdateCharacterName={handleUpdateCharacterName}
                   />
                 )}
 
@@ -301,10 +334,65 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
 
                 {/* Actions */}
                 <div className="flex justify-between items-center mt-8 pt-6 border-t border-gray-200">
-                  <div className="text-sm text-gray-500">
-                    {!canSwitchTabs && activeTab === 'info' && (
-                      'Nhập tên phim để mở khóa các tab khác'
-                    )}
+                  <div className="flex items-center space-x-4">
+                    {/* Next Tab Button */}
+                    {(() => {
+                      const hasBasicInfo = formData.title.trim() && formData.originalName.trim() && formData.description.trim();
+                      const hasCountries = formData.selectedCountries.length > 0;
+                      const hasGenres = formData.selectedGenres.length > 0;
+                      
+                      const canGoNext = 
+                        (activeTab === 'info' && hasBasicInfo) ||
+                        (activeTab === 'countries' && hasCountries) ||
+                        (activeTab === 'genres' && hasGenres) ||
+                        (activeTab === 'actors') ||
+                        (activeTab === 'episodes');
+                      
+                      const isLastTab = activeTab === 'episodes';
+                      
+                      if (!isLastTab && canGoNext) {
+                        return (
+                          <button
+                            type="button"
+                            onClick={handleNextTab}
+                            disabled={isSubmitting}
+                            className="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Chuyển sang tab tiếp theo"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                            <span>Tiếp theo</span>
+                          </button>
+                        );
+                      }
+                      return null;
+                    })()}
+
+                    {/* Warning Message */}
+                    <div className="text-sm text-gray-500">
+                      {(() => {
+                        const hasBasicInfo = formData.title.trim() && formData.originalName.trim() && formData.description.trim();
+                        const hasCountries = formData.selectedCountries.length > 0;
+                        const hasGenres = formData.selectedGenres.length > 0;
+                        const canSaveMovie = hasBasicInfo && hasCountries && hasGenres;
+                        
+                        if (!canSwitchTabs && activeTab === 'info') {
+                          return 'Nhập tên phim để mở khóa các tab khác';
+                        }
+                        
+                        if (!canSaveMovie) {
+                          const missing = [];
+                          if (!hasBasicInfo) missing.push('thông tin cơ bản');
+                          if (!hasCountries) missing.push('quốc gia');
+                          if (!hasGenres) missing.push('thể loại');
+                          
+                          return `⚠️ Cần nhập đầy đủ ${missing.join(', ')} để có thể lưu phim`;
+                        }
+                        
+                        return '✅ Đã đủ thông tin cơ bản để lưu phim';
+                      })()}
+                    </div>
                   </div>
 
                   <div className="flex space-x-4">
@@ -316,7 +404,19 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                     >
                       Hủy bỏ
                     </button>
-                    <GradientButton disabled={isSubmitting}>
+                    
+                    {/* Save Movie Button */}
+                    <GradientButton 
+                      onClick={handleSaveClick}
+                      disabled={(() => {
+                        const hasBasicInfo = formData.title.trim() && formData.originalName.trim() && formData.description.trim();
+                        const hasCountries = formData.selectedCountries.length > 0;
+                        const hasGenres = formData.selectedGenres.length > 0;
+                        const canSaveMovie = hasBasicInfo && hasCountries && hasGenres;
+                        
+                        return isSubmitting || !canSaveMovie;
+                      })()}
+                    >
                       {isSubmitting ? (
                         <>
                           <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -326,7 +426,7 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                           Đang lưu...
                         </>
                       ) : (
-                        editingMovie ? 'Cập nhật phim' : 'Thêm phim'
+                        editingMovie ? 'Cập nhật phim' : 'Lưu phim'
                       )}
                     </GradientButton>
                   </div>

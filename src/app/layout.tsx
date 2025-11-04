@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import NavigationBar from "../components/layout/NavigationBar";
+import ClientLayout from "@/components/layout/ClientLayout";
 
 export const metadata: Metadata = {
   title: "POPRCM Admin",
@@ -18,12 +18,9 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body>
-        <div className="flex min-h-screen">
-          <NavigationBar />
-          <main className="flex-1 overflow-auto">
-            {children}
-          </main>
-        </div>
+        <ClientLayout>
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );

@@ -14,9 +14,10 @@ interface MoviesCardProps {
   movies: Movie[];
   onEdit: (movie: Movie) => void;
   onDelete: (id: number) => void;
+  onViewDetail?: (movie: Movie) => void;
 }
 
-export default function MoviesCard({ movies, onEdit, onDelete }: MoviesCardProps) {
+export default function MoviesCard({ movies, onEdit, onDelete, onViewDetail }: MoviesCardProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {movies.map((movie) => (
@@ -95,6 +96,7 @@ export default function MoviesCard({ movies, onEdit, onDelete }: MoviesCardProps
             
             <div className="flex space-x-2 mt-4">
               <button 
+                onClick={() => onViewDetail?.(movie)}
                 className="flex-1 bg-blue-500 text-white py-2 rounded text-sm hover:bg-blue-600 transition-colors"
                 title="Chi tiết"
               >

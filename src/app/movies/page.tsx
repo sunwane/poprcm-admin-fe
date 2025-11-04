@@ -18,6 +18,9 @@ import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
 import ToggleButton from '@/components/ui/ToggleButton';
 import MoviesCard from '@/components/feature/movies/MoviesCard';
+import MovieStatsCard from '@/components/feature/movies/MovieStatsCard';
+import MovieDetailModal from '@/components/feature/movies/MovieDetailModal';
+import { useMovieDetailModal } from '@/hooks/useMovieDetailModal';
 
 export default function Movies() {
   const {
@@ -55,6 +58,8 @@ export default function Movies() {
     setLangFilter,
   } = useMovies();
 
+  const { isOpen: isDetailModalOpen, selectedMovie, openModal: openDetailModal, closeModal: closeDetailModal } = useMovieDetailModal();
+
   if (loading) {
     return (
       <div className="p-8 bg-gray-50 min-h-screen flex items-center justify-center">
@@ -91,76 +96,7 @@ export default function Movies() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-6 gap-2.5 mb-4 p-3 rounded-xl shadow-sm border border-gray-100 bg-gray-100">
-        {/* Tổng phim - nổi bật */}
-        <div className="md:col-span-2 md:row-span-2 bg-linear-to-r from-blue-700 to-blue-400 saturate-70 text-white rounded-xl shadow-lg p-6">
-          <div className="text-3xl font-bold mb-2">{stats.total}</div>
-          <div className="text-blue-100 text-sm">Tổng phim</div>
-        </div>
-
-        {/* Row 1: Loại phim */}
-        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
-          <div className="text-xl font-bold text-blue-700 mb-1">{stats.totalMovies}</div>
-          <div className="text-gray-600 text-xs">Phim lẻ</div>
-        </div>
-        
-        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
-          <div className="text-xl font-bold text-blue-600 mb-1">{stats.totalSeries}</div>
-          <div className="text-gray-600 text-xs">Phim bộ</div>
-        </div>
-        
-        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
-          <div className="text-lg font-bold text-cyan-600 mb-1">{stats.totalAnime}</div>
-          <div className="text-gray-600 text-xs">Hoạt hình</div>
-        </div>
-
-        {/* Điểm trung bình - nổi bật */}
-        <div className="items-center bg-linear-to-r from-green-600 to-green-400 saturate-60 text-white rounded-xl shadow-lg p-6 md:row-span-2">
-          <div className="text-2xl font-bold mb-1.5">{stats.averageRating}</div>
-          <div className="text-cyan-100 text-sm">Điểm TB</div>
-        </div>
-
-        {/* Row 2: Trạng thái */}
-        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
-          <div className="text-lg font-bold text-teal-600 mb-1">{stats.ongoingSeries}</div>
-          <div className="text-gray-600 text-xs">Đang chiếu</div>
-        </div>
-        
-        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
-          <div className="text-lg font-bold text-green-600 mb-1">{stats.completedMovies}</div>
-          <div className="text-gray-600 text-xs">Hoàn thành</div>
-        </div>
-        
-        <div className="flex items-center space-x-2 bg-white rounded-xl shadow-sm border border-gray-100 px-4 py-3">
-          <div className="text-lg font-bold text-gray-600 mb-1">{stats.hiatusMovies}</div>
-          <div className="text-gray-600 text-xs">Tạm dừng</div>
-        </div>
-
-        {/* Row 3: Thông tin ngày */}
-        <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="text-lg font-bold text-blue-700 mb-1">
-            {stats.latestAddedDate ? new Date(stats.latestAddedDate).toLocaleDateString('vi-VN') : 'N/A'}
-          </div>
-          <div className="text-gray-600 text-xs">Ngày thêm gần nhất</div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="text-lg font-bold text-blue-600 mb-1">{stats.moviesAddedOnLatestDate}</div>
-          <div className="text-gray-600 text-xs">Thêm mới hôm nay</div>
-        </div>
-        
-        <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="text-lg font-bold text-indigo-700 mb-1">
-            {stats.latestUpdatedDate ? new Date(stats.latestUpdatedDate).toLocaleDateString('vi-VN') : 'N/A'}
-          </div>
-          <div className="text-gray-600 text-xs">Ngày cập nhật gần nhất</div>
-        </div>
-        
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="text-lg font-bold text-indigo-600 mb-1">{stats.moviesUpdatedOnLatestDate || 0}</div>
-          <div className="text-gray-600 text-xs">Cập nhật hôm nay</div>
-        </div>
-      </div>
+      <MovieStatsCard stats={stats} />
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
@@ -402,6 +338,7 @@ export default function Movies() {
                     <td className="px-3 py-4">
                       <div className="flex space-x-1">
                         <button 
+                          onClick={() => openDetailModal(movie)}
                           className="bg-gray-500 text-white px-2 py-1 rounded text-xs hover:bg-gray-600 transition-colors"
                           title="Chi tiết"
                         >
@@ -440,7 +377,8 @@ export default function Movies() {
         <MoviesCard 
           movies={paginatedMovies} 
           onEdit={handleEdit} 
-          onDelete={handleDelete} 
+          onDelete={handleDelete}
+          onViewDetail={openDetailModal}
         />
       )}
 
@@ -463,6 +401,13 @@ export default function Movies() {
         editingMovie={editingMovie}
         onClose={handleCloseModal}
         onSave={handleSaveMovie}
+      />
+
+      {/* Movie Detail Modal */}
+      <MovieDetailModal
+        isOpen={isDetailModalOpen}
+        movie={selectedMovie}
+        onClose={closeDetailModal}
       />
     </div>
   );

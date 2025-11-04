@@ -20,7 +20,6 @@ import ToggleButton from '@/components/ui/ToggleButton';
 import MoviesCard from '@/components/feature/movies/MoviesCard';
 import MovieStatsCard from '@/components/feature/movies/MovieStatsCard';
 import MovieDetailModal from '@/components/feature/movies/MovieDetailModal';
-import { useMovieDetailModal } from '@/hooks/useMovieDetailModal';
 
 export default function Movies() {
   const {
@@ -56,9 +55,12 @@ export default function Movies() {
     setTypeFilter,
     setStatusFilter,
     setLangFilter,
+    // Movie Detail Modal
+    isDetailModalOpen,
+    selectedMovie,
+    openDetailModal,
+    closeDetailModal,
   } = useMovies();
-
-  const { isOpen: isDetailModalOpen, selectedMovie, openModal: openDetailModal, closeModal: closeDetailModal } = useMovieDetailModal();
 
   if (loading) {
     return (

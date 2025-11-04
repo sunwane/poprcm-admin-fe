@@ -17,6 +17,10 @@ export const useMovies = () => {
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('table');
   
+  // Movie Detail Modal state
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  
   // Search and filters
   const [searchQuery, setSearchQuery] = useState('');
   const [yearFilter, setYearFilter] = useState<number | null>(null);
@@ -191,6 +195,17 @@ export const useMovies = () => {
     setEditingMovie(null);
   };
 
+  // Movie Detail Modal handlers
+  const openDetailModal = (movie: Movie) => {
+    setSelectedMovie(movie);
+    setIsDetailModalOpen(true);
+  };
+
+  const closeDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedMovie(null);
+  };
+
   const handleSaveMovie = async (movieData: Partial<Movie>) => {
     try {
       if (editingMovie) {
@@ -267,6 +282,10 @@ export const useMovies = () => {
     editingMovie,
     viewMode,
     
+    // Movie Detail Modal state
+    isDetailModalOpen,
+    selectedMovie,
+    
     // Filters and search
     searchQuery,
     yearFilter,
@@ -301,6 +320,10 @@ export const useMovies = () => {
     handleSort,
     handleClearFilters,
     handleIncrementView,
+    
+    // Movie Detail Modal actions
+    openDetailModal,
+    closeDetailModal,
     
     // Setters
     setSearchQuery,

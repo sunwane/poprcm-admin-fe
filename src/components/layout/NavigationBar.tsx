@@ -68,7 +68,18 @@ export default function NavigationBar() {
                           : 'text-gray-700 hover:bg-blue-50 hover:shadow-sm radiusd-lg hover:pl-4 hover:pr-2 hover:py-2.5'
                       }`}
                   href={'/settings'}>
-                  <GradientAvatar initial={user?.fullname?.charAt(0) || 'A'} />
+                  <div>
+                    {user?.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt="Avatar"
+                        className="w-10 h-10 rounded-full object-cover shadow-md"
+                        />
+                    ) : (
+                        <GradientAvatar initial={user?.fullname?.charAt(0) || 'A'} />
+                    )}
+                  </div>
+                    
                   <div className="flex-1 max-w-32 truncate">
                       <div className="text-sm font-medium text-gray-900 truncate">
                           {user?.fullname || 'Admin User'}

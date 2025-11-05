@@ -162,10 +162,10 @@ export default function Series() {
                 filter={itemsPerPage.toString()}
                 onChange={(value: string) => handleItemsPerPageChange(parseInt(value))}
                 options={[
-                  { value: '5', label: '5' },
-                  { value: '10', label: '10' },
-                  { value: '20', label: '20' },
-                  { value: '50', label: '50' },
+                  { value: '8', label: '8' },
+                  { value: '12', label: '12' },
+                  { value: '24', label: '24' },
+                  { value: '32', label: '32' },
                 ]}
               />
               <span className="text-sm text-gray-600">mục/trang</span>
@@ -309,23 +309,72 @@ export default function Series() {
           />
         </div>
       ) : (
-        <SeriesCard 
-          series={paginatedSeries} 
-          onEdit={handleEdit} 
-          onDelete={handleDelete} 
-        />
-      )}
-
-      {/* Add pagination for grid view */}
-      {viewMode === 'grid' && (
-        <div className="mt-8">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            itemsPerPage={itemsPerPage}
-            totalItems={stats.filteredCount}
+        <div>
+          {/* Grid Header with Pagination Controls */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">
+                Danh sách Series ({stats.filteredCount})
+              </h2>
+              
+              {/* Items per page selector for grid */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</span>
+                  <FormSelect
+                    size='small'
+                    filter={itemsPerPage.toString()}
+                    onChange={(value: string) => handleItemsPerPageChange(parseInt(value))}
+                    options={[
+                      { value: '8', label: '8' },
+                      { value: '12', label: '12' },
+                      { value: '16', label: '16' },
+                      { value: '24', label: '24' },
+                    ]}
+                  />
+                  <span className="text-sm text-gray-600">series/trang</span>
+                </div>
+                
+                {/* Pagination for grid */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 bg-white border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    ←
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    Trang {currentPage}/{totalPages}
+                  </span>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 bg-white border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <SeriesCard 
+            series={paginatedSeries} 
+            onEdit={handleEdit} 
+            onDelete={handleDelete} 
           />
+          
+          {/* Bottom pagination for grid view */}
+          <div className="mt-8">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              itemsPerPage={itemsPerPage}
+              totalItems={stats.filteredCount}
+            />
+          </div>
         </div>
       )}
 

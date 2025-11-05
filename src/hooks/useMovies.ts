@@ -34,7 +34,7 @@ export const useMovies = () => {
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
 
   // Load movies on mount
   useEffect(() => {

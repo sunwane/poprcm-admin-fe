@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useMovies } from '@/hooks/useMovies';
 import { 
   getStatusColor, 
@@ -13,6 +14,7 @@ import {
 } from '@/utils/movieUtils';
 import GradientButton from '@/components/ui/GradientButton';
 import MovieModal from '@/components/modalForm/MovieModal';
+import AutoImportModal from '@/components/modalForm/AutoImportModal';
 import SearchBar from '@/components/ui/SearchBar';
 import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
@@ -22,6 +24,10 @@ import MovieStatsCard from '@/components/feature/movies/MovieStatsCard';
 import MovieDetailModal from '@/components/feature/movies/MovieDetailModal';
 
 export default function Movies() {
+  // Auto import modal state
+  const [isAutoImportModalOpen, setIsAutoImportModalOpen] = useState(false);
+  const [autoImportMode, setAutoImportMode] = useState<'import' | 'update'>('import');
+
   const {
     loading,
     showModal,
@@ -62,6 +68,15 @@ export default function Movies() {
     closeDetailModal,
   } = useMovies();
 
+  const handleOpenAutoImport = (mode: 'import' | 'update') => {
+    setAutoImportMode(mode);
+    setIsAutoImportModalOpen(true);
+  };
+
+  const handleCloseAutoImport = () => {
+    setIsAutoImportModalOpen(false);
+  };
+
   if (loading) {
     return (
       <div className="p-8 bg-gray-50 min-h-screen flex items-center justify-center">
@@ -86,11 +101,11 @@ export default function Movies() {
           </GradientButton>
           <button 
             className='bg-linear-to-br from-green-500 to-green-800 rounded-lg text-white text-nowrap px-6 py-3 hover:from-green-400 hover:to-green-800 transition-all flex items-center space-x-2'
-            onClick={handleOpenAddModal}>
+            onClick={() => handleOpenAutoImport('import')}>
             <span className='text-nowrap'>Thêm tự động</span>
           </button>
           <button 
-            onClick={handleOpenAddModal}
+            onClick={() => handleOpenAutoImport('update')}
             className='bg-linear-to-br from-gray-400 to-gray-700 rounded-lg text-white text-nowrap px-6 py-3 hover:from-gray-400 hover:to-gray-800 transition-all flex items-center space-x-2'>
             <span>Cập nhật</span>
           </button>
@@ -192,10 +207,10 @@ export default function Movies() {
                 filter={itemsPerPage.toString()}
                 onChange={(value: string) => handleItemsPerPageChange(parseInt(value))}
                 options={[
-                  { value: '5', label: '5' },
-                  { value: '10', label: '10' },
-                  { value: '20', label: '20' },
-                  { value: '50', label: '50' },
+                  { value: '8', label: '8' },
+                  { value: '12', label: '12' },
+                  { value: '24', label: '24' },
+                  { value: '32', label: '32' },
                 ]}
               />
               <span className="text-sm text-gray-600">mục/trang</span>
@@ -376,26 +391,82 @@ export default function Movies() {
           />
         </div>
       ) : (
-        <MoviesCard 
-          movies={paginatedMovies} 
-          onEdit={handleEdit} 
-          onDelete={handleDelete}
-          onViewDetail={openDetailModal}
-        />
-      )}
-
-      {/* Add pagination for grid view */}
-      {viewMode === 'grid' && (
-        <div className="mt-8">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            itemsPerPage={itemsPerPage}
-            totalItems={stats.filteredCount}
+        <div>
+          {/* Grid Header with Pagination Controls */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-800">
+                Danh sách Phim ({stats.filteredCount})
+              </h2>
+              
+              {/* Items per page selector for grid */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600 whitespace-nowrap">Hiển thị:</span>
+                  <FormSelect
+                    size='small'
+                    filter={itemsPerPage.toString()}
+                    onChange={(value: string) => handleItemsPerPageChange(parseInt(value))}
+                    options={[
+                      { value: '8', label: '8' },
+                      { value: '12', label: '12' },
+                      { value: '16', label: '16' },
+                      { value: '24', label: '24' },
+                    ]}
+                  />
+                  <span className="text-sm text-gray-600">phim/trang</span>
+                </div>
+                
+                {/* Pagination for grid */}
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-1 bg-white border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    ←
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    Trang {currentPage}/{totalPages}
+                  </span>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-1 bg-white border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <MoviesCard 
+            movies={paginatedMovies} 
+            onEdit={handleEdit} 
+            onDelete={handleDelete}
+            onViewDetail={openDetailModal}
           />
+          
+          {/* Bottom pagination for grid view */}
+          <div className="mt-8">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              itemsPerPage={itemsPerPage}
+              totalItems={stats.filteredCount}
+            />
+          </div>
         </div>
       )}
+
+      {/* Auto Import Modal */}
+      <AutoImportModal
+        isOpen={isAutoImportModalOpen}
+        mode={autoImportMode}
+        onClose={handleCloseAutoImport}
+      />
 
       {/* Movie Modal */}
       <MovieModal

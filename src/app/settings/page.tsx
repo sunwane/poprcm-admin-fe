@@ -108,7 +108,7 @@ export default function Settings() {
                       <img
                         src={settings.profile.avatarUrl}
                         alt="Avatar"
-                        className="w-30 h-3 rounded-full object-cover border-4 border-white shadow-lg"
+                        className="w-30 h-30 rounded-full object-cover border-4 border-white shadow-lg"
                       />
                     ) : (
                       <div className="w-30 h-30 rounded-full bg-linear-to-br from-blue-400 to-blue-800 flex items-center justify-center text-white text-5xl font-bold shadow-lg">

@@ -21,7 +21,7 @@ interface UseSeriesOptions {
 export const useSeries = (options: UseSeriesOptions = {}) => {
   const {
     initialPage = 1,
-    initialItemsPerPage = 10,
+    initialItemsPerPage = 12,
     initialSortBy = 'id',
     initialSortOrder = 'asc'
   } = options;

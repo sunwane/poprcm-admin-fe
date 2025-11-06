@@ -15,7 +15,7 @@ interface MovieStats {
   averageRating: number;
   ongoingSeries: number;
   completedMovies: number;
-  hiatusMovies: number;
+  trailerMovies: number;
   latestAddedDate: Date | null;
   moviesAddedOnLatestDate: number;
   latestUpdatedDate: Date | null;
@@ -71,9 +71,9 @@ export const useMovieStatsCard = (stats: MovieStats) => {
       color: 'text-teal-600',
     },
     {
-      id: 'hiatus',
-      label: 'Tạm dừng',
-      value: stats.hiatusMovies,
+      id: 'trailer',
+      label: 'Vừa có trailer',
+      value: stats.trailerMovies,
       color: 'text-gray-600',
     },
     {

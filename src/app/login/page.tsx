@@ -27,28 +27,28 @@ export default function Login() {
       <div className="absolute inset-0 bg-white opacity-80 mix-blend-hard-light"></div>
 
       {/* Nội dung đăng nhập */}
-      <div className="relative max-w-lg w-full space-y-8 p-8 bg-white border border-gray-200 rounded-xl shadow-lg">
+      <div className="relative max-w-106 w-full space-y-6 p-8 bg-white border border-gray-200 rounded-xl shadow-lg">
         {/* Logo */}
         <div className="text-center">
           <div className="bg-sky-50 border border-blue-100 shadow-md w-fit mx-auto rounded-xl px-3.5 py-2.5 mb-3">
             <img
-              className="mx-auto h-12 w-auto mb-0.5"
+              className="mx-auto h-10 w-auto mb-0.5"
               src="/LogoNoBrand.png"
               alt="POPRCM Admin"
             />
-            <div className="text-center text-[15px] font-extrabold tracking-wider text-indigo-950">POPRCM</div>
-            <div className="text-center text-[10px] font-bold saturate-70 tracking-wide text-blue-600 mt-[-4]">Movies for you</div>
+            <div className="text-center text-[12px] font-extrabold tracking-wider text-indigo-950">POPRCM</div>
+            <div className="text-center text-[8px] font-bold saturate-70 tracking-wide text-blue-600 mt-[-4]">Movies for you</div>
           </div>
-          <h2 className="mt-1 text-center text-2xl font-bold text-blue-800">
+          <h2 className="mt-1 text-center text-xl font-bold text-blue-800">
             Đăng nhập hệ thống
           </h2>
-          <p className="mt-1.5 text-center text-sm text-gray-600">
+          <p className="mt-1 text-center text-[12px] text-gray-600">
             Chỉ dành cho quản trị viên
           </p>
         </div>
 
         {/* Form đăng nhập */}
-        <form className="mt-6 space-y-6" onSubmit={handleLoginSubmit}>
+        <form className="mt-5 space-y-5" onSubmit={handleLoginSubmit}>
           {loginError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {loginError}
@@ -57,7 +57,7 @@ export default function Login() {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email
               </label>
               <FormInput
@@ -68,11 +68,12 @@ export default function Login() {
                 value={loginForm.email}
                 onChange={(e) => updateLoginForm('email', e.target.value)}
                 placeholder="admin@poprcm.com"
+                className='py-2 text-md'
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Mật khẩu
               </label>
               <FormInput
@@ -83,6 +84,7 @@ export default function Login() {
                 value={loginForm.password}
                 onChange={(e) => updateLoginForm('password', e.target.value)}
                 placeholder="••••••••"
+                className='py-2 text-md'
               />
             </div>
           </div>
@@ -91,7 +93,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loginLoading}
-              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-lg font-medium text-white ${
+              className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-md font-medium text-white ${
                 loginLoading
                   ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-blue-600 hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'

@@ -264,13 +264,25 @@ export class MoviesService {
   // Get top rated movies
   static async getTopRatedMovies(limit: number = 10): Promise<Movie[]> {
     this.loadMoviesData();
+
     const sortedMovies = [...this.movies]
-      .sort((a, b) => b.rating - a.rating)
-      .slice(0, limit);
-    
+      .map(movie => {
+        // Tính điểm trung bình của imdbScore và tmdbScore
+        const imdbScore = movie.imdbScore || 0; // Nếu không có imdbScore, dùng 0
+        const tmdbScore = movie.tmdbScore || 0; // Nếu không có tmdbScore, dùng 0
+        const scoreCount = (movie.imdbScore ? 1 : 0) + (movie.tmdbScore ? 1 : 0); // Đếm số điểm hợp lệ
+        const averageScore = scoreCount > 0 ? (imdbScore + tmdbScore) / scoreCount : 0; // Tính trung bình
+        return {
+          ...movie,
+          averageScore // Thêm điểm trung bình vào đối tượng phim
+        };
+      })
+      .sort((a, b) => b.averageScore - a.averageScore) // Sắp xếp theo điểm trung bình giảm dần
+      .slice(0, limit); // Lấy số lượng phim theo limit
+
     return sortedMovies.map(movie => ({
       ...movie,
-      actors: this.populateMovieActors(movie.id)
+      actors: this.populateMovieActors(movie.id) // Thêm thông tin diễn viên
     }));
   }
 
@@ -293,7 +305,15 @@ export class MoviesService {
     const totalSeries = this.movies.filter(m => m.type === 'Series').length;
     const totalAnime = this.movies.filter(m => m.type === 'hoathinh').length;
     const totalViews = this.movies.reduce((sum, movie) => sum + movie.view, 0);
-    const averageRating = total > 0 ? this.movies.reduce((sum, movie) => sum + movie.rating, 0) / total : 0;
+    const averageRating = total > 0 
+    ? this.movies.reduce((sum, movie) => {
+        const imdbScore = movie.imdbScore || 0; // Nếu không có imdbScore, dùng 0
+        const tmdbScore = movie.tmdbScore || 0; // Nếu không có tmdbScore, dùng 0
+        const scoreCount = (movie.imdbScore ? 1 : 0) + (movie.tmdbScore ? 1 : 0); // Đếm số điểm hợp lệ
+        const averageScore = scoreCount > 0 ? (imdbScore + tmdbScore) / scoreCount : 0; // Tính trung bình nếu có điểm
+        return sum + averageScore; // Cộng vào tổng
+      }, 0) / total // Chia cho tổng số phim
+    : 0;
     
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);

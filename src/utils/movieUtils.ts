@@ -196,13 +196,13 @@ export const filterMoviesByLang = (movies: Movie[], lang: string): Movie[] => {
 export const getStatusColor = (status: string): string => {
   switch (status.toLowerCase()) {
     case 'completed':
-    case 'hoàn thành':
+    case 'completed':
       return 'text-green-700 bg-green-100';
     case 'ongoing':
-    case 'đang chiếu':
+    case 'ongoing':
       return 'text-blue-700 bg-blue-100';
     case 'hiatus':
-    case 'tạm dừng':
+    case 'trailer':
       return 'text-yellow-700 bg-yellow-100';
     case 'cancelled':
     case 'đã hủy':
@@ -216,13 +216,15 @@ export const getStatusColor = (status: string): string => {
 export const getStatusText = (status: string): string => {
   switch (status.toLowerCase()) {
     case 'completed':
-      return 'Hoàn thành';
+      return 'Completed';
     case 'ongoing':
-      return 'Đang chiếu';
+      return 'Ongoing';
     case 'hiatus':
-      return 'Tạm dừng';
+      return 'Hiatus';
+    case 'trailer':
+      return 'Trailer';
     case 'cancelled':
-      return 'Đã hủy';
+      return 'Cancelled';
     default:
       return status;
   }
@@ -231,7 +233,7 @@ export const getStatusText = (status: string): string => {
 // Get type color
 export const getTypeColor = (type: string): string => {
   switch (type.toLowerCase()) {
-    case 'movie':
+    case 'single':
     case 'phim lẻ':
       return 'text-purple-700 bg-purple-100';
     case 'series':
@@ -248,7 +250,7 @@ export const getTypeColor = (type: string): string => {
 // Get type text in Vietnamese
 export const getTypeText = (type: string): string => {
   switch (type.toLowerCase()) {
-    case 'movie':
+    case 'single':
       return 'Phim lẻ';
     case 'series':
       return 'Phim bộ';
@@ -305,9 +307,9 @@ export const getMovieTypes = (): Array<{value: string, label: string}> => [
 // Get available movie statuses
 export const getMovieStatuses = (): Array<{value: string, label: string}> => [
   { value: 'all', label: 'Tất cả trạng thái' },
-  { value: 'Completed', label: 'Hoàn thành' },
-  { value: 'Ongoing', label: 'Đang chiếu' },
-  { value: 'Hiatus', label: 'Tạm dừng' },
+  { value: 'Completed', label: 'completed' },
+  { value: 'Ongoing', label: 'ongoing' },
+  { value: 'Hiatus', label: 'trailer' },
   { value: 'Cancelled', label: 'Đã hủy' }
 ];
 

@@ -34,7 +34,7 @@ export const useMovies = () => {
   
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Load movies on mount
   useEffect(() => {
@@ -98,9 +98,9 @@ export const useMovies = () => {
     const totalSeries = movies.filter(m => m.type === 'Series').length;
     const totalAnime = movies.filter(m => m.type === 'hoathinh').length;
     const totalViews = movies.reduce((sum, movie) => sum + movie.view, 0);
-    const ongoingSeries = movies.filter(m => m.status === 'Ongoing').length;
-    const completedMovies = movies.filter(m => m.status === 'Completed').length;
-    const hiatusMovies = movies.filter(m => m.status === 'Hiatus').length;
+    const ongoingSeries = movies.filter(m => m.status === 'ongoing').length;
+    const completedMovies = movies.filter(m => m.status === 'completed').length;
+    const trailerMovies = movies.filter(m => m.status === 'trailer').length;
     
     // Tính trung bình điểm IMDb và TMDb
     const validRatings = movies
@@ -147,7 +147,7 @@ export const useMovies = () => {
       totalViews,
       ongoingSeries,
       completedMovies,
-      hiatusMovies,
+      trailerMovies,
       latestAddedDate,
       latestUpdatedDate,
       moviesAddedOnLatestDate,

@@ -159,9 +159,9 @@ export default function Movies() {
               onChange={setStatusFilter}
               options={[
                 { value: 'all', label: 'Tất cả' },
-                { value: 'Completed', label: 'Hoàn thành' },
-                { value: 'Ongoing', label: 'Đang chiếu' },
-                { value: 'Hiatus', label: 'Tạm dừng' }
+                { value: 'completed', label: 'Completed' },
+                { value: 'ongoing', label: 'Ongoing' },
+                { value: 'hiatus', label: 'Trailer' }
               ]}
             />
           </div>
@@ -207,10 +207,10 @@ export default function Movies() {
                 filter={itemsPerPage.toString()}
                 onChange={(value: string) => handleItemsPerPageChange(parseInt(value))}
                 options={[
-                  { value: '8', label: '8' },
-                  { value: '12', label: '12' },
-                  { value: '24', label: '24' },
-                  { value: '32', label: '32' },
+                  { value: '5', label: '5' },
+                  { value: '10', label: '10' },
+                  { value: '25', label: '25' },
+                  { value: '50', label: '50' },
                 ]}
               />
               <span className="text-sm text-gray-600">mục/trang</span>
@@ -391,9 +391,9 @@ export default function Movies() {
           />
         </div>
       ) : (
-        <div>
+        <div className='bg-gray-200 rounded-xl pb-0.5'>
           {/* Grid Header with Pagination Controls */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 py-4 px-5 mb-5">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-800">
                 Danh sách Phim ({stats.filteredCount})
@@ -408,17 +408,17 @@ export default function Movies() {
                     filter={itemsPerPage.toString()}
                     onChange={(value: string) => handleItemsPerPageChange(parseInt(value))}
                     options={[
-                      { value: '8', label: '8' },
-                      { value: '12', label: '12' },
-                      { value: '16', label: '16' },
-                      { value: '24', label: '24' },
+                      { value: '5', label: '5' },
+                      { value: '10', label: '10' },
+                      { value: '25', label: '25' },
+                      { value: '50', label: '50' },
                     ]}
                   />
                   <span className="text-sm text-gray-600">phim/trang</span>
                 </div>
                 
                 {/* Pagination for grid */}
-                <div className="flex items-center space-x-2">
+                {/* <div className="flex items-center space-x-2">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
@@ -436,7 +436,7 @@ export default function Movies() {
                   >
                     →
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

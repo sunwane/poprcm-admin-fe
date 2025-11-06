@@ -37,7 +37,7 @@ export default function Pagination({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-100">
+    <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-gray-100 rounded-b-lg shadow-sm mt-4">
       <div className="text-sm text-gray-600">
         Hiển thị {startItem} - {endItem} trong tổng số {totalItems} kết quả
       </div>

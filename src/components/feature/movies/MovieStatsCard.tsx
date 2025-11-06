@@ -10,7 +10,7 @@ interface MovieStatsCardProps {
     averageRating: number;
     ongoingSeries: number;
     completedMovies: number;
-    hiatusMovies: number;
+    trailerMovies: number;
     latestAddedDate: Date | null;
     moviesAddedOnLatestDate: number;
     latestUpdatedDate: Date | null;

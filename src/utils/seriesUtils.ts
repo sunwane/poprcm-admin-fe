@@ -16,7 +16,7 @@ export const getSeriesStatuses = (): Array<{value: string, label: string}> => [
   { value: 'Ongoing', label: 'Đang phát sóng' },
   { value: 'Completed', label: 'Đã hoàn thành' },
   { value: 'Cancelled', label: 'Đã hủy' },
-  { value: 'Hiatus', label: 'Tạm dừng' }
+  { value: 'Hiatus', label: 'trailer' }
 ];
 
 // Format release year

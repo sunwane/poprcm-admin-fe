@@ -1,83 +1,14 @@
 import React, { useState } from 'react';
 import { Movie } from '@/types/Movies';
 import { getStatusText, getTypeText, formatViewCount, formatDate } from '@/utils/movieUtils';
+import VideoPopup from '@/components/feature/movies/VideoPopup';
+import GradientAvatar from '@/components/ui/GradientAvatar';
 
 interface MovieDetailModalProps {
   isOpen: boolean;
   movie: Movie | null;
   onClose: () => void;
 }
-
-interface VideoPopupProps {
-  isOpen: boolean;
-  videoUrl: string;
-  title: string;
-  onClose: () => void;
-}
-
-const VideoPopup: React.FC<VideoPopupProps> = ({ isOpen, videoUrl, title, onClose }) => {
-  if (!isOpen) return null;
-
-  const getEmbedUrl = (url: string) => {
-    // YouTube
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const videoId = url.includes('youtu.be') 
-        ? url.split('/').pop()?.split('?')[0]
-        : url.split('v=')[1]?.split('&')[0];
-      return `https://www.youtube.com/embed/${videoId}`;
-    }
-    
-    // Direct video files
-    if (url.includes('.mp4') || url.includes('.webm') || url.includes('.ogg')) {
-      return url;
-    }
-    
-    // Default fallback
-    return url;
-  };
-
-  const embedUrl = getEmbedUrl(videoUrl);
-  const isDirectVideo = videoUrl.includes('.mp4') || videoUrl.includes('.webm') || videoUrl.includes('.ogg');
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60 p-4">
-      <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        
-        <div className="aspect-video bg-black">
-          {isDirectVideo ? (
-            <video 
-              src={embedUrl} 
-              controls 
-              className="w-full h-full"
-              preload="metadata"
-            >
-              Trình duyệt không hỗ trợ video này.
-            </video>
-          ) : (
-            <iframe
-              src={embedUrl}
-              className="w-full h-full"
-              frameBorder="0"
-              allowFullScreen
-              title={title}
-            />
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onClose }) => {
   const [activeTab, setActiveTab] = useState<'info' | 'countries' | 'genres'>('info');
@@ -315,8 +246,28 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {movie.actors.map((movieActor) => (
                     <div key={movieActor.id} className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                      <div className="w-16 h-16 bg-linear-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl mx-auto mb-3">
-                        {movieActor.actor?.originName.charAt(0) || 'A'}
+                      {movieActor.actor?.profilePath ? (
+                        <img
+                          src={movieActor.actor.profilePath}
+                          alt={movieActor.actor.originName}
+                          className="w-18 h-18 rounded-full object-cover mx-auto mb-2"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling!.classList.remove('hidden');
+                          }}
+                        />
+                      ) : (
+                        <GradientAvatar
+                          size='w-18 h-18'
+                          initial={movieActor.actor?.originName?.charAt(0) || ''}
+                        />
+                      )}
+                      <div className="hidden">
+                        <GradientAvatar
+                          size='w-18 h-18'
+                          initial={movieActor.actor?.originName.charAt(0) || ''}
+                        />
                       </div>
                       <p className="font-medium text-gray-800">{movieActor.actor?.originName || 'Unknown'}</p>
                       {movieActor.characterName && (

@@ -27,18 +27,18 @@ export default function SeriesCard({ series, onEdit, onDelete }: SeriesCardProps
         
         return (
           <div key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="aspect-3/4 bg-gray-200 relative overflow-hidden">
+            <div className="aspect-3/2 bg-gray-200 relative overflow-hidden">
               <img 
-                src={item.posterUrl || '/placeholder-poster.png'} 
+                src={item.posterUrl || '/placeholder-thumnail.jpg'} 
                 alt={item.name}
                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                 onError={(e) => {
-                  e.currentTarget.src = '/placeholder-poster.png';
+                  e.currentTarget.src = '/placeholder-thumnail.jpg';
                 }}
               />
               
               {/* Overlay với gradient màu */}
-              <div className={`absolute inset-0 border-t-30 border-b-40 border-[#222222] blur-2xl`}></div>
+              <div className={`absolute inset-0 border-t-15 border-b-20 border-[#222222] blur-2xl`}></div>
               
               {/* Status badge */}
               <div className="absolute top-2 left-2">
@@ -61,7 +61,7 @@ export default function SeriesCard({ series, onEdit, onDelete }: SeriesCardProps
               
               {/* Movie count badge */}
               <div className="absolute bottom-2.5 right-2">
-                <div className="px-2 py-1 rounded-md text-xs font-bold shadow-lg bg-indigo-700/50  text-white flex items-center space-x-1">
+                <div className="px-2 py-1 rounded-md text-xs font-bold shadow-lg bg-indigo-700/75  text-white flex items-center space-x-1">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm3 2h6v4H7V5zm8 8v2h1v-2h-1zm-2-2H7v4h6v-4zm2 0h1V9h-1v2zm1-4V5h-1v2h1zM5 5v6H4V5h1zm0 8H4v2h1v-2z" clipRule="evenodd" />
                   </svg>

@@ -2,13 +2,18 @@ import React from 'react';
 import { Episode } from '@/types/Movies';
 import GradientButton from '@/components/ui/GradientButton';
 import FormInput from '@/components/ui/FormInput';
-import FormSelect from '@/components/ui/FormSelect';
 
 interface MovieEpisodesFormProps {
   episodes: Episode[];
   isProcessing: boolean;
   onReorderEpisodes: (newOrder: Episode[]) => void;
-  onCreateEpisode: (episodeData: Partial<Episode>) => void;
+  onCreateEpisode: (episodeData: {
+    title: string;
+    episodeNumber: number;
+    videoUrl: string;
+    m3u8Url?: string;
+    serverName: string;
+  }) => void;
   onUpdateEpisode: (episodeId: number, episodeData: Partial<Episode>) => void;
   onDeleteEpisode: (episodeId: number) => void;
 }
@@ -32,12 +37,6 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
   const [editingEpisode, setEditingEpisode] = React.useState<Episode | null>(null);
   const [validationError, setValidationError] = React.useState<string>('');
 
-  const serverOptions = [
-    { value: 'Vietsub', label: 'Vietsub' },
-    { value: 'ThuyetMinh', label: 'Thuyết minh' },
-    { value: 'Raw', label: 'Raw' }
-  ];
-
   const serverGroups = React.useMemo(() => {
     const groups: Record<string, Episode[]> = {};
     episodes.forEach(episode => {
@@ -52,22 +51,6 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
     });
     return groups;
   }, [episodes]);
-
-  const validateEpisodeNumber = (episodeNumber: number, serverName: string, excludeId?: number): boolean => {
-    const serverEpisodes = episodes.filter(ep => 
-      ep.serverName === serverName && 
-      (excludeId ? ep.id !== excludeId : true)
-    );
-    return !serverEpisodes.some(ep => ep.episodeNumber === episodeNumber);
-  };
-
-  const getNextEpisodeNumber = (serverName: string): number => {
-    const serverEpisodes = episodes.filter(ep => ep.serverName === serverName);
-    const maxEpisodeNumber = serverEpisodes.length > 0 
-      ? Math.max(...serverEpisodes.map(ep => ep.episodeNumber)) 
-      : 0;
-    return maxEpisodeNumber + 1;
-  };
 
   const handleDragStart = (e: React.DragEvent, episode: Episode) => {
     setDraggedEpisode(episode);
@@ -91,7 +74,6 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
     if (draggedEpisode.serverName !== targetEpisode.serverName) {
       setDraggedEpisode(null);
       setValidationError('Chỉ có thể sắp xếp lại trong cùng một server');
-      setTimeout(() => setValidationError(''), 3000);
       return;
     }
 
@@ -102,19 +84,13 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
     const draggedIndex = serverEpisodes.findIndex(ep => ep.id === draggedEpisode.id);
     const targetIndex = serverEpisodes.findIndex(ep => ep.id === targetEpisode.id);
 
-    // Reorder within server
+    // Reorder within server (keep original episode numbers)
     const reorderedServerEpisodes = [...serverEpisodes];
     reorderedServerEpisodes.splice(draggedIndex, 1);
     reorderedServerEpisodes.splice(targetIndex, 0, draggedEpisode);
 
-    // Update episode numbers within server
-    const updatedServerEpisodes = reorderedServerEpisodes.map((ep, index) => ({
-      ...ep,
-      episodeNumber: index + 1
-    }));
-
-    // Combine with other servers' episodes
-    const reorderedEpisodes = [...updatedServerEpisodes, ...otherEpisodes];
+    // Combine with other servers' episodes (no episode number change)
+    const reorderedEpisodes = [...reorderedServerEpisodes, ...otherEpisodes];
 
     onReorderEpisodes(reorderedEpisodes);
     setDraggedEpisode(null);
@@ -123,27 +99,24 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
   const handleCreateEpisode = () => {
     if (!newEpisode.title || !newEpisode.videoUrl || !newEpisode.serverName) {
       setValidationError('Vui lòng điền đầy đủ thông tin');
-      setTimeout(() => setValidationError(''), 3000);
       return;
     }
 
-    // Validate episode number for this server
-    if (!validateEpisodeNumber(newEpisode.episodeNumber!, newEpisode.serverName!)) {
-      setValidationError(`Tập ${newEpisode.episodeNumber} đã tồn tại trong server ${newEpisode.serverName}`);
-      setTimeout(() => setValidationError(''), 3000);
-      return;
-    }
+    // Clear any previous validation errors
+    setValidationError('');
     
     onCreateEpisode({
-      ...newEpisode,
-      createdAt: new Date()
+      title: newEpisode.title!,
+      episodeNumber: newEpisode.episodeNumber!,
+      videoUrl: newEpisode.videoUrl!,
+      m3u8Url: newEpisode.m3u8Url,
+      serverName: newEpisode.serverName!
     });
     
-    // Reset form with next available episode number for this server
-    const nextEpisodeNumber = getNextEpisodeNumber(newEpisode.serverName!);
+    // Reset form - keep server name but reset other fields
     setNewEpisode({
       title: '',
-      episodeNumber: nextEpisodeNumber,
+      episodeNumber: 1,
       videoUrl: '',
       m3u8Url: '',
       serverName: newEpisode.serverName
@@ -153,27 +126,21 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
   const handleUpdateEpisode = (episode: Episode) => {
     if (!episode.title || !episode.videoUrl) {
       setValidationError('Vui lòng điền đầy đủ thông tin');
-      setTimeout(() => setValidationError(''), 3000);
       return;
     }
 
-    // Validate episode number for this server (exclude current episode)
-    if (!validateEpisodeNumber(episode.episodeNumber, episode.serverName, episode.id)) {
-      setValidationError(`Tập ${episode.episodeNumber} đã tồn tại trong server ${episode.serverName}`);
-      setTimeout(() => setValidationError(''), 3000);
-      return;
-    }
+    // Clear any previous validation errors
+    setValidationError('');
     
     onUpdateEpisode(episode.id, episode);
     setEditingEpisode(null);
   };
 
   const handleServerChange = (serverName: string) => {
-    const nextEpisodeNumber = getNextEpisodeNumber(serverName);
     setNewEpisode({
       ...newEpisode,
       serverName,
-      episodeNumber: nextEpisodeNumber
+      episodeNumber: 1
     });
   };
 
@@ -230,10 +197,12 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Server
             </label>
-            <FormSelect
-              filter={newEpisode.serverName || 'Vietsub'}
-              onChange={(value) => handleServerChange(value)}
-              options={serverOptions}
+            <FormInput
+              name="serverName"
+              value={newEpisode.serverName || ''}
+              onChange={(e) => handleServerChange(e.target.value)}
+              placeholder="Nhập tên server..."
+              disabled={isProcessing}
             />
           </div>
 
@@ -357,13 +326,15 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Server
                         </label>
-                        <FormSelect
-                          filter={editingEpisode.serverName}
-                          onChange={(value) => setEditingEpisode(prev => prev ? ({ 
+                        <FormInput
+                          name="serverName"
+                          value={editingEpisode.serverName}
+                          onChange={(e) => setEditingEpisode(prev => prev ? ({ 
                             ...prev, 
-                            serverName: value 
+                            serverName: e.target.value 
                           }) : null)}
-                          options={serverOptions}
+                          placeholder="Nhập tên server..."
+                          disabled={isProcessing}
                         />
                       </div>
                     </div>
@@ -472,7 +443,7 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm text-yellow-700">
               💡 <strong>Mẹo:</strong> Kéo và thả các tập phim để sắp xếp lại thứ tự trong cùng server. 
-              Số tập sẽ được cập nhật tự động và chỉ có thể di chuyển trong cùng server.
+              Số tập phim sẽ được giữ nguyên theo số đã nhập và chỉ có thể di chuyển trong cùng server.
             </p>
           </div>
         )}

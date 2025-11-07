@@ -54,7 +54,7 @@ export const mockSeries: Series[] = [
     description: 'Vũ trụ điện ảnh Marvel với các siêu anh hùng như Avengers, Spider-Man và nhiều nhân vật khác trong một thế giới được kết nối.',
     status: 'Ongoing',
     releaseYear: '2008',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/7WsyChQLEftFiDOVTGkv3hFpyyt.jpg',
+    posterUrl: 'https://cdn2.fptshop.com.vn/unsafe/1920x0/filters:format(webp):quality(75)/2023_9_14_638302830316996578_top-phim-marvel.jpg', // Horizontal thumbnail
     seriesMovies: [] // Will be populated by service
   },
   {
@@ -63,7 +63,7 @@ export const mockSeries: Series[] = [
     description: 'Loạt phim hành động về đua xe, gia đình và những cuộc phiêu lưu vòng quanh thế giới với Dominic Toretto và nhóm của anh ta.',
     status: 'Ongoing',
     releaseYear: '2001',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/dFYd5kNdOqIVmLPH7sJeJr5qpD.jpg',
+    posterUrl: 'https://m.media-amazon.com/images/M/MV5BNGY2ZWIzYWYtOTMxZi00ODhkLTkxYzktYzA3YTJjNTQyOTE3XkEyXkFqcGc@._V1_QL75_UX500_CR0,47,500,281_.jpg', // Horizontal thumbnail
     seriesMovies: [] // Will be populated by service
   },
   {
@@ -72,7 +72,7 @@ export const mockSeries: Series[] = [
     description: 'Loạt phim sitcom hài hước của Việt Nam về cuộc sống thường ngày của một gia đình đa thế hệ với những tình huống dở khóc dở cười.',
     status: 'Completed',
     releaseYear: '2019',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/placeholder-gia-dinh-series.jpg',
+    posterUrl: 'https://static2.vieon.vn/vieplay-image/carousel_web_v4/2022/12/19/bb68h6gt_1920x1080-giadinhlaso1-p1.png', // Placeholder horizontal thumbnail
     seriesMovies: [] // Will be populated by service
   },
   {
@@ -81,7 +81,7 @@ export const mockSeries: Series[] = [
     description: 'Câu chuyện về John Wick, một sát thủ huyền thoại trong thế giới ngầm, với những pha hành động mãn nhãn và võ thuật đỉnh cao.',
     status: 'Ongoing',
     releaseYear: '2014',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/fZPSd91yGE9fCcCe6OoQr6E3Bev.jpg',
+    posterUrl: 'https://sm.mashable.com/t/mashable_in/photo/default/john-wick-copy_up57.1248.jpg', // Horizontal thumbnail
     seriesMovies: [] // Will be populated by service
   },
   {
@@ -90,7 +90,7 @@ export const mockSeries: Series[] = [
     description: 'Thế giới kinh dị supernatural với những bí ẩn ở thị trấn Hawkins và thế giới Upside Down đầy nguy hiểm.',
     status: 'Completed',
     releaseYear: '2016',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/x2LSRK2Cm7MZhjluni1msVJ3wDF.jpg',
+    posterUrl: 'https://preview.redd.it/question-what-can-you-see-sharing-the-same-universe-as-v0-5d6qpgc6ev5b1.jpg?width=640&crop=smart&auto=webp&s=0a4e96c439b2feac4873a27da529c32450204ebe', // Horizontal thumbnail
     seriesMovies: [] // Will be populated by service
   },
   {
@@ -99,7 +99,7 @@ export const mockSeries: Series[] = [
     description: 'Bộ sưu tập những tác phẩm kinh dị xuất sắc của điện ảnh Hàn Quốc, từ zombie đến thriller tâm lý.',
     status: 'Ongoing',
     releaseYear: '2016',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/qAWAULdKb5jAoRdJjRdEg3gJMKH.jpg',
+    posterUrl: 'https://image.tmdb.org/t/p/w780/qAWAULdKb5jAoRdJjRdEg3gJMKH.jpg', // Horizontal thumbnail
     seriesMovies: [] // Will be populated by service
   },
   {
@@ -108,7 +108,7 @@ export const mockSeries: Series[] = [
     description: 'Những kiệt tác hoạt hình của Studio Ghibli với thế giới phép thuật tuyệt đẹp và câu chuyện cảm động.',
     status: 'Ongoing',
     releaseYear: '2001',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg',
+    posterUrl: 'https://i0.wp.com/yumetwinsblog.wpcomstaging.com/wp-content/uploads/2023/07/studio-ghibli-common-themes-thumbnail.png?fit=1024%2C576&ssl=1', // Horizontal thumbnail
     seriesMovies: [] // Will be populated by service
   },
   {
@@ -117,7 +117,7 @@ export const mockSeries: Series[] = [
     description: 'Tuyển tập những bộ phim hay nhất của điện ảnh Việt Nam, từ tình cảm lãng mạn đến sitcom hài hước.',
     status: 'Ongoing',
     releaseYear: '2017',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/uOw5JD8IlD546nI7CZRLVWsePGr.jpg',
+    posterUrl: 'https://image.tmdb.org/t/p/w780/uOw5JD8IlD546nI7CZRLVWsePGr.jpg', // Horizontal thumbnail
     seriesMovies: [] // Will be populated by service
   },
   {
@@ -126,7 +126,7 @@ export const mockSeries: Series[] = [
     description: 'Những series anime huyền thoại với câu chuyện epic và nhân vật đáng nhớ, từ adventure đến action.',
     status: 'Ongoing',
     releaseYear: '1999',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/cMD9Ygz11zjJzAovURpO75Qg7rT.jpg',
+    posterUrl: 'https://cmavn.com/wp-content/uploads/2017/03/100-nam-hoat-hinh-nhat-ban-khang-dinh-vi-tri-cua-anime-tren-ban-do-hoat-hinh-the-gioi.jpg', // Horizontal thumbnail
     seriesMovies: [] // Will be populated by service
   },
   {
@@ -135,7 +135,7 @@ export const mockSeries: Series[] = [
     description: 'Bộ sưu tập các tác phẩm đình đám của đạo diễn Christopher Nolan với những cốt truyện phức tạp và hình ảnh ấn tượng.',
     status: 'Ongoing',
     releaseYear: '2008',
-    posterUrl: 'https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg',
+    posterUrl: 'https://w0.peakpx.com/wallpaper/510/951/HD-wallpaper-batman-the-batman-dc-comics-the-batman-movie-thumbnail.jpg', // Horizontal thumbnail
     seriesMovies: [] // Will be populated by service
   }
 ];

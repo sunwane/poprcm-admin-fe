@@ -1,6 +1,11 @@
-export default function GradientAvatar({ initial }: { initial: string }) {
+interface GradientAvatarProps {
+  initial: string;
+  size?: string;
+}
+
+export default function GradientAvatar({ initial, size }: { initial: string, size?: string }) {
     return (
-        <div className="w-10 h-10 bg-linear-to-br from-blue-400 to-blue-800 rounded-full flex items-center justify-center text-white font-semibold">
+        <div className={`bg-linear-to-br from-blue-400 to-blue-800 rounded-full flex items-center justify-center text-white font-semibold ${size ? size : 'w-10 h-10'}`}>
         { initial }
         </div>
     );

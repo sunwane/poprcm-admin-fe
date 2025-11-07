@@ -22,6 +22,7 @@ export const mockActors: Actor[] = [
     tmdbId: '1136406',
     originName: 'Tom Holland',
     gender: 'male',
+    profilePath: 'https://image.tmdb.org/t/p/w500/2qhIDp44cAqP2clOgt2afQI07X8.jpg',
     alsoKnownAs: ['Thomas Stanley Holland', 'Tom Stanley Holland', 'トム・ホランド']
   },
   {
@@ -45,6 +46,7 @@ export const mockActors: Actor[] = [
     tmdbId: '1813',
     originName: 'Anne Hathaway',
     gender: 'female',
+    profilePath: 'https://image.tmdb.org/t/p/w500/6u1fYtxG5eqjhtCPDx04pJphQRW.jpg',
     alsoKnownAs: ['Anne Jacqueline Hathaway', 'Annie', 'アン・ハサウェイ']
   },
   {

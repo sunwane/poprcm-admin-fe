@@ -101,7 +101,7 @@ export default function PosterUpload({
     <div className="w-full">
       <div
         className={`
-          relative w-full h-90 border-2 border-dashed rounded-xl cursor-pointer transition-all
+          relative aspect-3/2 border-2 border-dashed rounded-xl cursor-pointer transition-all 
           ${isDragging 
             ? 'border-blue-500 bg-blue-50' 
             : 'border-gray-300 hover:border-blue-400 hover:bg-gray-50'
@@ -124,7 +124,7 @@ export default function PosterUpload({
         />
 
         {previewUrl ? (
-          <>
+          <div className="w-full h-full relative">
             <img
               src={previewUrl}
               alt="Poster preview"
@@ -134,7 +134,7 @@ export default function PosterUpload({
 
             {/* Upload hint - Always on top */}
             {!disabled && (
-              <div className="absolute inset-0 flex items-center justify-center z-10 bg-black bg-opacity-10 opacity-0 hover:opacity-50 rounded-2xl transition-opacity">
+              <div className="absolute inset-0 flex items-center justify-center z-10 bg-black bg-opacity-10 opacity-0 hover:opacity-50 rounded-xl transition-opacity">
                 <div className="text-white text-center">
                   <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -157,7 +157,7 @@ export default function PosterUpload({
                 </svg>
               </button>
             )}
-          </>
+          </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <svg className="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -171,6 +171,9 @@ export default function PosterUpload({
             </p>
             <p className="text-xs text-gray-400 mt-1">
               PNG, JPG, JPEG (tối đa 5MB)
+            </p>
+            <p className="text-xs text-blue-700 mt-1">
+              Tỷ lệ khuyến nghị: 3:2 (ví dụ: 600x400px)
             </p>
           </div>
         )}

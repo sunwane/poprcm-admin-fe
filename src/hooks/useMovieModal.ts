@@ -7,7 +7,6 @@ import { Episode } from '@/types/Movies';
 import { GenresService } from '@/services/GenresService';
 import { CountryService } from '@/services/CountryService';
 import { ActorService } from '@/services/ActorService';
-import { MoviesService } from '@/services/MoviesService';
 
 export interface MovieFormData {
   title: string;
@@ -264,7 +263,7 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
         actorId: actor.id,
         movieId: editingMovie?.id || 0,
         actor,
-        characterName: 'Vai diễn'
+        characterName: ''
       };
       
       setFormData(prev => ({
@@ -296,14 +295,26 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
   // Episode management
   const handleAddEpisode = (episodeData: {
     title: string;
+    episodeNumber: number;
     videoUrl: string;
     m3u8Url?: string;
     serverName: string;
   }) => {
+    // Check for duplicate episode number in the same server
+    const isDuplicate = formData.episodes.some(ep => 
+      ep.serverName === episodeData.serverName && 
+      ep.episodeNumber === episodeData.episodeNumber
+    );
+    
+    if (isDuplicate) {
+      // Return error instead of adding episode
+      throw new Error(`Tập ${episodeData.episodeNumber} đã tồn tại trong server ${episodeData.serverName}`);
+    }
+
     const newEpisode: Episode = {
       id: Date.now(), // Temporary ID
       title: episodeData.title,
-      episodeNumber: formData.episodes.length + 1,
+      episodeNumber: episodeData.episodeNumber,
       createdAt: new Date(),
       videoUrl: episodeData.videoUrl,
       m3u8Url: episodeData.m3u8Url,
@@ -317,20 +328,34 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
   };
 
   const handleRemoveEpisode = (episodeId: number) => {
-    setFormData(prev => {
-      const newEpisodes = prev.episodes.filter(ep => ep.id !== episodeId);
-      // Recalculate episode numbers
-      return {
-        ...prev,
-        episodes: newEpisodes.map((ep, index) => ({
-          ...ep,
-          episodeNumber: index + 1
-        }))
-      };
-    });
+    setFormData(prev => ({
+      ...prev,
+      episodes: prev.episodes.filter(ep => ep.id !== episodeId)
+    }));
   };
 
   const handleUpdateEpisode = (episodeId: number, updates: Partial<Episode>) => {
+    // If episode number or server name is being updated, check for duplicates
+    if (updates.episodeNumber !== undefined || updates.serverName !== undefined) {
+      const currentEpisode = formData.episodes.find(ep => ep.id === episodeId);
+      if (currentEpisode) {
+        const newEpisodeNumber = updates.episodeNumber ?? currentEpisode.episodeNumber;
+        const newServerName = updates.serverName ?? currentEpisode.serverName;
+        
+        // Check for duplicate episode number in the same server (exclude current episode)
+        const isDuplicate = formData.episodes.some(ep => 
+          ep.id !== episodeId &&
+          ep.serverName === newServerName && 
+          ep.episodeNumber === newEpisodeNumber
+        );
+        
+        if (isDuplicate) {
+          // Return error instead of updating episode
+          throw new Error(`Tập ${newEpisodeNumber} đã tồn tại trong server ${newServerName}`);
+        }
+      }
+    }
+
     setFormData(prev => ({
       ...prev,
       episodes: prev.episodes.map(ep => 
@@ -368,19 +393,20 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
       const newEpisodes = [...prev.episodes];
       const draggedEpisode = newEpisodes[draggedEpisodeIndex];
       
+      // Only allow reordering within the same server
+      if (draggedEpisode.serverName !== newEpisodes[dropIndex].serverName) {
+        return prev; // Don't allow cross-server moves
+      }
+      
       // Remove dragged episode
       newEpisodes.splice(draggedEpisodeIndex, 1);
       
-      // Insert at new position
+      // Insert at new position (keep original episode numbers)
       newEpisodes.splice(dropIndex, 0, draggedEpisode);
       
-      // Recalculate episode numbers
       return {
         ...prev,
-        episodes: newEpisodes.map((ep, index) => ({
-          ...ep,
-          episodeNumber: index + 1
-        }))
+        episodes: newEpisodes
       };
     });
 

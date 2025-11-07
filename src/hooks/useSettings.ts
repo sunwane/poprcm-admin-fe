@@ -90,10 +90,10 @@ export const useSettings = () => {
       // Cập nhật originalSettings với giá trị mới
       setOriginalSettings(settings);
       setMessage('Thông tin đã được lưu thành công!');
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMessage(''), 5000);
     } catch (error) {
       setMessage('Có lỗi xảy ra khi lưu thông tin!');
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMessage(''), 5000);
     } finally {
       setLoading(false);
     }

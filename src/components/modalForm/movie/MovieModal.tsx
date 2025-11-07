@@ -64,15 +64,6 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
     handleRemoveEpisode,
     handleUpdateEpisode,
 
-    // Episode drag and drop
-    draggedEpisodeIndex,
-    dragOverEpisodeIndex,
-    handleEpisodeDragStart,
-    handleEpisodeDragOver,
-    handleEpisodeDragLeave,
-    handleEpisodeDrop,
-    handleEpisodeDragEnd,
-
     // Validation
     validateForm
   } = useMovieModal(editingMovie, isOpen);
@@ -169,7 +160,7 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
     { id: 'info', label: 'Thông tin phim', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
     { id: 'countries', label: 'Quốc gia', icon: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
     { id: 'genres', label: 'Thể loại', icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z' },
-    { id: 'actors', label: 'Diễn viên', icon: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z' },
+    { id: 'actors', label: 'Diễn viên', icon: '  M12 2C13.933 2 15.5 3.567 15.5 5.5S13.933 9 12 9 8.5 7.433 8.5 5.5 10.067 2 12 2zM12 11c-3.866 0-7 3.134-7 7v1c0 .552.448 1 1 1h12c.552 0 1-.448 1-1v-1c0-3.866-3.134-7-7-7z' },
     { id: 'episodes', label: `Tập phim (${formData.episodes.length})`, icon: 'M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2M7 4h10M7 4l-1 16h12L17 4M9 8v8m6-8v8' }
   ];
 
@@ -222,6 +213,13 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                   </button>
                 ))}
               </div>
+
+                {/* Submit Error */}
+                {errors.submit && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg py-4 px-6 mb-3 mx-3">
+                    <p className="text-red-600 text-sm">{errors.submit}</p>
+                  </div>
+                )}
 
               <form onSubmit={handleSubmit}>
                 {/* Tab Content */}
@@ -302,34 +300,41 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                       handleInputChange('episodes', newOrder);
                     }}
                     onCreateEpisode={(episodeData) => {
-                      const newEpisode = {
-                        id: Date.now(), // Temporary ID
-                        episodeNumber: episodeData.episodeNumber || formData.episodes.length + 1,
-                        title: episodeData.title || '',
-                        videoUrl: episodeData.videoUrl || '',
-                        m3u8Url: episodeData.m3u8Url,
-                        serverName: episodeData.serverName || 'Vietsub',
-                        createdAt: new Date()
-                      };
-                      handleAddEpisode(newEpisode);
+                      try {
+                        // Clear any previous errors
+                        setErrors(prev => ({ ...prev, submit: undefined }));
+                        handleAddEpisode(episodeData);
+                      } catch (error) {
+                        setErrors(prev => ({ 
+                          ...prev, 
+                          submit: error instanceof Error ? error.message : 'Có lỗi xảy ra khi tạo tập phim' 
+                        }));
+                        // Auto clear error after 5 seconds
+                        setTimeout(() => {
+                          setErrors(prev => ({ ...prev, submit: undefined }));
+                        }, 10000);
+                      }
                     }}
                     onUpdateEpisode={(episodeId, episodeData) => {
-                      const updatedEpisodes = formData.episodes.map(ep =>
-                        ep.id === episodeId ? { ...ep, ...episodeData } : ep
-                      );
-                      handleInputChange('episodes', updatedEpisodes);
+                      try {
+                        // Clear any previous errors
+                        setErrors(prev => ({ ...prev, submit: undefined }));
+                        handleUpdateEpisode(episodeId, episodeData);
+                      } catch (error) {
+                        setErrors(prev => ({ 
+                          ...prev, 
+                          submit: error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật tập phim' 
+                        }));
+                        // Auto clear error after 10 seconds
+                        setTimeout(() => {
+                          setErrors(prev => ({ ...prev, submit: undefined }));
+                        }, 10000);
+                      }
                     }}
                     onDeleteEpisode={(episodeId) => {
                       handleRemoveEpisode(episodeId);
                     }}
                   />
-                )}
-
-                {/* Submit Error */}
-                {errors.submit && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-6">
-                    <p className="text-red-600 text-sm">{errors.submit}</p>
-                  </div>
                 )}
 
                 {/* Actions */}

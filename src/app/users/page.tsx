@@ -47,16 +47,6 @@ export default function Users() {
     );
   }
 
-  // Helper function to render sort icon
-  const renderSortIcon = (field: string) => {
-    if (sortBy !== field) return null;
-    return (
-      <svg className={`w-4 h-4 ml-1 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
-    );
-  };
-
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
       {/* Header */}
@@ -217,10 +207,18 @@ export default function Users() {
                             src={user.avatarUrl} 
                             alt={user.fullname}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              target.nextElementSibling!.classList.remove('hidden');
+                            }}
                           />
                         ) : (
                           <GradientAvatar initial={getInitials(user.fullname)} />
                         )}
+                        <div className="hidden">
+                          <GradientAvatar initial={getInitials(user.fullname)} />
+                        </div>
                       </div>
                       <div>
                         <div className="font-medium text-gray-800">{user.fullname}</div>

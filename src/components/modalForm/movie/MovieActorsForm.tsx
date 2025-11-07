@@ -46,7 +46,7 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
           </h4>
           
           {/* Search Bar */}
-          <div className="mb-6">
+          <div className="mb-5">
             <SearchBar
               searchQuery={actorSearchTerm}
               onChange={onActorSearchChange}
@@ -55,7 +55,7 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
           </div>
 
           {/* Available Actors List */}
-          <div className="space-y-3 max-h-96 overflow-y-auto">
+          <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
             {availableActors.length > 0 ? (
               availableActors.map((actor) => (
                 <div
@@ -68,12 +68,22 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
                         src={actor.profilePath}
                         alt={actor.originName}
                         className="w-10 h-10 rounded-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          target.nextElementSibling!.classList.remove('hidden');
+                        }}
                       />
                     ) : (
                       <GradientAvatar
                         initial={actor.originName.charAt(0)}
                       />
                     )}
+                    <div className="hidden">
+                      <GradientAvatar
+                        initial={actor.originName.charAt(0)}
+                      />
+                    </div>
                     <div>
                       <span className="font-medium text-gray-900">{actor.originName}</span>
                       {actor.alsoKnownAs && actor.alsoKnownAs.length > 0 && (
@@ -82,12 +92,13 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
                     </div>
                   </div>
                   
-                  <GradientButton
+                  <button
+                    className="px-3 py-1 bg-linear-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => onAddActor(actor.id)}
                     disabled={isProcessing}
                   >
-                    Thêm
-                  </GradientButton>
+                    +
+                  </button>
                 </div>
               ))
             ) : (
@@ -114,7 +125,7 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
           </h4>
           
           {/* Selected Actors List */}
-          <div className="space-y-3 max-h-96 overflow-y-auto">
+          <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
             {selectedActors.length > 0 ? (
               selectedActors.map((selectedActor) => {
                 const actor = actors.find(a => a.id === selectedActor.actorId);
@@ -123,13 +134,31 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
                 return (
                   <div
                     key={selectedActor.actorId}
-                    className="p-3 bg-green-50 rounded-lg border border-green-200"
+                    className="p-3 bg-white rounded-lg border border-blue-200"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
-                        <GradientAvatar
-                          initial={actor.originName.charAt(0)}
-                        />
+                        {actor.profilePath ? (
+                          <img
+                            src={actor.profilePath}
+                            alt={actor.originName}
+                            className="w-10 h-10 rounded-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              target.nextElementSibling!.classList.remove('hidden');
+                            }}
+                          />
+                        ) : (
+                          <GradientAvatar
+                            initial={actor.originName.charAt(0)}
+                          />
+                        )}
+                        <div className="hidden">
+                          <GradientAvatar
+                            initial={actor.originName.charAt(0)}
+                          />
+                        </div>
                         <div>
                           <span className="font-medium text-gray-900">{actor.originName}</span>
                           {actor.alsoKnownAs && actor.alsoKnownAs.length > 0 && (

@@ -241,14 +241,16 @@ export default function Series() {
                     <tr key={series.id} className="hover:bg-blue-50 transition-colors">
                       <td className="px-6 py-4 max-w-[400px]">
                         <div className="flex items-center space-x-4">
-                          <img 
-                            src={series.posterUrl || '/placeholder-poster.png'} 
-                            alt={series.name}
-                            className="w-16 h-24 object-cover rounded-lg shadow-sm"
-                            onError={(e) => {
-                              e.currentTarget.src = '/placeholder-poster.png';
-                            }}
-                          />
+                          <div className="w-[125px] aspect-3/2 shrink-0">
+                            <img 
+                              src={series.posterUrl || '/placeholder-thumnail.jpg'} 
+                              alt={series.name}
+                              className="w-full h-full object-cover rounded-lg shadow-sm"
+                              onError={(e) => {
+                                e.currentTarget.src = '/placeholder-thumnail.jpg';
+                              }}
+                            />
+                          </div>
                           <div>
                             <div className="font-semibold text-blue-950 mb-1">{series.name}</div>
                             <div className="text-[13px] text-gray-500 line-clamp-2 mb-2">{series.description}</div>

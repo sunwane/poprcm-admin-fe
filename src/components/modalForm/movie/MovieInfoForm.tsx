@@ -15,7 +15,6 @@ interface MovieInfoFormProps {
 const MovieInfoForm: React.FC<MovieInfoFormProps> = ({
   formData,
   errors,
-  uploadError,
   isProcessing,
   onInputChange
 }) => {
@@ -199,42 +198,26 @@ const MovieInfoForm: React.FC<MovieInfoFormProps> = ({
       {/* Right Column - URLs and Ratings */}
       <div>
         <div className="space-y-6">
-          {/* Poster URL */}
-          <div className="bg-gray-50 rounded-xl p-6">
-            <label className="block text-sm font-medium text-gray-700 mb-4">
-              Poster URL
-            </label>
-            <FormInput
-              name="posterUrl"
-              value={formData.posterUrl}
-              onChange={(e) => onInputChange('posterUrl', e.target.value)}
-              placeholder="https://example.com/poster.jpg"
-              disabled={isProcessing}
-            />
-            {formData.posterUrl && (
-              <div className="mt-4">
-                <img 
-                  src={formData.posterUrl} 
-                  alt="Poster preview" 
-                  className="w-32 h-48 object-cover rounded-lg border"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
-            )}
-            {uploadError && (
-              <div className="mt-4 text-red-600 text-sm">
-                {uploadError}
-              </div>
-            )}
-          </div>
-
           {/* URLs Section */}
           <div className="bg-gray-50 rounded-xl p-6">
             <h4 className="text-lg font-semibold text-blue-800 mb-4">URLs</h4>
             
             <div className="space-y-4">
+              
+              {/* Poster URL */}
+              <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Poster URL
+              </label>
+              <FormInput
+                name="posterUrl"
+                value={formData.posterUrl}
+                onChange={(e) => onInputChange('posterUrl', e.target.value)}
+                placeholder="https://example.com/poster.jpg"
+                disabled={isProcessing}
+              />
+              </div>
+
               {/* Thumbnail URL */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -13,7 +13,7 @@ import {
   getCountryNames 
 } from '@/utils/movieUtils';
 import GradientButton from '@/components/ui/GradientButton';
-import MovieModal from '@/components/modalForm/MovieModal';
+import MovieModal from '@/components/modalForm/movie/MovieModal';
 import AutoImportModal from '@/components/modalForm/AutoImportModal';
 import SearchBar from '@/components/ui/SearchBar';
 import FormSelect from '@/components/ui/FormSelect';

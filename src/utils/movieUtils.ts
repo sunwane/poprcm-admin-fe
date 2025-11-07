@@ -299,18 +299,18 @@ export const formatDate = (date: Date): string => {
 // Get available movie types
 export const getMovieTypes = (): Array<{value: string, label: string}> => [
   { value: 'all', label: 'Tất cả loại' },
-  { value: 'Movie', label: 'Phim lẻ' },
-  { value: 'Series', label: 'Phim bộ' },
+  { value: 'single', label: 'Phim lẻ' },
+  { value: 'series', label: 'Phim bộ' },
   { value: 'hoathinh', label: 'Hoạt hình' }
 ];
 
 // Get available movie statuses
 export const getMovieStatuses = (): Array<{value: string, label: string}> => [
   { value: 'all', label: 'Tất cả trạng thái' },
-  { value: 'Completed', label: 'completed' },
-  { value: 'Ongoing', label: 'ongoing' },
-  { value: 'Hiatus', label: 'trailer' },
-  { value: 'Cancelled', label: 'Đã hủy' }
+  { value: 'completed', label: 'Completed' },
+  { value: 'ongoing', label: 'Ongoing' },
+  { value: 'trailer', label: 'Trailer' },
+  { value: 'cancelled', label: 'Đã hủy' }
 ];
 
 // Get available languages
@@ -318,7 +318,9 @@ export const getMovieLanguages = (): Array<{value: string, label: string}> => [
   { value: 'all', label: 'Tất cả ngôn ngữ' },
   { value: 'Vietsub', label: 'Vietsub' },
   { value: 'Thuyết minh', label: 'Thuyết minh' },
-  { value: 'Lồng tiếng', label: 'Lồng tiếng' }
+  { value: 'Lồng tiếng', label: 'Lồng tiếng' },
+  { value: 'Raw', label: 'Raw' },
+  { value: 'Thuyết minh + Vietsub', label: 'Thuyết minh + Vietsub' }
 ];
 
 // Get country names from movie

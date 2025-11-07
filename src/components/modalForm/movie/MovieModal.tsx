@@ -370,7 +370,7 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                     })()}
 
                     {/* Warning Message */}
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-blue-500">
                       {(() => {
                         const hasBasicInfo = formData.title.trim() && formData.originalName.trim() && formData.description.trim();
                         const hasCountries = formData.selectedCountries.length > 0;
@@ -387,10 +387,10 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                           if (!hasCountries) missing.push('quốc gia');
                           if (!hasGenres) missing.push('thể loại');
                           
-                          return `⚠️ Cần nhập đầy đủ ${missing.join(', ')} để có thể lưu phim`;
+                          return `Cần nhập đầy đủ ${missing.join(', ')} để có thể lưu phim`;
                         }
                         
-                        return '✅ Đã đủ thông tin cơ bản để lưu phim';
+                        return 'Đã đủ thông tin cơ bản để lưu phim';
                       })()}
                     </div>
                   </div>
@@ -400,7 +400,7 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                       type="button"
                       onClick={handleClose}
                       disabled={isSubmitting}
-                      className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 font-medium"
+                      className="px-6 py-3 bg-gray-500 text-nowrap text-white rounded-lg hover:bg-gray-600 transition-colors disabled:opacity-50 font-medium"
                     >
                       Hủy bỏ
                     </button>

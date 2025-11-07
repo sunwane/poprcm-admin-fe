@@ -42,7 +42,7 @@ const MovieCountriesForm: React.FC<MovieCountriesFormProps> = ({
           </h4>
           
           {/* Search Bar */}
-          <div className="mb-6">
+          <div className="mb-5">
             <SearchBar
               searchQuery={countrySearchTerm}
               onChange={onCountrySearchChange}
@@ -51,30 +51,30 @@ const MovieCountriesForm: React.FC<MovieCountriesFormProps> = ({
           </div>
 
           {/* Available Countries List */}
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+          <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
             {availableCountries.length > 0 ? (
               availableCountries.map((country) => (
                 <div
                   key={country.id}
                   className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className="flex grow items-center space-x-3">
                     <div>
                       <span className="font-medium text-gray-900">{country.countryName}</span>
                     </div>
                   </div>
                   
-                  <GradientButton
+                  <button
+                    className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => onToggleCountry(country.id)}
                     disabled={isProcessing}
                   >
-                    Thêm
-                  </GradientButton>
+                    +
+                  </button>
                 </div>
               ))
             ) : (
               <div className="text-center py-8">
-                <div className="text-gray-400 text-lg mb-2">🌍</div>
                 <p className="text-gray-500">
                   {countrySearchTerm ? 'Không tìm thấy quốc gia nào' : 'Không có quốc gia nào khả dụng'}
                 </p>
@@ -102,11 +102,11 @@ const MovieCountriesForm: React.FC<MovieCountriesFormProps> = ({
               selectedCountries.map((country) => (
                 <div
                   key={country.id}
-                  className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200"
+                  className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-300"
                 >
                   <div className="flex items-center space-x-3">
                     <div>
-                      <span className="font-medium text-gray-900">{country.countryName}</span>
+                      <span className="font-medium text-blue-900">{country.countryName}</span>
                     </div>
                   </div>
                   
@@ -122,7 +122,6 @@ const MovieCountriesForm: React.FC<MovieCountriesFormProps> = ({
               ))
             ) : (
               <div className="text-center py-8">
-                <div className="text-gray-400 text-lg mb-2">📍</div>
                 <p className="text-gray-500">Chưa chọn quốc gia nào</p>
                 <p className="text-sm text-gray-400 mt-1">
                   Chọn quốc gia từ danh sách bên trái

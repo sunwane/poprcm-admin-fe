@@ -24,17 +24,50 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
   const [draggedEpisode, setDraggedEpisode] = React.useState<Episode | null>(null);
   const [newEpisode, setNewEpisode] = React.useState<Partial<Episode>>({
     title: '',
-    episodeNumber: episodes.length + 1,
+    episodeNumber: 1,
     videoUrl: '',
+    m3u8Url: '',
     serverName: 'Vietsub'
   });
   const [editingEpisode, setEditingEpisode] = React.useState<Episode | null>(null);
+  const [validationError, setValidationError] = React.useState<string>('');
 
   const serverOptions = [
     { value: 'Vietsub', label: 'Vietsub' },
     { value: 'ThuyetMinh', label: 'Thuyết minh' },
     { value: 'Raw', label: 'Raw' }
   ];
+
+  const serverGroups = React.useMemo(() => {
+    const groups: Record<string, Episode[]> = {};
+    episodes.forEach(episode => {
+      if (!groups[episode.serverName]) {
+        groups[episode.serverName] = [];
+      }
+      groups[episode.serverName].push(episode);
+    });
+    // Sort episodes within each server by episode number
+    Object.keys(groups).forEach(serverName => {
+      groups[serverName].sort((a, b) => a.episodeNumber - b.episodeNumber);
+    });
+    return groups;
+  }, [episodes]);
+
+  const validateEpisodeNumber = (episodeNumber: number, serverName: string, excludeId?: number): boolean => {
+    const serverEpisodes = episodes.filter(ep => 
+      ep.serverName === serverName && 
+      (excludeId ? ep.id !== excludeId : true)
+    );
+    return !serverEpisodes.some(ep => ep.episodeNumber === episodeNumber);
+  };
+
+  const getNextEpisodeNumber = (serverName: string): number => {
+    const serverEpisodes = episodes.filter(ep => ep.serverName === serverName);
+    const maxEpisodeNumber = serverEpisodes.length > 0 
+      ? Math.max(...serverEpisodes.map(ep => ep.episodeNumber)) 
+      : 0;
+    return maxEpisodeNumber + 1;
+  };
 
   const handleDragStart = (e: React.DragEvent, episode: Episode) => {
     setDraggedEpisode(episode);
@@ -54,47 +87,94 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
       return;
     }
 
-    const newEpisodes = [...episodes];
-    const draggedIndex = newEpisodes.findIndex(ep => ep.id === draggedEpisode.id);
-    const targetIndex = newEpisodes.findIndex(ep => ep.id === targetEpisode.id);
+    // Only allow reordering within the same server
+    if (draggedEpisode.serverName !== targetEpisode.serverName) {
+      setDraggedEpisode(null);
+      setValidationError('Chỉ có thể sắp xếp lại trong cùng một server');
+      setTimeout(() => setValidationError(''), 3000);
+      return;
+    }
 
-    // Remove dragged episode
-    newEpisodes.splice(draggedIndex, 1);
+    // Get episodes for this server only
+    const serverEpisodes = episodes.filter(ep => ep.serverName === draggedEpisode.serverName);
+    const otherEpisodes = episodes.filter(ep => ep.serverName !== draggedEpisode.serverName);
     
-    // Insert at new position
-    newEpisodes.splice(targetIndex, 0, draggedEpisode);
+    const draggedIndex = serverEpisodes.findIndex(ep => ep.id === draggedEpisode.id);
+    const targetIndex = serverEpisodes.findIndex(ep => ep.id === targetEpisode.id);
 
-    // Update episode numbers
-    const reorderedEpisodes = newEpisodes.map((ep, index) => ({
+    // Reorder within server
+    const reorderedServerEpisodes = [...serverEpisodes];
+    reorderedServerEpisodes.splice(draggedIndex, 1);
+    reorderedServerEpisodes.splice(targetIndex, 0, draggedEpisode);
+
+    // Update episode numbers within server
+    const updatedServerEpisodes = reorderedServerEpisodes.map((ep, index) => ({
       ...ep,
       episodeNumber: index + 1
     }));
+
+    // Combine with other servers' episodes
+    const reorderedEpisodes = [...updatedServerEpisodes, ...otherEpisodes];
 
     onReorderEpisodes(reorderedEpisodes);
     setDraggedEpisode(null);
   };
 
   const handleCreateEpisode = () => {
-    if (!newEpisode.title || !newEpisode.videoUrl) return;
+    if (!newEpisode.title || !newEpisode.videoUrl || !newEpisode.serverName) {
+      setValidationError('Vui lòng điền đầy đủ thông tin');
+      setTimeout(() => setValidationError(''), 3000);
+      return;
+    }
+
+    // Validate episode number for this server
+    if (!validateEpisodeNumber(newEpisode.episodeNumber!, newEpisode.serverName!)) {
+      setValidationError(`Tập ${newEpisode.episodeNumber} đã tồn tại trong server ${newEpisode.serverName}`);
+      setTimeout(() => setValidationError(''), 3000);
+      return;
+    }
     
     onCreateEpisode({
       ...newEpisode,
       createdAt: new Date()
     });
     
+    // Reset form with next available episode number for this server
+    const nextEpisodeNumber = getNextEpisodeNumber(newEpisode.serverName!);
     setNewEpisode({
       title: '',
-      episodeNumber: episodes.length + 2,
+      episodeNumber: nextEpisodeNumber,
       videoUrl: '',
-      serverName: 'Vietsub'
+      m3u8Url: '',
+      serverName: newEpisode.serverName
     });
   };
 
   const handleUpdateEpisode = (episode: Episode) => {
-    if (!episode.title || !episode.videoUrl) return;
+    if (!episode.title || !episode.videoUrl) {
+      setValidationError('Vui lòng điền đầy đủ thông tin');
+      setTimeout(() => setValidationError(''), 3000);
+      return;
+    }
+
+    // Validate episode number for this server (exclude current episode)
+    if (!validateEpisodeNumber(episode.episodeNumber, episode.serverName, episode.id)) {
+      setValidationError(`Tập ${episode.episodeNumber} đã tồn tại trong server ${episode.serverName}`);
+      setTimeout(() => setValidationError(''), 3000);
+      return;
+    }
     
     onUpdateEpisode(episode.id, episode);
     setEditingEpisode(null);
+  };
+
+  const handleServerChange = (serverName: string) => {
+    const nextEpisodeNumber = getNextEpisodeNumber(serverName);
+    setNewEpisode({
+      ...newEpisode,
+      serverName,
+      episodeNumber: nextEpisodeNumber
+    });
   };
 
   const handleEditEpisode = (episode: Episode) => {
@@ -152,10 +232,7 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
             </label>
             <FormSelect
               filter={newEpisode.serverName || 'Vietsub'}
-              onChange={(value) => setNewEpisode(prev => ({ 
-                ...prev, 
-                serverName: value 
-              }))}
+              onChange={(value) => handleServerChange(value)}
               options={serverOptions}
             />
           </div>
@@ -170,21 +247,45 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
           </div>
         </div>
 
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Video URL
-          </label>
-          <FormInput
-            name="videoUrl"
-            value={newEpisode.videoUrl || ''}
-            onChange={(e) => setNewEpisode(prev => ({ 
-              ...prev, 
-              videoUrl: e.target.value 
-            }))}
-            placeholder="https://example.com/video.mp4"
-            disabled={isProcessing}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Video URL
+            </label>
+            <FormInput
+              name="videoUrl"
+              value={newEpisode.videoUrl || ''}
+              onChange={(e) => setNewEpisode(prev => ({ 
+                ...prev, 
+                videoUrl: e.target.value 
+              }))}
+              placeholder="https://example.com/video.mp4"
+              disabled={isProcessing}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              M3U8 URL (tùy chọn)
+            </label>
+            <FormInput
+              name="m3u8Url"
+              value={newEpisode.m3u8Url || ''}
+              onChange={(e) => setNewEpisode(prev => ({ 
+                ...prev, 
+                m3u8Url: e.target.value 
+              }))}
+              placeholder="https://example.com/playlist.m3u8"
+              disabled={isProcessing}
+            />
+          </div>
         </div>
+
+        {validationError && (
+          <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            {validationError}
+          </div>
+        )}
       </div>
 
       {/* Episodes List */}
@@ -194,8 +295,17 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
         </h4>
         
         {episodes.length > 0 ? (
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {episodes.map((episode) => (
+          <div className="space-y-6 max-h-96 overflow-y-auto">
+            {Object.entries(serverGroups).map(([serverName, serverEpisodes]) => (
+              <div key={serverName} className="bg-white rounded-lg border border-gray-200 p-4">
+                <h5 className="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm mr-2">
+                    {serverName}
+                  </span>
+                  ({serverEpisodes.length} tập)
+                </h5>
+                <div className="space-y-2">
+                  {serverEpisodes.map((episode) => (
               <div
                 key={episode.id}
                 draggable={!editingEpisode}
@@ -258,19 +368,36 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
                       </div>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Video URL
-                      </label>
-                      <FormInput
-                        name="videoUrl"
-                        value={editingEpisode.videoUrl}
-                        onChange={(e) => setEditingEpisode(prev => prev ? ({ 
-                          ...prev, 
-                          videoUrl: e.target.value 
-                        }) : null)}
-                        disabled={isProcessing}
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Video URL
+                        </label>
+                        <FormInput
+                          name="videoUrl"
+                          value={editingEpisode.videoUrl}
+                          onChange={(e) => setEditingEpisode(prev => prev ? ({ 
+                            ...prev, 
+                            videoUrl: e.target.value 
+                          }) : null)}
+                          disabled={isProcessing}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          M3U8 URL
+                        </label>
+                        <FormInput
+                          name="m3u8Url"
+                          value={editingEpisode.m3u8Url || ''}
+                          onChange={(e) => setEditingEpisode(prev => prev ? ({ 
+                            ...prev, 
+                            m3u8Url: e.target.value 
+                          }) : null)}
+                          disabled={isProcessing}
+                        />
+                      </div>
                     </div>
 
                     <div className="flex space-x-2">
@@ -326,6 +453,9 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
                 )}
               </div>
             ))}
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="text-center py-8">
@@ -341,8 +471,8 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
         {episodes.length > 1 && !editingEpisode && (
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
             <p className="text-sm text-yellow-700">
-              💡 <strong>Mẹo:</strong> Kéo và thả các tập phim để sắp xếp lại thứ tự. 
-              Số tập sẽ được cập nhật tự động.
+              💡 <strong>Mẹo:</strong> Kéo và thả các tập phim để sắp xếp lại thứ tự trong cùng server. 
+              Số tập sẽ được cập nhật tự động và chỉ có thể di chuyển trong cùng server.
             </p>
           </div>
         )}

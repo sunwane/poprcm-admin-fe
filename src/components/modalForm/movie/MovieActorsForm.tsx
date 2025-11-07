@@ -63,9 +63,17 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
                   className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
                 >
                   <div className="flex items-center space-x-3">
-                    <GradientAvatar
-                      initial={actor.originName.charAt(0)}
-                    />
+                    {actor.profilePath ? (
+                      <img
+                        src={actor.profilePath}
+                        alt={actor.originName}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    ) : (
+                      <GradientAvatar
+                        initial={actor.originName.charAt(0)}
+                      />
+                    )}
                     <div>
                       <span className="font-medium text-gray-900">{actor.originName}</span>
                       {actor.alsoKnownAs && actor.alsoKnownAs.length > 0 && (
@@ -84,7 +92,6 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
               ))
             ) : (
               <div className="text-center py-8">
-                <div className="text-gray-400 text-lg mb-2">🎭</div>
                 <p className="text-gray-500">
                   {actorSearchTerm ? 'Không tìm thấy diễn viên nào' : 'Không có diễn viên nào khả dụng'}
                 </p>
@@ -159,7 +166,6 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
               })
             ) : (
               <div className="text-center py-8">
-                <div className="text-gray-400 text-lg mb-2">🎬</div>
                 <p className="text-gray-500">Chưa chọn diễn viên nào</p>
                 <p className="text-sm text-gray-400 mt-1">
                   Chọn diễn viên từ danh sách bên trái

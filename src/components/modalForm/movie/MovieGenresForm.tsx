@@ -1,7 +1,6 @@
 import React from 'react';
 import { Genre } from '@/types/Genres';
 import SearchBar from '@/components/ui/SearchBar';
-import GradientButton from '@/components/ui/GradientButton';
 
 interface MovieGenresFormProps {
   genres: Genre[];
@@ -42,7 +41,7 @@ const MovieGenresForm: React.FC<MovieGenresFormProps> = ({
           </h4>
           
           {/* Search Bar */}
-          <div className="mb-6">
+          <div className="mb-4">
             <SearchBar
               searchQuery={genreSearchTerm}
               onChange={onGenreSearchChange}
@@ -51,31 +50,30 @@ const MovieGenresForm: React.FC<MovieGenresFormProps> = ({
           </div>
 
           {/* Available Genres Grid */}
-          <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto">
+          <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
             {availableGenres.length > 0 ? (
               availableGenres.map((genre) => (
                 <div
                   key={genre.id}
-                  className="p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
+                  className="flex p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors"
                 >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">🎬</div>
-                    <div className="font-medium text-gray-900 text-sm mb-2">
-                      {genre.genresName}
+                  <div className="flex grow items-center space-x-3">
+                    <div>
+                      <span className="font-medium text-gray-900">{genre.genresName}</span>
                     </div>
-                    
-                    <GradientButton
-                      onClick={() => onToggleGenre(genre.id)}
-                      disabled={isProcessing}
-                    >
-                      Thêm
-                    </GradientButton>
                   </div>
+
+                  <button
+                    className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={() => onToggleGenre(genre.id)}
+                    disabled={isProcessing}
+                  >
+                    +
+                  </button>
                 </div>
               ))
             ) : (
               <div className="col-span-2 text-center py-8">
-                <div className="text-gray-400 text-lg mb-2">🎭</div>
                 <p className="text-gray-500">
                   {genreSearchTerm ? 'Không tìm thấy thể loại nào' : 'Không có thể loại nào khả dụng'}
                 </p>
@@ -103,19 +101,18 @@ const MovieGenresForm: React.FC<MovieGenresFormProps> = ({
               selectedGenres.map((genre) => (
                 <div
                   key={genre.id}
-                  className="p-3 bg-green-50 rounded-lg border border-green-200"
+                  className="p-3 bg-white rounded-lg border border-blue-200"
                 >
-                  <div className="text-center relative">
+                  <div className="text-left relative">
                     <button
                       onClick={() => onToggleGenre(genre.id)}
                       disabled={isProcessing}
-                      className="absolute -top-2 -right-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed bg-white border border-red-200"
+                      className="absolute -top-2 -right-2 p-1 text-red-500 hover:text-red-700 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       title="Xóa thể loại"
                     >
                       ✕
                     </button>
                     
-                    <div className="text-2xl mb-2">🎬</div>
                     <div className="font-medium text-gray-900 text-sm">
                       {genre.genresName}
                     </div>
@@ -124,7 +121,6 @@ const MovieGenresForm: React.FC<MovieGenresFormProps> = ({
               ))
             ) : (
               <div className="col-span-2 text-center py-8">
-                <div className="text-gray-400 text-lg mb-2">🏷️</div>
                 <p className="text-gray-500">Chưa chọn thể loại nào</p>
                 <p className="text-sm text-gray-400 mt-1">
                   Chọn thể loại từ danh sách bên trái

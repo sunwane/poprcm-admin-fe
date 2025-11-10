@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Movie } from '@/types/Movies';
-import { getStatusText, getTypeText, formatViewCount, formatDate } from '@/utils/movieUtils';
+import { getStatusText, getTypeText, formatViewCount, formatDate, getStatusColor } from '@/utils/movieUtils';
 import VideoPopup from '@/components/feature/movies/VideoPopup';
 import GradientAvatar from '@/components/ui/GradientAvatar';
+import EpisodesSection from '@/components/feature/movies/EpisodesSection';
+import { getRatingColor } from '@/utils/seriesUtils';
 
 interface MovieDetailModalProps {
   isOpen: boolean;
@@ -36,61 +38,73 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl w-full max-w-7xl max-h-[95vh] overflow-y-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center p-6 border-b border-gray-200">
-            <h2 className="text-2xl font-bold text-blue-600">Chi tiết phim</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50">
+        <div className="relative w-full max-w-5xl h-[90vh] overflow-y-auto rounded-xl shadow-lg bg-transparent m-auto">
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors bg-black/20 rounded-full p-2 z-50"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
-          <div className="p-6">
-            {/* Top Section - Thumbnail, Poster & Basic Info */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-              {/* Thumbnail */}
-              <div className="lg:col-span-4">
-                {movie.thumbnailUrl && (
-                  <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100">
-                    <img 
-                      src={movie.thumbnailUrl} 
-                      alt={movie.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = '/placeholder-thumbnail.png';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <h1 className="text-3xl font-bold mb-2">{movie.title}</h1>
-                      <p className="text-lg opacity-90">{movie.originalName}</p>
-                    </div>
-                    {movie.trailerUrl && (
-                      <button
-                        onClick={() => openVideoPopup(movie.trailerUrl!, 'Trailer - ' + movie.title)}
-                        className="absolute top-4 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h1m4 0h1m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span>Xem Trailer</span>
-                      </button>
-                    )}
-                  </div>
+            {/* Thumbnail Section */}
+            {movie.thumbnailUrl && (
+              <div className="relative aspect-video rounded-2xl bg-gray-100 shadow-lg mb-8">
+                <img 
+                  src={movie.thumbnailUrl || '/placeholder-thumnail.jpg'} 
+                  alt={movie.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder-thumnail.jpg';
+                  }}
+                />
+                <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent" />
+
+                {/* Title and Basic Info */}
+                <div className="absolute bottom-16 left-[280px] right-4 text-white">
+                  <h1 className="text-4xl font-bold leading-tight max-w-[580px] mb-1">
+                    {movie.title}
+                  </h1>
+                  {movie.originalName && (
+                    <p className="text-xl text-gray-200">{movie.originalName}</p>
+                  )}
+                </div>
+
+                {/* Trailer Button */}
+                {movie.trailerUrl && (
+                  <button
+                    onClick={() => openVideoPopup(movie.trailerUrl!, 'Trailer - ' + movie.title)}
+                    className="absolute bottom-18 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors flex items-center space-x-2"
+                  >
+                    <svg className="w-6 h-6" fill="currentColor" viewBox="2 4 20 16">
+                      <circle cx="12" cy="12" r="10" fill="currentColor" fillOpacity="0.3" />
+                      <path
+                        d="M10.5 9.5C10.5 8.95 11.05 8.62 11.5 8.9L15 11.08C15.45 11.36 15.45 12.04 15 12.32L11.5 14.5C11.05 14.78 10.5 14.45 10.5 13.9V9.5Z"
+                        fill="currentColor"
+                        stroke="currentColor"
+                        strokeLinejoin="round"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <span>Xem Trailer</span>
+                  </button>
                 )}
               </div>
+            )}
 
-              {/* Poster */}
-              <div className="lg:col-span-1">
-                <div className="aspect-2/3 rounded-xl overflow-hidden bg-gray-100 shadow-lg">
-                  <img 
-                    src={movie.posterUrl || '/placeholder-poster.png'} 
+            {/* Main Modal - White Background */}
+            <div className="bg-white rounded-xl shadow-sm relative" style={{ marginTop: '-80px' }}>
+              {/* Header Section - Poster + Title overlapping */}
+              <div className="flex items-start p-6 pb-4 pt-1.5">
+                {/* Poster overlapping thumbnail */}
+                <div
+                  className="w-56 shrink-0 aspect-2/3 rounded-xl overflow-hidden bg-gray-100 shadow-sm mr-8 relative -mt-34"
+                >
+                  <img
+                    src={movie.posterUrl || '/placeholder-poster.png'}
                     alt={movie.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -98,10 +112,9 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                     }}
                   />
                 </div>
-              </div>
-
-              {/* Info Tabs */}
-              <div className="lg:col-span-3">
+                
+                <div>
+                <div>
                 {/* Tab Navigation */}
                 <div className="flex border-b border-gray-200 mb-6">
                   {tabs.map((tab) => (
@@ -122,51 +135,51 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                 {/* Tab Content */}
                 <div className="space-y-6">
                   {activeTab === 'info' && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
+                    <div className='space-y-3'>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Loại phim</label>
-                          <p className="text-gray-800 font-medium">{getTypeText(movie.type)}</p>
+                          <label className="text-sm font-bold text-yellow-500">Điểm IMDB</label>
+                          <p className={`"text-white font-bold py-1 px-2 rounded-md w-fit ${getRatingColor(movie.imdbScore ?? 0)}"`}>{movie.imdbScore ?? 'N/A'}</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Năm phát hành</label>
-                          <p className="text-gray-800 font-medium">{movie.releaseYear}</p>
+                          <label className="text-sm font-bold text-blue-700">Điểm TMDB</label>
+                          <p className={`"text-white font-bold py-1 px-2 rounded-md w-fit ${getRatingColor(movie.tmdbScore ?? 0)}"`}>{movie.tmdbScore}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Trạng thái</label>
+                          <p className={`"text-white font-bold w-fit ${getStatusColor(movie.status)}"`}>{getStatusText(movie.status)}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Loại</label>
+                          <p className="text-gray-800 font-medium">{getTypeText(movie.type)}</p>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-gray-500">Thời lượng</label>
                           <p className="text-gray-800 font-medium">{movie.duration}</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Trạng thái</label>
-                          <p className="text-gray-800 font-medium">{getStatusText(movie.status)}</p>
+                          <label className="text-sm font-medium text-gray-500">Tổng số tập</label>
+                          <p className="text-gray-800 font-medium">{movie.totalEpisodes? movie.totalEpisodes : "?"}</p>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Năm</label>
+                          <p className="text-gray-800 font-medium">{movie.releaseYear}</p>
                         </div>
                         <div>
                           <label className="text-sm font-medium text-gray-500">Ngôn ngữ</label>
                           <p className="text-gray-800 font-medium">{movie.lang}</p>
                         </div>
-                      </div>
-                      <div className="space-y-4">
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Đạo diễn</label>
-                          <p className="text-gray-800 font-medium">{movie.director}</p>
+                          <label className="text-sm font-bold text-red-600">Lượt xem</label>
+                          <p className="bg-linear-to-r from-orange-400 to-red-500 py-1 px-2 rounded-md w-fit text-white font-bold">{formatViewCount(movie.view)}</p>
                         </div>
-                        <div>
-                          <label className="text-sm font-medium text-gray-500">Lượt xem</label>
-                          <p className="text-gray-800 font-medium">{formatViewCount(movie.view)}</p>
-                        </div>
-                        {movie.totalEpisodes && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">Tổng số tập</label>
-                            <p className="text-gray-800 font-medium">{movie.totalEpisodes}</p>
-                          </div>
-                        )}
                         <div>
                           <label className="text-sm font-medium text-gray-500">Ngày tạo</label>
                           <p className="text-gray-800 font-medium">{formatDate(movie.createdAt)}</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Cập nhật cuối</label>
-                          <p className="text-gray-800 font-medium">{formatDate(movie.modifiedAt || movie.createdAt)}</p>
+                          <label className="text-sm font-medium text-gray-500">Ngày cập nhật</label>
+                          <p className="text-gray-800 font-medium">{formatDate(movie.modifiedAt)}</p>
                         </div>
                       </div>
                     </div>
@@ -174,139 +187,109 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
 
                   {activeTab === 'countries' && (
                     <div>
-                      <h4 className="font-semibold text-gray-800 mb-4">Quốc gia sản xuất</h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {movie.country && movie.country.length > 0 ? (
-                          movie.country.map((country) => (
-                            <div key={country.id} className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                              <p className="font-medium text-blue-800">{country.countryName}</p>
-                            </div>
-                          ))
-                        ) : (
-                          <p className="text-gray-500 col-span-full">Chưa có thông tin quốc gia</p>
-                        )}
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Quốc gia sản xuất</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {movie.country?.map((country) => (
+                          <span 
+                            key={country.id}
+                            className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
+                          >
+                            {country.countryName}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   )}
 
                   {activeTab === 'genres' && (
                     <div>
-                      <h4 className="font-semibold text-gray-800 mb-4">Thể loại</h4>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-4">Thể loại</h3>
                       <div className="flex flex-wrap gap-2">
-                        {movie.genres && movie.genres.length > 0 ? (
-                          movie.genres.map((genre) => (
-                            <span 
-                              key={genre.id} 
-                              className="bg-linear-to-r from-blue-500 to-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium"
-                            >
-                              {genre.genresName}
-                            </span>
-                          ))
-                        ) : (
-                          <p className="text-gray-500">Chưa có thông tin thể loại</p>
-                        )}
+                        {movie.genres?.map((genre) => (
+                          <span 
+                            key={genre.id}
+                            className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                          >
+                            {genre.genresName}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   )}
                 </div>
-
-                {/* Description */}
-                <div className="mt-6">
-                  <h4 className="font-semibold text-gray-800 mb-3">Mô tả</h4>
-                  <p className="text-gray-600 leading-relaxed">{movie.description}</p>
-                </div>
-
-                {/* Rating Scores */}
-                {((movie.tmdbScore ?? 0) > 0 || (movie.imdbScore ?? 0) > 0) && (
-                  <div className="mt-6">
-                    <h4 className="font-semibold text-gray-800 mb-3">Điểm đánh giá</h4>
-                    <div className="flex space-x-4">
-                      {(movie.tmdbScore ?? 0) > 0 && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-                          <div className="text-2xl font-bold text-blue-600">{movie.tmdbScore}</div>
-                          <div className="text-sm text-blue-500">TMDB</div>
-                        </div>
-                      )}
-                      {(movie.imdbScore ?? 0) > 0 && (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-                          <div className="text-2xl font-bold text-yellow-600">{movie.imdbScore}</div>
-                          <div className="text-sm text-yellow-500">IMDB</div>
-                        </div>
-                      )}
+                  <div className='grid grid-cols-2 align-center mt-5 border-t pt-4 border-gray-200'>
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Từ khóa</label>
+                      <p className="text-gray-800 font-medium">{movie.slug}</p>
                     </div>
+                    <div className=''>
+                      <label className="text-sm font-medium text-gray-500">Đạo diễn</label>
+                      <p className="text-gray-800 font-medium">{movie.director}</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="text-sm font-medium text-gray-500">Mô tả</label>
+                    <p className="text-gray-800 leading-relaxed">{movie.description}</p>
+                  </div>
+                </div>
+                </div>
+              </div>
+
+              {/* Content Section */}
+              <div className="px-6 pb-6">
+                {/* Actors Section */}
+                {movie.actors && movie.actors.length > 0 && (
+                  <div className="mt-8">
+                    <h3 className="text-xl font-bold text-gray-800 mb-4">Diễn viên</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      {movie.actors.map((movieActor) => (
+                        <div key={movieActor.id} className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                          {movieActor.actor?.profilePath ? (
+                            <img
+                              src={movieActor.actor.profilePath}
+                              alt={movieActor.actor.originName}
+                              className="w-18 h-18 rounded-full object-cover mx-auto mb-2"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                target.nextElementSibling!.classList.remove('hidden');
+                              }}
+                            />
+                          ) : (
+                            <GradientAvatar
+                              size='w-18 h-18 mx-auto mb-2'
+                              initial={movieActor.actor?.originName?.charAt(0) || ''}
+                            />
+                          )}
+                          <div className="hidden">
+                            <GradientAvatar
+                              size='w-18 h-18 mx-auto mb-2'
+                              initial={movieActor.actor?.originName?.charAt(0) || ''}
+                            />
+                          </div>
+                          <h4 className="font-medium text-gray-800 text-sm">{movieActor.actor?.originName}</h4>
+                          {movieActor.characterName && (
+                            <p className="text-gray-600 text-xs mt-1">{movieActor.characterName}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Episodes Section */}
+                {movie.episodes && movie.episodes.length > 0 && (
+                  <div className="mt-8">
+                    <EpisodesSection
+                      episodes={movie.episodes}
+                      onEpisodeClick={openVideoPopup}
+                    />
                   </div>
                 )}
               </div>
             </div>
-
-            {/* Actors Section */}
-            {movie.actors && movie.actors.length > 0 && (
-              <div className="mb-8">
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Diễn viên</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {movie.actors.map((movieActor) => (
-                    <div key={movieActor.id} className="bg-white border border-gray-200 rounded-lg p-4 text-center">
-                      {movieActor.actor?.profilePath ? (
-                        <img
-                          src={movieActor.actor.profilePath}
-                          alt={movieActor.actor.originName}
-                          className="w-18 h-18 rounded-full object-cover mx-auto mb-2"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            target.nextElementSibling!.classList.remove('hidden');
-                          }}
-                        />
-                      ) : (
-                        <GradientAvatar
-                          size='w-18 h-18'
-                          initial={movieActor.actor?.originName?.charAt(0) || ''}
-                        />
-                      )}
-                      <div className="hidden">
-                        <GradientAvatar
-                          size='w-18 h-18'
-                          initial={movieActor.actor?.originName.charAt(0) || ''}
-                        />
-                      </div>
-                      <p className="font-medium text-gray-800">{movieActor.actor?.originName || 'Unknown'}</p>
-                      {movieActor.characterName && (
-                        <p className="text-sm text-blue-600 mt-1">vai {movieActor.characterName}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Episodes Section */}
-            {movie.episodes && movie.episodes.length > 0 && (
-              <div>
-                <h3 className="text-xl font-bold text-gray-800 mb-4">Tập phim ({movie.episodes.length})</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                  {movie.episodes.map((episode) => (
-                    <button
-                      key={episode.id}
-                      onClick={() => openVideoPopup(episode.videoUrl, `Tập ${episode.episodeNumber}: ${episode.title}`)}
-                      className="bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-3 text-center transition-colors group"
-                    >
-                      <div className="font-bold text-blue-700 group-hover:text-blue-800">
-                        Tập {episode.episodeNumber}
-                      </div>
-                      <div className="text-xs text-blue-600 mt-1 truncate">
-                        {episode.title}
-                      </div>
-                      <div className="text-xs text-blue-500 mt-1">
-                        {episode.serverName}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
-      </div>
 
       {/* Video Popup */}
       <VideoPopup

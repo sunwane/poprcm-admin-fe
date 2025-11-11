@@ -3,6 +3,7 @@
 import { useSettings } from '@/hooks/useSettings';
 import AvatarUpload from '@/components/ui/AvatarUpload';
 import FormInput from '@/components/ui/FormInput';
+import RadioButton from '@/components/ui/RadioButton';
 import ChangePasswordModal from '@/components/modalForm/ChangePasswordModal';
 
 export default function Settings() {
@@ -142,6 +143,23 @@ export default function Settings() {
             <div className="bg-gray-50 rounded-xl p-6">
               <h4 className="text-lg font-semibold text-blue-800 mb-6">Thông tin cá nhân</h4>
               
+              <div className="md:col-span-2 mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Giới tính
+                  </label>
+                  <RadioButton
+                    name="gender"
+                    options={[
+                      { value: 'male', label: 'Nam' },
+                      { value: 'female', label: 'Nữ' }
+                    ]}
+                    selectedValue={settings.profile.gender}
+                    onChange={(value) => updateProfileField('gender', value)}
+                    disabled={!isEditingProfile}
+                    className="flex flex-row gap-8"
+                  />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -187,7 +205,8 @@ export default function Settings() {
                     readonly={!isEditingProfile}
                     className={!isEditingProfile ? 'bg-gray-50 text-gray-700' : ''}
                   />
-                </div>
+                </div> 
+                
               </div>
 
               {/* Action Buttons */}

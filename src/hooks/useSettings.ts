@@ -5,6 +5,7 @@ interface ProfileSettings {
   name: string;
   email: string;
   avatarUrl: string;
+  gender: 'male' | 'female' | '';
 }
 
 interface SettingsState {
@@ -19,6 +20,7 @@ export const useSettings = () => {
       name: '',
       email: '',
       avatarUrl: '',
+      gender: '' as 'male' | 'female' | '',
     }
   });
 
@@ -27,6 +29,7 @@ export const useSettings = () => {
       name: '',
       email: '',
       avatarUrl: '',
+      gender: '' as 'male' | 'female' | '',
     }
   });
 
@@ -45,6 +48,7 @@ export const useSettings = () => {
           name: user.fullname || '',
           email: user.email || '',
           avatarUrl: user.avatarUrl || '',
+          gender: (user as any).gender || '',
         }
       });
       setOriginalSettings({
@@ -52,6 +56,7 @@ export const useSettings = () => {
           name: user.fullname || '',
           email: user.email || '',
           avatarUrl: user.avatarUrl || '',
+          gender: (user as any).gender || '',
         }
       });
     }

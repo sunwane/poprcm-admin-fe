@@ -1,108 +1,140 @@
 import { 
-  AuthenticationRequest, 
   AuthResponse, 
   LoginRequest,
-  ChangePasswordRequest 
+  LogoutRequest,
+  APIAuthResponse,
+  AuthenticationResponse
 } from '@/types/Auth';
 import { mockUsers } from '@/mocksData/mockUser';
+import ServiceChecker from './ServiceChecker';
+import { UserService } from './UserService';
 
 class AuthService {
-  private baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  private baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8088/api/auth';
 
   async login(request: LoginRequest): Promise<AuthResponse> {
-    try {
-      // Tìm user admin trong mockUsers
-      const adminUser = mockUsers.find(user => user.username === 'admin');
-      
-      if (request.email === adminUser?.email && request.password === 'admin123') {
-        return {
-          token: 'mock-jwt-token-' + Date.now(),
-          user: {
-            id: adminUser.id,
-            username: adminUser.username,
-            fullname: adminUser.fullname,
-            email: adminUser.email,
-            role: 'admin',
-            createdAt: adminUser.createdAt,
-            gender: adminUser.gender,
-            avatarUrl: adminUser.avatarUrl
-          },
-          message: 'Đăng nhập thành công'
-        };
-      } else {
-        throw new Error('Email hoặc mật khẩu không đúng');
-      }
 
-      // Real API call would be:
-      // const response = await fetch(`${this.baseURL}/auth/login`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(request),
-      // });
-
-      // if (!response.ok) {
-      //   throw new Error('Đăng nhập thất bại');
-      // }
-
-      // return await response.json();
-    } catch (error) {
-      throw error;
+    if (localStorage.getItem('serviceAvailable') === 'false') {
+      console.log('Using mock login data due to service unavailability');
+      return this.mockLogin(request);
     }
-  }
 
-  async changePassword(request: ChangePasswordRequest): Promise<{ message: string }> {
     try {
-      const response = await fetch(`${this.baseURL}/auth/change-password`, {
+      // Thử gọi API thật trước
+      console.log('Attempting to call real API for login...');
+      const response = await fetch(`${this.baseURL}/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.getToken()}`
         },
         body: JSON.stringify(request),
       });
 
       if (!response.ok) {
-        throw new Error('Đổi mật khẩu thất bại');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Đăng nhập thất bại từ API');
       }
 
-      return await response.json();
-    } catch (error) {
+      const apiResponse: APIAuthResponse = await response.json();
+      console.log('✅ Login successful with real API');
+      
+      // Lấy thông tin user từ API /users/me
+      if (apiResponse.result) {
+        console.log('Fetching user data from /users/me...');
+        const user = await UserService.getCurrentUser(apiResponse.result.token);
+        console.log('Fetched user data from /users/me:', user);
+        return {
+          token: apiResponse.result.token,
+          userId: apiResponse.result.userId,
+          user: user || undefined,
+          refreshToken: apiResponse.result.refreshToken,
+          authenticated: apiResponse.result.authenticated
+        };
+      }
+      
+      throw new Error('Invalid API response');
+      
+    } catch (error: any) {
       throw error;
     }
   }
 
-  async sendVerificationCode(): Promise<{ message: string }> {
-    try {
-      // Mock implementation - simulate sending verification code
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In real implementation, this would call the API
-      // const response = await fetch(`${this.baseURL}/auth/send-verification-code`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${this.getToken()}`
-      //   },
-      // });
-
-      // if (!response.ok) {
-      //   throw new Error('Gửi mã xác nhận thất bại');
-      // }
-
-      // return await response.json();
-      
-      return { message: 'Mã xác nhận đã được gửi qua email của bạn' };
-    } catch (error) {
-      throw error;
+  private mockLogin(request: LoginRequest): AuthResponse {
+    // Fallback về mock data
+    const adminUser = mockUsers.find(user => user.username === 'admin');
+    
+    if (request.email === adminUser?.email && request.password === adminUser?.password) {
+      console.log('✅ Login successful with mock data');
+      const { password, ...userWithoutPassword } = adminUser;
+      return {
+        token: 'mock-jwt-token-' + Date.now(),
+        userId: adminUser.id,
+        user: userWithoutPassword,
+        authenticated: true
+      };
+    } else {
+      throw new Error('Email hoặc mật khẩu không đúng');
     }
+  }
+
+  async logout(token?: string): Promise<void> {
+    // Kiểm tra service availability trước
+    const isServiceAvailable = await ServiceChecker.checkServiceAvailability();
+
+    if (!isServiceAvailable) {
+      console.log('Using mock logout');
+      this.clearAuthData();
+      return;
+    }
+
+    try {
+      if (token) {
+        console.log('Attempting to call real API for logout...');
+        const response = await fetch(`${this.baseURL}/logout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token }),
+        });
+
+        if (!response.ok) {
+          console.warn('Logout API failed, continuing with local logout');
+        } else {
+          console.log('✅ Logout successful with real API');
+        }
+      }
+    } catch (error: any) {
+      console.warn('❌ API logout failed:', error.message);
+    } finally {
+      this.clearAuthData();
+    }
+  }
+
+  private clearAuthData(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      console.log('Auth data cleared from localStorage');
+    }
+  }
+
+  // Method để clear corrupted data
+  clearCorruptedData(): void {
+    console.log('Clearing potentially corrupted localStorage data...');
+    this.clearAuthData();
   }
 
   getToken(): string | null {
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('authToken');
       console.log('Retrieved token:', token);
+      
+      // Kiểm tra token hợp lệ
+      if (!token || token === 'null' || token === 'undefined' || token === '') {
+        return null;
+      }
+      
       return token;
     }
     return null;
@@ -112,7 +144,23 @@ class AuthService {
     if (typeof window !== 'undefined') {
       const userStr = localStorage.getItem('user');
       console.log('Retrieved user:', userStr);
-      return userStr ? JSON.parse(userStr) : null;
+
+      // Kiểm tra các trường hợp không hợp lệ
+      if (!userStr || userStr === 'null' || userStr === 'undefined' || userStr === '') {
+        console.warn('Invalid user data in localStorage:', userStr);
+        return null;
+      }
+
+      // Kiểm tra nếu userStr không phải JSON hợp lệ
+      try {
+        const parsed = JSON.parse(userStr);
+        return parsed;
+      } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+        // Clear invalid data
+        localStorage.removeItem('user');
+        return null;
+      }
     }
     return null;
   }
@@ -121,18 +169,23 @@ class AuthService {
     if (typeof window !== 'undefined') {
       console.log('AuthService setAuth - Setting token:', token);
       console.log('AuthService setAuth - Setting user:', user);
+      
+      // Lưu token
       localStorage.setItem('authToken', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      
+      // Chỉ lưu user nếu nó có giá trị hợp lệ
+      if (user && user !== undefined && user !== null) {
+        localStorage.setItem('user', JSON.stringify(user));
+      } else {
+        console.warn('User data is invalid, not saving to localStorage');
+        localStorage.removeItem('user');
+      }
+      
       console.log('AuthService setAuth - Data saved to localStorage');
     }
   }
 
-  logout() {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-    }
-  }
+
 
   isAuthenticated(): boolean {
     return !!this.getToken();
@@ -142,6 +195,8 @@ class AuthService {
     const user = this.getUser();
     return user?.role === 'admin';
   }
+
+
 }
 
 export default new AuthService();

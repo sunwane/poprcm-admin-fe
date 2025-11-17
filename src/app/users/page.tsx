@@ -117,8 +117,8 @@ export default function Users() {
               onChange={(role: string) => setFilterRole(role as typeof filterRole)}
               options={[
                 {value:'all', label:'Tất cả vai trò'},
-                {value:'admin', label:'Admin'},
-                {value:'user', label:'User'},
+                {value:'ADMIN', label:'Admin'},
+                {value:'USER', label:'User'},
               ]}
             />
           </div>

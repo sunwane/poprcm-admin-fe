@@ -5,7 +5,7 @@ import { fetchWithErrorHandling, normalizeCountriesFromApi } from '@/utils/count
 export class CountryService {
   private static countries: Country[] = [];
   private static isDataLoaded = false;
-  private static readonly API_BASE_URL = 'https://ophim1.com/v1/api';
+  private static readonly API_BASE_URL = 'http://localhost:8088/api';
 
   // Lấy dữ liệu từ API lần đầu
   private static async loadCountriesFromApi(): Promise<void> {
@@ -13,7 +13,7 @@ export class CountryService {
 
     try {
       const response: OphimCountryApiResponse = await fetchWithErrorHandling(
-        `${this.API_BASE_URL}/quoc-gia`
+        `${this.API_BASE_URL}/countries`
       );
       
       // Kiểm tra cấu trúc response

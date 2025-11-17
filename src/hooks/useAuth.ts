@@ -40,13 +40,15 @@ export const useAuth = () => {
     try {
       const response = await AuthService.login(credentials);
       
+      const user = response.user;
+
       // Chỉ cho phép admin đăng nhập
-      if (response.user.role !== 'admin') {
+      if (user?.role !== 'ADMIN') {
         throw new Error('Chỉ quản trị viên mới có thể đăng nhập!');
       }
       
-      AuthService.setAuth(response.token, response.user);
-      setUser(response.user);
+      AuthService.setAuth(response.token, user);
+      setUser(user || null);
       setIsAuthenticated(true);
       
       // Reset login form
@@ -62,8 +64,9 @@ export const useAuth = () => {
     }
   };
 
-  const logout = () => {
-    AuthService.logout();
+  const logout = async () => {
+    const token = AuthService.getToken();
+    await AuthService.logout(token || undefined);
     setUser(null);
     setIsAuthenticated(false);
     setLoginForm({ email: '', password: '' });
@@ -71,30 +74,7 @@ export const useAuth = () => {
     router.push('/login');
   };
 
-  const changePassword = async (currentPassword: string, newPassword: string) => {
-    try {
-      if (!user) throw new Error('Người dùng chưa đăng nhập');
-      
-      const response = await AuthService.changePassword({
-        userId: user.id,
-        currentPassword,
-        newPassword
-      });
-      
-      return response;
-    } catch (error) {
-      throw error;
-    }
-  };
 
-  const sendVerificationCode = async () => {
-    try {
-      const response = await AuthService.sendVerificationCode();
-      return response;
-    } catch (error: any) {
-      throw error;
-    }
-  };
 
   // Login form handlers
   const updateLoginForm = (field: 'email' | 'password', value: string) => {
@@ -137,8 +117,6 @@ export const useAuth = () => {
     // Auth methods
     login,
     logout,
-    changePassword,
-    sendVerificationCode,
     isAdmin: () => AuthService.isAdmin(),
     
     // Login form methods

@@ -7,6 +7,8 @@ import GenreModal from '@/components/modalForm/GenreModal';
 import SearchBar from '@/components/ui/SearchBar';
 import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
+import LoadingOverlay from '@/components/ui/LoadingOverlay';
+import Notification from '@/components/ui/Notification';
 
 export default function Genres() {
   const {
@@ -32,7 +34,17 @@ export default function Genres() {
     handleItemsPerPageChange,
     handleSort,
     setSearchQuery,
+    // Sync functionality
+    isSyncing,
+    notification,
+    hideNotification,
+    syncGenres
   } = useGenres();
+
+  // Handle sync
+  const handleSyncGenres = async () => {
+    await syncGenres();
+  };
 
   if (loading) {
     return (
@@ -50,7 +62,7 @@ export default function Genres() {
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Quản lý Thể loại</h1>
           <p className="text-gray-600">Quản lý tất cả thể loại hiện có trong hệ thống</p>
         </div>
-        <div className="flex items-center w-full max-w-2/5">
+        <div className="flex items-center w-full max-w-3/5">
           <div className="flex-1 mx-4 max-w-md">
             <SearchBar 
                 searchQuery={searchQuery} 
@@ -65,12 +77,24 @@ export default function Genres() {
               </svg>
               <span>Thêm Thể loại</span>
             </GradientButton>
+            <button 
+              className='bg-linear-to-br from-green-500 to-green-800 rounded-lg text-white 
+              text-nowrap px-6 py-3 hover:from-green-400 hover:to-green-800 
+              transition-all flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed'
+              onClick={handleSyncGenres}
+              disabled={isSyncing}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span className='text-nowrap'>Đồng bộ API</span>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="text-2xl font-bold text-blue-900 mb-1">{stats.total}</div>
           <div className="text-gray-600 text-sm">Tổng thể loại</div>
@@ -82,6 +106,15 @@ export default function Genres() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="text-2xl font-bold text-orange-600 mb-1">{stats.avgMoviesPerGenre}</div>
           <div className="text-gray-600 text-sm">TB phim/thể loại</div>
+        </div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center space-x-2 mb-1">
+            <div className={`w-3 h-3 rounded-full ${stats.fromApi ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+            <div className="text-lg font-bold text-gray-900">
+              {stats.fromApi ? 'API' : 'Mock'}
+            </div>
+          </div>
+          <div className="text-gray-600 text-sm">Nguồn dữ liệu</div>
         </div>
       </div>
 
@@ -207,6 +240,21 @@ export default function Genres() {
         editingGenre={editingGenre}
         onClose={handleCloseModal}
         onSave={handleSaveGenre}
+      />
+
+      {/* Loading Overlay */}
+      <LoadingOverlay
+        isVisible={isSyncing}
+        message="Đang xử lý..."
+      />
+
+      {/* Notification */}
+      <Notification
+        isVisible={notification.isVisible}
+        message={notification.message}
+        type={notification.type}
+        onClose={hideNotification}
+        position="bottom-right"
       />
     </div>
   );

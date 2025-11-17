@@ -1,12 +1,9 @@
 import { 
   AuthResponse, 
   LoginRequest,
-  LogoutRequest,
   APIAuthResponse,
-  AuthenticationResponse
 } from '@/types/Auth';
 import { mockUsers } from '@/mocksData/mockUser';
-import ServiceChecker from './ServiceChecker';
 import { UserService } from './UserService';
 
 class AuthService {
@@ -61,7 +58,7 @@ class AuthService {
 
   private mockLogin(request: LoginRequest): AuthResponse {
     // Fallback về mock data
-    const adminUser = mockUsers.find(user => user.username === 'admin');
+    const adminUser = mockUsers.find(user => user.userName === 'admin');
     
     if (request.email === adminUser?.email && request.password === adminUser?.password) {
       console.log('✅ Login successful with mock data');
@@ -78,10 +75,7 @@ class AuthService {
   }
 
   async logout(token?: string): Promise<void> {
-    // Kiểm tra service availability trước
-    const isServiceAvailable = await ServiceChecker.checkServiceAvailability();
-
-    if (!isServiceAvailable) {
+    if (localStorage.getItem('serviceAvailable') === 'false') {
       console.log('Using mock logout');
       this.clearAuthData();
       return;
@@ -167,8 +161,6 @@ class AuthService {
 
   setAuth(token: string, user: any) {
     if (typeof window !== 'undefined') {
-      console.log('AuthService setAuth - Setting token:', token);
-      console.log('AuthService setAuth - Setting user:', user);
       
       // Lưu token
       localStorage.setItem('authToken', token);
@@ -177,15 +169,10 @@ class AuthService {
       if (user && user !== undefined && user !== null) {
         localStorage.setItem('user', JSON.stringify(user));
       } else {
-        console.warn('User data is invalid, not saving to localStorage');
         localStorage.removeItem('user');
-      }
-      
-      console.log('AuthService setAuth - Data saved to localStorage');
+      }  
     }
   }
-
-
 
   isAuthenticated(): boolean {
     return !!this.getToken();
@@ -195,8 +182,6 @@ class AuthService {
     const user = this.getUser();
     return user?.role === 'admin';
   }
-
-
 }
 
 export default new AuthService();

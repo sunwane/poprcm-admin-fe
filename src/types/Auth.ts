@@ -34,10 +34,6 @@ export interface LoginRequest {
   password: string;
 }
 
-export interface LogoutRequest {
-  token: string;
-}
-
 export interface ResetPasswordRequest {
   email: string;
 }

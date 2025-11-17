@@ -3,6 +3,12 @@ import { Country } from '@/types/Country';
 import { CountryService } from '@/services/CountryService';
 import { filterCountriesByName, sortCountries } from '@/utils/countryUtils';
 
+interface NotificationState {
+  isVisible: boolean;
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+}
+
 export const useCountries = () => {
   const [countries, setCountries] = useState<Country[]>([]);
   const [movieCounts, setMovieCounts] = useState<Record<string, number>>({});
@@ -18,11 +24,20 @@ export const useCountries = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Sync states
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [notification, setNotification] = useState<NotificationState>({
+    isVisible: false,
+    message: '',
+    type: 'info'
+  });
+
   // Load countries on mount
   useEffect(() => {
     const loadCountries = async () => {
       try {
         const countriesData = await CountryService.getAllCountries();
+        
         setCountries(countriesData);
         
         // Load movie counts for each country
@@ -52,8 +67,8 @@ export const useCountries = () => {
       
       switch (sortBy) {
         case 'name':
-          aValue = a.countryName.toLowerCase();
-          bValue = b.countryName.toLowerCase();
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
           break;
         case 'id':
           aValue = parseInt(a.id) || 0;
@@ -98,9 +113,10 @@ export const useCountries = () => {
     return {
       total: countries.length,
       countriesWithMovies,
-      avgMoviesPerCountry: countries.length > 0 ? Math.round(totalMovies / countries.length) : 0
+      avgMoviesPerCountry: countries.length > 0 ? Math.round(totalMovies / countries.length) : 0,
+      fromApi: localStorage.getItem('serviceAvailable')
     };
-  }, [countries, movieCounts]);
+  }, [countries, movieCounts, localStorage.getItem('serviceAvailable')]);
 
   // Actions
   const handleEdit = (country: Country) => {
@@ -175,6 +191,57 @@ export const useCountries = () => {
     }
   };
 
+  // Sync methods từ useCountrySync
+  const showNotification = (message: string, type: NotificationState['type'] = 'info') => {
+    setNotification({
+      isVisible: true,
+      message,
+      type
+    });
+  };
+
+  const hideNotification = () => {
+    setNotification(prev => ({ ...prev, isVisible: false }));
+  };
+
+  const syncCountries = async (): Promise<boolean> => {
+    try {
+      setIsSyncing(true);
+      showNotification('Đang đồng bộ dữ liệu quốc gia...', 'info');
+
+      const result = await CountryService.syncCountries();
+
+      if (result.success) {
+        showNotification('Đồng bộ thành công! Dữ liệu đã được cập nhật.', 'success');
+        
+        // Refresh data after sync
+        const newCountries = await CountryService.refreshCountriesFromApi();
+        setCountries(newCountries);
+        
+        // Reload movie counts
+        const counts: Record<string, number> = {};
+        for (const country of newCountries) {
+          counts[country.id] = await CountryService.getMovieCountByCountry(country.id);
+        }
+        setMovieCounts(counts);
+        
+        return true;
+      } else {
+        showNotification(
+          result.message || 'Đồng bộ thất bại. Vui lòng thử lại.',
+          'error'
+        );
+        return false;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Có lỗi xảy ra khi đồng bộ';
+      showNotification(message, 'error');
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return {
     // State
     countries,
@@ -206,5 +273,12 @@ export const useCountries = () => {
     setSearchQuery,
     setSortBy,
     setSortOrder,
+    
+    // Sync functionality
+    isSyncing,
+    notification,
+    showNotification,
+    hideNotification,
+    syncCountries,
   };
 };

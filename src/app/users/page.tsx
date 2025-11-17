@@ -205,7 +205,7 @@ export default function Users() {
                         {user.avatarUrl ? (
                           <img 
                             src={user.avatarUrl} 
-                            alt={user.fullname}
+                            alt={user.fullName}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -214,19 +214,19 @@ export default function Users() {
                             }}
                           />
                         ) : (
-                          <GradientAvatar initial={getInitials(user.fullname)} />
+                          <GradientAvatar initial={getInitials(user.fullName)} />
                         )}
                         <div className="hidden">
-                          <GradientAvatar initial={getInitials(user.fullname)} />
+                          <GradientAvatar initial={getInitials(user.fullName)} />
                         </div>
                       </div>
                       <div>
-                        <div className="font-medium text-gray-800">{user.fullname}</div>
+                        <div className="font-medium text-gray-800">{user.fullName}</div>
                         <div className="text-sm text-gray-500">ID: {user.id}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-gray-600">@{user.username}</td>
+                  <td className="px-6 py-4 text-gray-600">@{user.userName}</td>
                   <td className="px-6 py-4 text-gray-600">{user.email}</td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor((user.role || '').toString())}`}>

@@ -3,22 +3,8 @@ export interface Genre {
   genresName: string;
 }
 
-export interface OphimGenreResponse {
-  _id: string;
-  name: string;
-  slug: string;
-}
-
-export interface OphimApiResponse {
-  status: string;
-  message?: string;
-  data: {
-    items: OphimGenreResponse[];
-  }
-}
-
 export interface ApiResponse<T> {
-  status: boolean;
+  code?: number;
   message?: string;
-  data: T;
+  result: T;
 }

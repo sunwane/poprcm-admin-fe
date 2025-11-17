@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { UserService } from '@/services/UserService';
 
 interface ProfileSettings {
-  name: string;
+  fullName: string;
+  userName: string;
   email: string;
   avatarUrl: string;
-  gender: 'male' | 'female' | '';
-}
-
-interface SettingsState {
-  profile: ProfileSettings;
+  gender: 'MALE' | 'FEMALE' | '';
 }
 
 export const useSettings = () => {
@@ -17,19 +15,21 @@ export const useSettings = () => {
   
   const [settings, setSettings] = useState({
     profile: {
-      name: '',
+      fullName: '',
+      userName: '',
       email: '',
       avatarUrl: '',
-      gender: '' as 'male' | 'female' | '',
+      gender: '' as 'MALE' | 'FEMALE' | '',
     }
   });
 
   const [originalSettings, setOriginalSettings] = useState({
     profile: {
-      name: '',
+      fullName: '',
+      userName: '',
       email: '',
       avatarUrl: '',
-      gender: '' as 'male' | 'female' | '',
+      gender: '' as 'MALE' | 'FEMALE' | '',
     }
   });
 
@@ -45,7 +45,8 @@ export const useSettings = () => {
     if (user) {
       setSettings({
         profile: {
-          name: user.fullname || '',
+          fullName: user.fullName || '',
+          userName: user.userName || '',
           email: user.email || '',
           avatarUrl: user.avatarUrl || '',
           gender: (user as any).gender || '',
@@ -53,7 +54,8 @@ export const useSettings = () => {
       });
       setOriginalSettings({
         profile: {
-          name: user.fullname || '',
+          fullName: user.fullName || '',
+          userName: user.userName || '',
           email: user.email || '',
           avatarUrl: user.avatarUrl || '',
           gender: (user as any).gender || '',
@@ -87,15 +89,14 @@ export const useSettings = () => {
     try {
       // TODO: Gọi API để lưu thông tin profile
       console.log('Saving profile settings:', settings.profile);
-      
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
+      UserService.updateProfile(user?.id || '', settings.profile);
+            
       setIsEditingProfile(false);
       // Cập nhật originalSettings với giá trị mới
       setOriginalSettings(settings);
       setMessage('Thông tin đã được lưu thành công!');
-      setTimeout(() => setMessage(''), 5000);
+      setTimeout(() => setMessage(''), 10000);
     } catch (error) {
       setMessage('Có lỗi xảy ra khi lưu thông tin!');
       setTimeout(() => setMessage(''), 5000);

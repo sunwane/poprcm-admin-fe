@@ -8,8 +8,8 @@ interface MockUser extends User {
 export const mockUsers: MockUser[] = [
   { 
     id: '1', 
-    username: 'admin',
-    fullname: 'Admin User', 
+    userName: 'admin',
+    fullName: 'Admin User', 
     email: 'admin@poprcm.com',
     password: 'admin123',
     gender: 'male',
@@ -19,8 +19,8 @@ export const mockUsers: MockUser[] = [
   },
   { 
     id: '2', 
-    username: 'tranthibinh',
-    fullname: 'Trần Thị Bình', 
+    userName: 'tranthibinh',
+    fullName: 'Trần Thị Bình', 
     email: 'tranthibinh@gmail.com',
     password: 'user123',
     gender: 'female',
@@ -30,8 +30,8 @@ export const mockUsers: MockUser[] = [
   },
   { 
     id: '3', 
-    username: 'lehoangcuong',
-    fullname: 'Lê Hoàng Cường', 
+    userName: 'lehoangcuong',
+    fullName: 'Lê Hoàng Cường', 
     email: 'lehoangcuong@gmail.com',
     password: 'user123',
     gender: 'male',
@@ -40,8 +40,8 @@ export const mockUsers: MockUser[] = [
   },
   { 
     id: '4', 
-    username: 'phamthidung',
-    fullname: 'Phạm Thị Dung', 
+    userName: 'phamthidung',
+    fullName: 'Phạm Thị Dung', 
     email: 'phamthidung@gmail.com',
     password: 'user123',
     avatarUrl: 'https://aic.com.vn/wp-content/uploads/2024/10/anh-avatar-vo-tri-22.jpg',
@@ -51,8 +51,8 @@ export const mockUsers: MockUser[] = [
   },
   { 
     id: '5', 
-    username: 'vominhtuan',
-    fullname: 'Võ Minh Tuấn', 
+    userName: 'vominhtuan',
+    fullName: 'Võ Minh Tuấn', 
     email: 'vominhtuan@gmail.com',
     password: 'user123',
     avatarUrl: 'https://thuvienquangngai.vn/wp-content/uploads/2025/01/avatar-vo-tri-ngau-16.jpg',
@@ -62,8 +62,8 @@ export const mockUsers: MockUser[] = [
   },
   { 
     id: '6', 
-    username: 'hoangthilinh',
-    fullname: 'Hoàng Thị Linh', 
+    userName: 'hoangthilinh',
+    fullName: 'Hoàng Thị Linh', 
     email: 'hoangthilinh@gmail.com',
     password: 'user123',
     gender: 'female',

@@ -1,7 +1,7 @@
 export interface User {
     id: string;
-    username: string;
-    fullname: string;
+    userName: string;
+    fullName: string;
     email: string;
     gender: string;
     avatarUrl?: string;
@@ -9,5 +9,5 @@ export interface User {
     role?: String;
 }
 
-export type FilterGender = 'all' | 'male' | 'female';
-export type FilterRole = 'all' | 'Admin' | 'User';
+export type FilterGender = 'ALL' | 'MALE' | 'FEMALE';
+export type FilterRole = 'ALL' | 'ADMIN' | 'USER';

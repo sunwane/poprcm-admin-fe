@@ -1,28 +1,42 @@
-import { Country, OphimCountryResponse, OphimCountryApiResponse } from '@/types/Country';
+import { Country, ApiResponse } from '@/types/Country';
 import { mockCountries } from '@/mocksData/mockCountries';
-import { fetchWithErrorHandling, normalizeCountriesFromApi } from '@/utils/countryUtils';
 
 export class CountryService {
   private static countries: Country[] = [];
   private static isDataLoaded = false;
-  private static readonly API_BASE_URL = 'http://localhost:8088/api';
+  private static readonly API_BASE_URL = 'http://localhost:8088/api/countries';
+
+  // Kiểm tra service availability từ localStorage (giống AuthService)
+  private static isServiceAvailable(): boolean {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('serviceAvailable') !== 'false';
+    }
+    return true;
+  }
 
   // Lấy dữ liệu từ API lần đầu
   private static async loadCountriesFromApi(): Promise<void> {
     if (this.isDataLoaded) return;
 
+    if (!this.isServiceAvailable()) {
+      console.info('API not available, using mock data');
+      this.countries = [...mockCountries];
+      this.isDataLoaded = true;
+      return;
+    }
+
     try {
-      const response: OphimCountryApiResponse = await fetchWithErrorHandling(
-        `${this.API_BASE_URL}/countries`
-      );
+      const response = await fetch(`${this.API_BASE_URL}`);
       
-      // Kiểm tra cấu trúc response
-      if (response.status === 'success' && response.data && response.data.items && Array.isArray(response.data.items)) {
-        this.countries = normalizeCountriesFromApi(response.data.items);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse: ApiResponse<Country[]> = await response.json();
+      if (apiResponse.result && Array.isArray(apiResponse.result)) {
+        this.countries = apiResponse.result;
+        console.info('Countries loaded from API:', this.countries);
         this.isDataLoaded = true;
-        console.log('Loaded countries from API:', this.countries.length);
-      } else {
-        throw new Error('Invalid API response structure');
       }
       
     } catch (error) {
@@ -85,7 +99,7 @@ export class CountryService {
     await this.loadCountriesFromApi();
     
     return this.countries.some(country => 
-      country.countryName.toLowerCase() === name.toLowerCase() && 
+      country.name.toLowerCase() === name.toLowerCase() && 
       country.id !== excludeId
     );
   }
@@ -96,6 +110,54 @@ export class CountryService {
     this.countries = [];
     return await this.getAllCountries();
   }
+
+  // Sync countries từ localhost API
+  static async syncCountries(): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    if (!this.isServiceAvailable()) {
+      return {
+        success: false,
+        message: 'API service is not available. Please try again later.'
+      };
+    }
+
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem("authToken")}`
+        },
+      });
+
+      console.log('Auth Token used for sync:', localStorage.getItem("authToken"));
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result: ApiResponse<string> = await response.json();
+
+      // Refresh local data after sync
+      await this.refreshCountriesFromApi();
+      
+      return {
+        success: true,
+        message: result.message || 'Countries synced successfully'
+      };
+
+    } catch (error) {
+      console.error('Sync countries error:', error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
+  }
+
+
 
   // Lấy số lượng phim theo quốc gia (mock)
   static async getMovieCountByCountry(countryId: string): Promise<number> {
@@ -114,6 +176,7 @@ export class CountryService {
     fromApi: boolean;
   }> {
     await this.loadCountriesFromApi();
+    const isApiUp = this.isServiceAvailable();
     
     const total = this.countries.length;
     const totalMovies = Math.floor(Math.random() * 2000) + 1000; // Tạm thời
@@ -125,7 +188,7 @@ export class CountryService {
       totalMovies,
       countriesWithMovies: Math.floor(total * 0.8), // 80% countries have movies
       avgMoviesPerCountry: total > 0 ? Math.round(totalMovies / total) : 0,
-      fromApi: this.isDataLoaded
+      fromApi: this.isDataLoaded && isApiUp
     };
   }
 
@@ -137,7 +200,7 @@ export class CountryService {
     
     const searchTerm = query.toLowerCase().trim();
     return this.countries.filter(country => 
-      country.countryName.toLowerCase().includes(searchTerm)
+      country.name.toLowerCase().includes(searchTerm)
     );
   }
 }

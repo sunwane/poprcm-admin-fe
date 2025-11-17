@@ -71,7 +71,7 @@ export class UserService {
   private static getCurrentUserFromMock(token: string): User | null {
     // Trong mock, chúng ta sẽ extract userId từ token hoặc dùng admin user mặc định
     if (token.startsWith('mock-jwt-token-')) {
-      const adminUser = mockUsers.find(user => user.username === 'admin');
+      const adminUser = mockUsers.find(user => user.userName === 'admin');
       return adminUser || null;
     }
     return null;
@@ -97,27 +97,6 @@ export class UserService {
     //   .then(data => data as User);
   }
 
-  // static updateUser(id: string, userData: Partial<User>): Promise<User | null> {
-  // //   fake API call
-  //   const index = this.users.findIndex(u => u.id === id);
-  //   if (index === -1) return Promise.resolve(null);
-    
-  //   this.users[index] = { ...this.users[index], ...userData };
-  //   return Promise.resolve(this.users[index]);
-
-  // //   real API call example:
-  //   return fetch(`/api/users/${id}`, {
-  //     method: 'PUT',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify(userData),
-  //   })
-  //     .then(response => {
-  //       if (!response.ok) return null;
-  //       return response.json();
-  //     })
-  //     .then(data => data as User);
-  // }
-
   static deleteUser(id: string): Promise<boolean> {
     //fake API call
     const index = this.users.findIndex(u => u.id === id);
@@ -136,8 +115,8 @@ export class UserService {
   static searchUsers(query: string): Promise<User[]> {
     //fake API call
     const filteredUsers = this.users.filter(user => 
-      user.username.toLowerCase().includes(query.toLowerCase()) ||
-      user.fullname.toLowerCase().includes(query.toLowerCase()) ||
+      user.userName.toLowerCase().includes(query.toLowerCase()) ||
+      user.fullName.toLowerCase().includes(query.toLowerCase()) ||
       user.email.toLowerCase().includes(query.toLowerCase())
     );
     return Promise.resolve(filteredUsers);
@@ -146,5 +125,34 @@ export class UserService {
     // return fetch(`/api/users?search=${encodeURIComponent(query)}`)
     //   .then(response => response.json())
     //   .then(data => data as User[]);
+  }
+
+  static updateProfile(userId: string, updatedData: Partial<User>): Promise<User | null> {
+    if (localStorage.getItem('serviceAvailable') === 'true') {
+      try {
+        console.log('Attempting to call real API for updateProfile...');
+        return fetch(`${this.baseURL}/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedData),
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`API call failed: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then((data: APIUserResponse) => {
+          console.log('✅ updateProfile successful with real API');
+          return data.result || null;
+        });
+      } catch (error: any) {
+        console.warn('❌ API updateProfile failed:', error.message);
+        return Promise.resolve(null);
+      }
+    }
+    return Promise.resolve(null); // Default return statement
   }
 }

@@ -3,6 +3,12 @@ import { Genre } from '@/types/Genres';
 import { GenresService } from '@/services/GenresService';
 import { filterGenresByName, sortGenres } from '@/utils/genresUtils';
 
+interface NotificationState {
+  isVisible: boolean;
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+}
+
 export const useGenres = () => {
   const [genres, setGenres] = useState<Genre[]>([]);
   const [movieCounts, setMovieCounts] = useState<Record<string, number>>({});
@@ -18,11 +24,21 @@ export const useGenres = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Sync states
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [notification, setNotification] = useState<NotificationState>({
+    isVisible: false,
+    message: '',
+    type: 'info'
+  });
+
   // Load genres on mount
   useEffect(() => {
     const loadGenres = async () => {
       try {
         const genresData = await GenresService.getAllGenres();
+        
+        // Kiểm tra xem có đang dùng API hay không (đơn giản)
         setGenres(genresData);
         
         // Load movie counts for each genre
@@ -100,9 +116,10 @@ export const useGenres = () => {
       total: genres.length,
       genresWithMovies,
       genresWithoutMovies,
-      avgMoviesPerGenre: genres.length > 0 ? Math.round(totalMovies / genres.length) : 0
+      avgMoviesPerGenre: genres.length > 0 ? Math.round(totalMovies / genres.length) : 0,
+      fromApi: localStorage.getItem('serviceAvailable')
     };
-  }, [genres, movieCounts]);
+  }, [genres, movieCounts, localStorage.getItem('serviceAvailable')]);
 
   // Actions
   const handleEdit = (genre: Genre) => {
@@ -177,6 +194,57 @@ export const useGenres = () => {
     }
   };
 
+  // Sync methods (giống useCountries)
+  const showNotification = (message: string, type: NotificationState['type'] = 'info') => {
+    setNotification({
+      isVisible: true,
+      message,
+      type
+    });
+  };
+
+  const hideNotification = () => {
+    setNotification(prev => ({ ...prev, isVisible: false }));
+  };
+
+  const syncGenres = async (): Promise<boolean> => {
+    try {
+      setIsSyncing(true);
+      showNotification('Đang đồng bộ dữ liệu thể loại...', 'info');
+
+      const result = await GenresService.syncGenres();
+
+      if (result.success) {
+        showNotification('Đồng bộ thành công! Dữ liệu đã được cập nhật.', 'success');
+        
+        // Refresh data after sync
+        const newGenres = await GenresService.refreshGenresFromApi();
+        setGenres(newGenres);
+        
+        // Reload movie counts
+        const counts: Record<string, number> = {};
+        for (const genre of newGenres) {
+          counts[genre.id] = await GenresService.getMovieCountByGenre(genre.id);
+        }
+        setMovieCounts(counts);
+        
+        return true;
+      } else {
+        showNotification(
+          result.message || 'Đồng bộ thất bại. Vui lòng thử lại.',
+          'error'
+        );
+        return false;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Có lỗi xảy ra khi đồng bộ';
+      showNotification(message, 'error');
+      return false;
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return {
     // State
     genres,
@@ -208,5 +276,12 @@ export const useGenres = () => {
     setSearchQuery,
     setSortBy,
     setSortOrder,
+    
+    // Sync functionality
+    isSyncing,
+    notification,
+    showNotification,
+    hideNotification,
+    syncGenres,
   };
 };

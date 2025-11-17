@@ -7,8 +7,8 @@ export const useUsers = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   // const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [filterGender, setFilterGender] = useState<FilterGender>('all');
-  const [filterRole, setFilterRole] = useState<FilterRole>('all');
+  const [filterGender, setFilterGender] = useState<FilterGender>('ALL');
+  const [filterRole, setFilterRole] = useState<FilterRole>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Sorting states
@@ -38,11 +38,11 @@ export const useUsers = () => {
   // Filter and sort users
   const filteredUsers = useMemo(() => {
     let filtered = users.filter(user => {
-      const genderMatch = filterGender === 'all' || user.gender === filterGender;
-      const roleMatch = filterRole === 'all' || user.role === filterRole;
+      const genderMatch = filterGender === 'ALL' || user.gender === filterGender;
+      const roleMatch = filterRole === 'ALL' || user.role === filterRole;
       const searchMatch = searchQuery === '' || 
-        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.fullname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase());
       return genderMatch && roleMatch && searchMatch;
     });
@@ -173,8 +173,8 @@ export const useUsers = () => {
   // THÊM MỚI: Handle clear filters
   const handleClearFilters = () => {
     setSearchQuery('');
-    setFilterGender('all');
-    setFilterRole('all');
+    setFilterGender('ALL');
+    setFilterRole('ALL');
   };
 
   return {

@@ -113,7 +113,7 @@ export default function Settings() {
                       />
                     ) : (
                       <div className="w-30 h-30 rounded-full bg-linear-to-br from-blue-400 to-blue-800 flex items-center justify-center text-white text-5xl font-bold shadow-lg">
-                        {user?.fullname?.charAt(0) || 'A'}
+                        {user?.userName?.charAt(0).toUpperCase() || 'A'}
                       </div>
                     )}
                   </div>
@@ -150,8 +150,8 @@ export default function Settings() {
                   <RadioButton
                     name="gender"
                     options={[
-                      { value: 'male', label: 'Nam' },
-                      { value: 'female', label: 'Nữ' }
+                      { value: 'MALE', label: 'Nam' },
+                      { value: 'FEMALE', label: 'Nữ' }
                     ]}
                     selectedValue={settings.profile.gender}
                     onChange={(value) => updateProfileField('gender', value)}
@@ -163,27 +163,28 @@ export default function Settings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Username
+                    Tên hiển thị
                   </label>
                   <FormInput
                     name="username"
                     type="text"
-                    value={user?.username || ''}
-                    onChange={() => {}} // Read only
+                    value={settings.profile.userName || ''}
+                    onChange={(e) => updateProfileField('userName', e.target.value)}
                     placeholder="Username"
                     disabled={!isEditingProfile}
+                    readonly={!isEditingProfile}
                   />
                 </div>
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tên hiển thị
+                    Họ và tên
                   </label>
                   <FormInput
                     name="fullname"
                     type="text"
-                    value={settings.profile.name}
-                    onChange={(e) => updateProfileField('name', e.target.value)}
+                    value={settings.profile.fullName}
+                    onChange={(e) => updateProfileField('fullName', e.target.value)}
                     placeholder="Nhập tên hiển thị"
                     disabled={!isEditingProfile}
                     readonly={!isEditingProfile}
@@ -199,10 +200,8 @@ export default function Settings() {
                     name="email"
                     type="email"
                     value={settings.profile.email}
-                    onChange={(e) => updateProfileField('email', e.target.value)}
-                    placeholder="Nhập email"
-                    disabled={!isEditingProfile}
-                    readonly={!isEditingProfile}
+                    disabled={true}
+                    readonly={true}
                     className={!isEditingProfile ? 'bg-gray-50 text-gray-700' : ''}
                   />
                 </div> 

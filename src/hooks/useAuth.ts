@@ -106,6 +106,7 @@ export const useAuth = () => {
   return {
     // Auth state
     user,
+    setUser,
     loading,
     isAuthenticated,
     

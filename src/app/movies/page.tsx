@@ -34,6 +34,7 @@ export default function Movies() {
     editingMovie,
     viewMode,
     searchQuery,
+    isSearching,
     yearFilter,
     typeFilter,
     statusFilter,
@@ -309,7 +310,7 @@ export default function Movies() {
                         <div>
                           <div className="font-bold text-blue-900 truncate max-w-[180px] mb-[-0.5]">{movie.title}</div>
                           <div className="text-[13px] text-gray-500 truncate max-w-[180px] mb-2">{movie.originalName}</div>
-                          <div className="text-xs text-gray-400 font-mono max-w-[200px] truncate">ID: {movie.id}</div>
+                          <div className="text-xs text-gray-400 font-mono max-w-[180px] truncate">ID: {movie.id}</div>
                         </div>
                       </div>
                     </td>

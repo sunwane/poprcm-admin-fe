@@ -17,7 +17,6 @@ export default function Users() {
     filterGender,
     filterRole,
     searchQuery,
-    filteredUsers,
     paginatedUsers,
     stats,
     sortBy,
@@ -55,7 +54,7 @@ export default function Users() {
           <h1 className="text-3xl font-bold text-gray-800 mb-1">Quản lý Người dùng</h1>
           <p className="text-gray-600">Quản lý tất cả người dùng hiện có trong hệ thống</p>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4">          
           <GradientButton onClick={handleOpenAddModal}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 12h14m-7 7V5"/>
@@ -103,7 +102,7 @@ export default function Users() {
               filter={filterGender}
               onChange={(gender: string) => setFilterGender(gender as typeof filterGender)}
               options={[
-                {value:'all', label:'Tất cả giới tính'},
+                {value:'ALL', label:'Tất cả giới tính'},
                 {value:'male', label:'Nam'},
                 {value:'female', label:'Nữ'},
               ]}
@@ -116,7 +115,7 @@ export default function Users() {
               filter={filterRole}
               onChange={(role: string) => setFilterRole(role as typeof filterRole)}
               options={[
-                {value:'all', label:'Tất cả vai trò'},
+                {value:'ALL', label:'Tất cả vai trò'},
                 {value:'ADMIN', label:'Admin'},
                 {value:'USER', label:'User'},
               ]}

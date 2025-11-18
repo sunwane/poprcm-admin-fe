@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import FormInput from '@/components/ui/FormInput';
 import GradientButton from '@/components/ui/GradientButton';
+import LoadingOverlay from '@/components/ui/LoadingOverlay';
+import MovieImportService from '@/services/MovieImportService';
 
 interface AutoImportModalProps {
   isOpen: boolean;
@@ -11,7 +13,7 @@ interface AutoImportModalProps {
 }
 
 export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportModalProps) {
-  const [apiUrl, setApiUrl] = useState('');
+  const [slug, setSlug] = useState('');
   const [movieCount, setMovieCount] = useState<number>(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -32,22 +34,26 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
         return;
       }
 
-      // TODO: Gọi service thực tế
+      if (!slug.trim()) {
+        setError('Vui lòng nhập slug');
+        return;
+      }
+
+      // Gọi service thực tế
+      let result;
       if (mode === 'import') {
-        // await MovieImportService.autoImportMovies(apiUrl, movieCount);
-        console.log('Auto import movies:', { apiUrl, movieCount });
+        result = await MovieImportService.autoImportMovies(slug, movieCount);
       } else {
-        // await MovieImportService.updateMovies(apiUrl, movieCount);
-        console.log('Update movies:', { apiUrl, movieCount });
+        result = await MovieImportService.updateMovies(slug, movieCount);
       }
 
       // Reset form và đóng modal
-      setApiUrl('');
+      setSlug('phim-moi');
       setMovieCount(10);
       onClose();
       
       // Hiển thị thông báo thành công
-      alert(`${mode === 'import' ? 'Thêm' : 'Cập nhật'} ${movieCount} phim thành công!`);
+      alert(result.message || `${mode === 'import' ? 'Thêm' : 'Cập nhật'} phim thành công!`);
     } catch (error: any) {
       setError(error.message || `${mode === 'import' ? 'Thêm' : 'Cập nhật'} phim thất bại!`);
     } finally {
@@ -56,7 +62,7 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
   };
 
   const handleClose = () => {
-    setApiUrl('');
+    setSlug('');
     setMovieCount(10);
     setError('');
     onClose();
@@ -65,8 +71,17 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
+    <>
+      {/* Loading Overlay */}
+      {loading && (
+        <LoadingOverlay 
+          message={mode === 'import' ? 'Đang thêm phim tự động...' : 'Đang cập nhật phim...'} 
+          isVisible={loading}
+        />
+      )}
+      
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-xl font-bold text-gray-800">
@@ -93,18 +108,19 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
           <div className="space-y-4 mb-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                API URL (Tùy chọn)
+                Slug phim *
               </label>
               <FormInput
-                name="apiUrl"
-                type="url"
-                value={apiUrl}
-                onChange={(e) => setApiUrl(e.target.value)}
-                placeholder="https://api.example.com/movies"
+                name="slug"
+                type="text"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="vd: phim-moi"
                 disabled={loading}
+                required
               />
               <p className="text-xs text-gray-500 mt-1">
-                Để trống để sử dụng API mặc định
+                Slug để import phim từ nguồn dữ liệu
               </p>
             </div>
 
@@ -122,7 +138,10 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
                 disabled={loading}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Tối đa 100 phim mỗi lần {mode === 'import' ? 'thêm' : 'cập nhật'}
+                {mode === 'import' 
+                  ? 'Tối đa 100 phim mỗi lần thêm' 
+                  : 'Số trang tối đa để cập nhật (mỗi trang ~20 phim)'
+                }
               </p>
             </div>
           </div>
@@ -151,7 +170,8 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
             </div>
           </div>
         </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

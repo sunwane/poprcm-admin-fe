@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 
 interface NotificationProps {
-  isVisible: boolean;
+  isVisible?: boolean;
   message: string;
   type?: 'success' | 'error' | 'warning' | 'info';
-  onClose: () => void;
+  onClose?: () => void;
   autoClose?: boolean;
   autoCloseDelay?: number;
   position?: 'top-right' | 'bottom-right' | 'top-left' | 'bottom-left';
@@ -38,7 +38,7 @@ const Notification: React.FC<NotificationProps> = ({
   const handleClose = () => {
     setIsAnimating(false);
     setTimeout(() => {
-      onClose();
+      onClose?.();
     }, 300); // Animation duration
   };
 

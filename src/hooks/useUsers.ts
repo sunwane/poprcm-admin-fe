@@ -11,6 +11,8 @@ export const useUsers = () => {
   const [filterRole, setFilterRole] = useState<FilterRole>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   
+
+  
   // Sorting states
   const [sortBy, setSortBy] = useState<'id' | 'createdAt'>('id');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -21,19 +23,23 @@ export const useUsers = () => {
 
   // Load users on mount
   useEffect(() => {
-    const loadUsers = async () => {
-      try {
-        const usersData = await UserService.getAllUsers();
-        setUsers(usersData);
-      } catch (error) {
-        console.error('Error loading users:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     loadUsers();
   }, []);
+
+  // Load users function
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const usersData = await UserService.getAllUsers();
+      setUsers(usersData);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
 
   // Filter and sort users
   const filteredUsers = useMemo(() => {
@@ -112,8 +118,10 @@ export const useUsers = () => {
   const handleDelete = async (id: string) => {
     if (confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
       try {
-        await UserService.deleteUser(id);
-        setUsers(users.filter(user => user.id !== id));
+        const success = await UserService.deleteUser(id);
+        if (success) {
+          setUsers(users.filter(user => user.id !== id));
+        }
       } catch (error) {
         console.error('Error deleting user:', error);
       }
@@ -209,6 +217,7 @@ export const useUsers = () => {
     handleItemsPerPageChange,
     handleSort,
     handleClearFilters, // THÊM MỚI
+    loadUsers, // NEW
     setFilterGender,
     setFilterRole,
     setSearchQuery,

@@ -11,7 +11,7 @@ interface ProfileSettings {
 }
 
 export const useSettings = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   
   const [settings, setSettings] = useState({
     profile: {
@@ -87,16 +87,22 @@ export const useSettings = () => {
   const handleSaveProfile = async () => {
     setLoading(true);
     try {
-      // TODO: Gọi API để lưu thông tin profile
       console.log('Saving profile settings:', settings.profile);
 
-      UserService.updateProfile(user?.id || '', settings.profile);
-            
-      setIsEditingProfile(false);
-      // Cập nhật originalSettings với giá trị mới
-      setOriginalSettings(settings);
-      setMessage('Thông tin đã được lưu thành công!');
-      setTimeout(() => setMessage(''), 10000);
+      const updatedUser = await UserService.updateProfile(user?.id || '', {
+        fullName: settings.profile.fullName,
+        gender: settings.profile.gender
+      });
+      
+      if (updatedUser) {
+        setIsEditingProfile(false);
+        // Cập nhật originalSettings với giá trị mới
+        setOriginalSettings(settings);
+        setMessage('Thông tin đã được lưu thành công!');
+      } else {
+        setMessage('Không thể lưu thông tin. Vui lòng thử lại!');
+      }
+      setTimeout(() => setMessage(''), 5000);
     } catch (error) {
       setMessage('Có lỗi xảy ra khi lưu thông tin!');
       setTimeout(() => setMessage(''), 5000);
@@ -126,12 +132,34 @@ export const useSettings = () => {
     setIsEditingAvatar(true);
   };
 
-  const handleRemoveAvatar = () => {
-    setSettings(prev => ({
-      ...prev,
-      profile: { ...prev.profile, avatarUrl: '' }
-    }));
-    setAvatarFile(null);
+  const handleRemoveAvatar = async () => {
+    setLoading(true);
+    try {
+      if (user?.id) {
+        const success = await UserService.deleteAvatar(user.id);
+        
+        if (success) {
+          setSettings(prev => ({
+            ...prev,
+            profile: { ...prev.profile, avatarUrl: '' }
+          }));
+          setOriginalSettings(prev => ({
+            ...prev,
+            profile: { ...prev.profile, avatarUrl: '' }
+          }));
+          setAvatarFile(null);
+          setMessage('Avatar đã được xóa thành công!');
+        } else {
+          setMessage('Không thể xóa avatar. Vui lòng thử lại!');
+        }
+      }
+      setTimeout(() => setMessage(''), 3000);
+    } catch (error) {
+      setMessage('Có lỗi xảy ra khi xóa avatar!');
+      setTimeout(() => setMessage(''), 3000);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancelAvatarEdit = () => {
@@ -149,20 +177,39 @@ export const useSettings = () => {
   const handleSaveAvatar = async () => {
     setLoading(true);
     try {
-      // TODO: Upload avatar nếu có file mới
-      if (avatarFile) {
+      if (avatarFile && user?.id) {
         console.log('Uploading avatar file:', avatarFile);
-        // Mock upload API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        const avatarUrl = await UserService.uploadAvatar(user.id, avatarFile);
+
+        if (avatarUrl) {
+          // Cập nhật settings với URL avatar mới
+          setSettings(prev => ({
+            ...prev,
+            profile: { ...prev.profile, avatarUrl }
+          }));
+          setOriginalSettings(prev => ({
+            ...prev,
+            profile: { ...prev.profile, avatarUrl }
+          }));
+
+          // Cập nhật thông tin user trong localStorage
+          const updatedUser = { ...user, avatarUrl };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          setUser(updatedUser);
+          setMessage('Avatar đã được tải lên thành công!');
+
+        } else {
+          setMessage('Không thể tải lên avatar. Vui lòng thử lại!');
+        }
       }
-      
+
       setIsEditingAvatar(false);
       setAvatarFile(null);
-      setMessage('Avatar đã được cập nhật!');
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMessage(''), 5000);
+      window.location.reload();
     } catch (error) {
       setMessage('Có lỗi xảy ra khi cập nhật avatar!');
-      setTimeout(() => setMessage(''), 3000);
+      setTimeout(() => setMessage(''), 5000);
     } finally {
       setLoading(false);
     }

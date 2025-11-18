@@ -110,8 +110,8 @@ export const sortMovies = (
         bValue = b.id;
         break;
       case 'title':
-        aValue = a.title.toLowerCase();
-        bValue = b.title.toLowerCase();
+        aValue = (a.title || '').toLowerCase();
+        bValue = (b.title || '').toLowerCase();
         break;
       case 'releaseYear':
         aValue = a.releaseYear;
@@ -158,9 +158,9 @@ export const filterMoviesByQuery = (movies: Movie[], searchQuery: string): Movie
   
   const query = searchQuery.toLowerCase().trim();
   return movies.filter(movie => 
-    movie.title.toLowerCase().includes(query) ||
-    movie.originalName.toLowerCase().includes(query) ||
-    movie.director.toLowerCase().includes(query)
+    (movie.title?.toLowerCase().includes(query)) ||
+    (movie.originalName?.toLowerCase().includes(query)) ||
+    (movie.director?.toLowerCase().includes(query))
   );
 };
 
@@ -193,19 +193,21 @@ export const filterMoviesByLang = (movies: Movie[], lang: string): Movie[] => {
 };
 
 // Get status color
-export const getStatusColor = (status: string): string => {
+export const getStatusColor = (status: string | null | undefined): string => {
+  if (!status) {
+    // Trả về màu mặc định nếu status không hợp lệ
+    return 'text-gray-700 bg-gray-100';
+  }
+
   switch (status.toLowerCase()) {
     case 'completed':
-    case 'completed':
       return 'text-green-700 bg-green-100';
-    case 'ongoing':
     case 'ongoing':
       return 'text-blue-700 bg-blue-100';
     case 'hiatus':
     case 'trailer':
       return 'text-yellow-700 bg-yellow-100';
     case 'cancelled':
-    case 'đã hủy':
       return 'text-red-700 bg-red-100';
     default:
       return 'text-gray-700 bg-gray-100';
@@ -213,7 +215,12 @@ export const getStatusColor = (status: string): string => {
 };
 
 // Get status text in Vietnamese
-export const getStatusText = (status: string): string => {
+export const getStatusText = (status: string | null | undefined): string => {
+  if (!status) {
+    // Trả về text mặc định nếu status không hợp lệ
+    return 'Unknown';
+  }
+
   switch (status.toLowerCase()) {
     case 'completed':
       return 'Completed';
@@ -231,7 +238,11 @@ export const getStatusText = (status: string): string => {
 };
 
 // Get type color
-export const getTypeColor = (type: string): string => {
+export const getTypeColor = (type: string | null | undefined): string => {
+  if (!type) {
+    return 'text-gray-700 bg-gray-100';
+  }
+
   switch (type.toLowerCase()) {
     case 'single':
     case 'phim lẻ':
@@ -248,7 +259,11 @@ export const getTypeColor = (type: string): string => {
 };
 
 // Get type text in Vietnamese
-export const getTypeText = (type: string): string => {
+export const getTypeText = (type: string | null | undefined): string => {
+  if (!type) {
+    return 'Unknown';
+  }
+
   switch (type.toLowerCase()) {
     case 'single':
       return 'Phim lẻ';
@@ -262,7 +277,11 @@ export const getTypeText = (type: string): string => {
 };
 
 // Get language color
-export const getLangColor = (lang: string): string => {
+export const getLangColor = (lang: string | null | undefined): string => {
+  if (!lang) {
+    return 'text-gray-700 bg-gray-100';
+  }
+
   switch (lang.toLowerCase()) {
     case 'vietsub':
       return 'text-green-700 bg-green-100';
@@ -325,7 +344,7 @@ export const getMovieLanguages = (): Array<{value: string, label: string}> => [
 
 // Get country names from movie
 export const getCountryNames = (movie: Movie): string => {
-  return movie.country.map(country => country.countryName).join(', ');
+  return movie.country.map(country => country.name).join(', ');
 };
 
 // Get genre names from movie
@@ -334,13 +353,16 @@ export const getGenreNames = (movie: Movie): string => {
 };
 
 // Truncate text
-export const truncateText = (text: string, maxLength: number): string => {
+export const truncateText = (text: string | null | undefined, maxLength: number): string => {
+  if (!text) return '';
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
 };
 
 // Generate movie slug
-export const generateMovieSlug = (title: string): string => {
+export const generateMovieSlug = (title: string | null | undefined): string => {
+  if (!title) return '';
+  
   return title
     .toLowerCase()
     .trim()

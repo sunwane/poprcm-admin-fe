@@ -71,8 +71,8 @@ export default function Settings() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 py-8 px-10 mx-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Avatar Section - Left Side */}
-          <div className="w-fit">
-            <div className="bg-gray-50 rounded-xl  px-8 py-6">
+          <div className="w-fit shrink-0">
+            <div className="bg-gray-50 rounded-xl px-8 py-6">
               <label className="block text-sm font-medium text-gray-800 mb-4 text-center">
                 Avatar người dùng
               </label>
@@ -91,7 +91,7 @@ export default function Settings() {
                       className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                       disabled={loading}
                     >
-                      Lưu
+                      {loading ? 'Đang lưu...' : 'Lưu'}
                     </button>
                     <button
                       onClick={handleCancelAvatarEdit}
@@ -123,14 +123,14 @@ export default function Settings() {
                       className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                       disabled={loading}
                     >
-                      Thay đổi ảnh
+                      {loading ? 'Đang xử lý...' : 'Thay đổi ảnh'}
                     </button>
                     <button
                       onClick={handleRemoveAvatar}
                       className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
-                      disabled={loading}
+                      disabled={loading || !settings.profile.avatarUrl}
                     >
-                      Xóa ảnh
+                      {loading ? 'Đang xóa...' : 'Xóa ảnh'}
                     </button>
                   </div>
                 </div>

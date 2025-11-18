@@ -56,7 +56,7 @@ const ServiceStatus: React.FC<ServiceStatusProps> = ({
             ? 'Đang kiểm tra...' 
             : serviceStatus 
               ? 'Backend Service Online' 
-              : 'Sử dụng Mock Data'
+              : 'Server offline - Sử dụng Mock Data'
           }
         </span>
       </div>

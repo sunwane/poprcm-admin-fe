@@ -9,6 +9,7 @@ import {
   filterMoviesByLang,
   sortMovies 
 } from '@/utils/movieUtils';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export const useMovies = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -23,10 +24,15 @@ export const useMovies = () => {
   
   // Search and filters
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Movie[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [yearFilter, setYearFilter] = useState<number | null>(null);
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [langFilter, setLangFilter] = useState('all');
+  
+  // Debounced search query
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   
   // Sorting
   const [sortBy, setSortBy] = useState<'id' | 'title' | 'releaseYear' | 'view' | 'createdAt' | 'modifiedAt' | 'rating'>('id');
@@ -53,9 +59,35 @@ export const useMovies = () => {
     loadMovies();
   }, []);
 
+  // Search movies when debounced query changes
+  useEffect(() => {
+    const searchMovies = async () => {
+      if (!debouncedSearchQuery.trim()) {
+        setSearchResults([]);
+        setIsSearching(false);
+        return;
+      }
+
+      setIsSearching(true);
+      try {
+        const results = await MoviesService.searchMovies(debouncedSearchQuery);
+        setSearchResults(results);
+      } catch (error) {
+        console.error('Error searching movies:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    };
+
+    searchMovies();
+  }, [debouncedSearchQuery]);
+
   // Apply all filters and sorting
   const filteredAndSortedMovies = useMemo(() => {
-    let filtered = filterMoviesByQuery(movies, searchQuery);
+    // Use search results if searching, otherwise use all movies
+    const sourceMovies = searchQuery.trim() ? searchResults : movies;
+    let filtered = searchQuery.trim() ? sourceMovies : filterMoviesByQuery(movies, searchQuery);
     
     if (yearFilter) {
       filtered = filterMoviesByYear(filtered, yearFilter);
@@ -74,7 +106,7 @@ export const useMovies = () => {
     }
     
     return sortMovies(filtered, sortBy, sortOrder);
-  }, [movies, searchQuery, yearFilter, typeFilter, statusFilter, langFilter, sortBy, sortOrder]);
+  }, [movies, searchQuery, searchResults, yearFilter, typeFilter, statusFilter, langFilter, sortBy, sortOrder]);
 
   // Paginated movies
   const paginatedMovies = useMemo(() => {
@@ -275,12 +307,15 @@ export const useMovies = () => {
   };
 
   return {
-    // State
+    // Data
     movies,
     loading,
     showModal,
     editingMovie,
     viewMode,
+    
+    // Search
+    isSearching,
     
     // Movie Detail Modal state
     isDetailModalOpen,

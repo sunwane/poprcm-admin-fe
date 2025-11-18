@@ -3,6 +3,9 @@
 import { useAuth } from '@/hooks/useAuth';
 import FormInput from '@/components/ui/FormInput';
 import ServiceStatus from '@/components/ui/ServiceStatus';
+import { useEffect } from 'react';
+import ServiceChecker from '@/services/ServiceChecker';
+import { useRouter } from 'next/navigation';
 
 export default function Login() {
   const { 
@@ -12,6 +15,10 @@ export default function Login() {
     updateLoginForm, 
     handleLoginSubmit 
   } = useAuth();
+
+  useEffect(() => {
+    ServiceChecker.checkServiceAvailability();
+  }, []);
 
   return (
     <div className="relative h-screen overflow-hidden flex items-center justify-center">

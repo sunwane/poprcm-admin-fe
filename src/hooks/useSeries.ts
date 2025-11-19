@@ -167,12 +167,61 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
     setEditingSeries(null);
   };
 
-  const handleSaveSeries = async (seriesData: Omit<Series, 'id'>) => {
+  const handleSaveSeries = async (
+    seriesData: Omit<Series, 'id'>, 
+    posterFile?: File, 
+    movieIds?: string[], 
+    removedMovieIds?: string[]
+  ) => {
     try {
+      let savedSeries: Series;
+      
       if (editingSeries) {
-        await SeriesService.updateSeries(editingSeries.id, seriesData);
+        // Update existing series with movie management
+        const updatedSeries = await SeriesService.updateSeries(
+          editingSeries.id, 
+          seriesData, 
+          movieIds, 
+          removedMovieIds
+        );
+        if (!updatedSeries) throw new Error('Không thể cập nhật series');
+        savedSeries = updatedSeries;
       } else {
-        await SeriesService.addSeries(seriesData);
+        // Create new series with initial movies
+        savedSeries = await SeriesService.addSeries(seriesData, movieIds);
+      }
+      
+      // Upload poster if provided
+      if (posterFile && savedSeries.id) {
+        const uploadResult = await SeriesService.uploadPoster(savedSeries.id, posterFile);
+        if (!uploadResult.success) {
+          console.warn('Poster upload failed:', uploadResult.message);
+          // Don't throw error for poster upload failure, just warn
+        }
+      }
+
+      if (movieIds && movieIds.length > 0) {
+        confirm('Bạn có chắc chắn muốn thêm các phim đã chọn vào series này?');
+        console.log('Adding movies to series:', movieIds);
+        movieIds.forEach(async (movieId) => {
+          const addingMoviesResult = await SeriesService.addMovieToSeries(savedSeries.id, movieId);
+
+          if (!addingMoviesResult.success) {
+            console.warn('Adding movie to series failed:', addingMoviesResult.message);
+          }
+        });
+      }
+
+      if (removedMovieIds && removedMovieIds.length > 0) {
+        confirm('Bạn có chắc chắn muốn xóa các phim đã chọn khỏi series này?');
+        console.log('Removing movies from series:', removedMovieIds);
+        removedMovieIds.forEach(async (removedMovieId) => {
+          const addingMoviesResult = await SeriesService.removeMovieFromSeries(savedSeries.id, removedMovieId);
+
+          if (!addingMoviesResult.success) {
+            console.warn('Adding movie to series failed:', addingMoviesResult.message);
+          }
+        });
       }
       
       await loadSeries(); // Reload data
@@ -234,6 +283,48 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
     }
   };
 
+  // Helper function to calculate movie changes
+  const calculateMovieChanges = (originalMovies: any[], newMovies: any[]) => {
+    const originalMovieIds = (originalMovies || []).map(movie => movie.movieId?.toString() || movie.id?.toString()).filter(Boolean);
+    const newMovieIds = (newMovies || []).map(movie => movie.movieId?.toString() || movie.id?.toString()).filter(Boolean);
+    
+    // Movies to add: in newMovies but not in originalMovies
+    const movieIdsToAdd = newMovieIds.filter(id => !originalMovieIds.includes(id));
+    
+    // Movies to remove: in originalMovies but not in newMovies
+    const movieIdsToRemove = originalMovieIds.filter(id => !newMovieIds.includes(id));
+    
+    return {
+      movieIds: movieIdsToAdd.length > 0 ? movieIdsToAdd : undefined,
+      removedMovieIds: movieIdsToRemove.length > 0 ? movieIdsToRemove : undefined
+    };
+  };
+
+  // Enhanced save series with movie change detection
+  const handleSaveSeriesWithMovies = async (
+    seriesData: Omit<Series, 'id'>, 
+    posterFile?: File,
+    movieIds?: string[],
+    removedMovieIds?: string[]
+  ) => {
+    try {      
+      // Calculate movie changes for existing series
+      if (editingSeries && seriesData.seriesMovies) {
+        const changes = calculateMovieChanges(editingSeries.seriesMovies || [], seriesData.seriesMovies);
+        movieIds = changes.movieIds;
+        removedMovieIds = changes.removedMovieIds;
+      } else if (!editingSeries && seriesData.seriesMovies) {
+        // For new series, all movies are additions
+        movieIds = seriesData.seriesMovies.map(movie => movie.movieId?.toString() || movie.id?.toString()).filter(Boolean);
+      }
+      
+      return await handleSaveSeries(seriesData, posterFile, movieIds, removedMovieIds);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi lưu series');
+      throw err;
+    }
+  };
+
   // Refresh data
   const refreshData = () => {
     loadSeries();
@@ -282,6 +373,7 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
     handleOpenAddModal,
     handleCloseModal,
     handleSaveSeries,
+    handleSaveSeriesWithMovies,
     handleViewModeToggle,
     handlePageChange,
     handleItemsPerPageChange,

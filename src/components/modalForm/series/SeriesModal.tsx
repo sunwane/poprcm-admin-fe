@@ -9,7 +9,7 @@ interface SeriesModalProps {
   isOpen: boolean;
   editingSeries: Series | null;
   onClose: () => void;
-  onSave: (seriesData: Omit<Series, 'id'>) => Promise<void>;
+  onSave: (seriesData: Omit<Series, 'id'>, posterFile?: File) => Promise<void>;
 }
 
 const SeriesModal: React.FC<SeriesModalProps> = ({
@@ -21,6 +21,7 @@ const SeriesModal: React.FC<SeriesModalProps> = ({
   const {
     activeTab,
     formData,
+    posterFile,
     errors,
     uploadError,
     isProcessing,
@@ -69,7 +70,7 @@ const SeriesModal: React.FC<SeriesModalProps> = ({
         releaseYear: formData.releaseYear,
         posterUrl: formData.posterUrl.trim(),
         seriesMovies: formData.seriesMovies
-      });
+      }, posterFile || undefined);
     } catch (error) {
       setErrors(prev => ({ 
         ...prev, 

@@ -225,7 +225,7 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
   const filteredCountries = useMemo(() => {
     if (!countrySearchQuery.trim()) return countries;
     return countries.filter(country => 
-      country.countryName.toLowerCase().includes(countrySearchQuery.toLowerCase()) &&
+      country.name.toLowerCase().includes(countrySearchQuery.toLowerCase()) &&
       !formData.selectedCountries.some(selected => selected.id === country.id)
     );
   }, [countries, countrySearchQuery, formData.selectedCountries]);

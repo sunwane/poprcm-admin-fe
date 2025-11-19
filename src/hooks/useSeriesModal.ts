@@ -8,6 +8,7 @@ import {
   validateDescription 
 } from '@/utils/seriesUtils';
 import { useSeriesMovies } from '@/hooks/useSeriesMovies';
+import { SeriesService } from '@/services/SeriesService';
 
 interface FormErrors {
   name?: string;

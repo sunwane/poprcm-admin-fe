@@ -36,7 +36,7 @@ export interface MovieFormErrors {
   description?: string;
   releaseYear?: string;
   duration?: string;
-  director?: string;
+  director?: string | string[];
   totalEpisodes?: string;
   selectedGenres?: string;
   selectedCountries?: string;
@@ -133,7 +133,7 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
           thumbnailUrl: editingMovie.thumbnailUrl || '',
           trailerUrl: editingMovie.trailerUrl || '',
           totalEpisodes: editingMovie.totalEpisodes,
-          director: editingMovie.director,
+          director: Array.isArray(editingMovie.director) ? editingMovie.director.join(', ') : editingMovie.director,
           status: editingMovie.status,
           lang: editingMovie.lang,
           tmdbScore: editingMovie.tmdbScore,
@@ -261,7 +261,7 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
       const newMovieActor: MovieActor = {
         id: `temp-${Date.now()}-${actor.id}`,
         actorId: actor.id,
-        movieId: editingMovie?.id || 0,
+        movieId: editingMovie?.id || "",
         actor,
         characterName: ''
       };

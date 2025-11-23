@@ -11,9 +11,11 @@ export interface Actor {
 
 export interface MovieActor {
     id: string;
-    movieId?: number;
+    movieId?: string;
     actorId?: string;
     characterName: string;
+    profilePath?: string;
+    originName?: string;
     movie?: Movie; // Optional for avoiding circular deps
     actor?: Actor; // Optional for avoiding circular deps
 }

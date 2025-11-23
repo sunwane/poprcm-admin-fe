@@ -21,7 +21,7 @@ const MovieCountriesForm: React.FC<MovieCountriesFormProps> = ({
   onToggleCountry
 }) => {
   const filteredCountries = countries.filter(country =>
-    country.countryName.toLowerCase().includes(countrySearchTerm.toLowerCase())
+    country.name.includes(countrySearchTerm.toLowerCase())
   );
 
   const selectedCountries = countries.filter(country => 
@@ -60,7 +60,7 @@ const MovieCountriesForm: React.FC<MovieCountriesFormProps> = ({
                 >
                   <div className="flex grow items-center space-x-3">
                     <div>
-                      <span className="font-medium text-gray-900">{country.countryName}</span>
+                      <span className="font-medium text-gray-900">{country.name}</span>
                     </div>
                   </div>
                   
@@ -106,7 +106,7 @@ const MovieCountriesForm: React.FC<MovieCountriesFormProps> = ({
                 >
                   <div className="flex items-center space-x-3">
                     <div>
-                      <span className="font-medium text-blue-900">{country.countryName}</span>
+                      <span className="font-medium text-blue-900">{country.name}</span>
                     </div>
                   </div>
                   
@@ -137,7 +137,7 @@ const MovieCountriesForm: React.FC<MovieCountriesFormProps> = ({
                 <strong>Tóm tắt:</strong> Đã chọn {selectedCountries.length} quốc gia
               </div>
               <div className="text-xs text-blue-600 mt-1">
-                {selectedCountries.map(country => country.countryName).join(', ')}
+                {selectedCountries.map(country => country.name).join(', ')}
               </div>
             </div>
           )}

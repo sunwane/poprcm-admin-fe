@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Movie } from '@/types/Movies';
 import { getStatusText, getTypeText, formatViewCount, formatDate, getStatusColor } from '@/utils/movieUtils';
 import VideoPopup from '@/components/feature/movies/VideoPopup';
@@ -194,7 +194,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                             key={country.id}
                             className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
                           >
-                            {country.countryName}
+                            {country.name}
                           </span>
                         ))}
                       </div>
@@ -217,14 +217,14 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                     </div>
                   )}
                 </div>
-                  <div className='grid grid-cols-2 align-center mt-5 border-t pt-4 border-gray-200'>
+                  <div className='grid grid-cols-2 align-center mt-5 border-t pt-4 gap-x-4 border-gray-200'>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Từ khóa</label>
                       <p className="text-gray-800 font-medium">{movie.slug}</p>
                     </div>
                     <div className=''>
                       <label className="text-sm font-medium text-gray-500">Đạo diễn</label>
-                      <p className="text-gray-800 font-medium">{movie.director}</p>
+                      <p className="text-gray-800 font-medium">{movie.director ? movie.director : "Không có thông tin"}</p>
                     </div>
                   </div>
                   <div className="mt-4">
@@ -243,11 +243,11 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                     <h3 className="text-xl font-bold text-gray-800 mb-4">Diễn viên</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                       {movie.actors.map((movieActor) => (
-                        <div key={movieActor.id} className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+                        <div key={movieActor.actorId} className="bg-white border border-gray-200 rounded-lg p-4 text-center">
                           {movieActor.actor?.profilePath ? (
                             <img
-                              src={movieActor.actor.profilePath}
-                              alt={movieActor.actor.originName}
+                              src={movieActor.actor.profilePath || movieActor.profilePath}
+                              alt={movieActor.actor.originName || movieActor.originName || ''}
                               className="w-18 h-18 rounded-full object-cover mx-auto mb-2"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
@@ -258,18 +258,22 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                           ) : (
                             <GradientAvatar
                               size='w-18 h-18 mx-auto mb-2'
-                              initial={movieActor.actor?.originName?.charAt(0) || ''}
+                              initial={movieActor.actor?.originName?.charAt(0) || movieActor.originName?.charAt(0) || ''}
                             />
                           )}
                           <div className="hidden">
                             <GradientAvatar
                               size='w-18 h-18 mx-auto mb-2'
-                              initial={movieActor.actor?.originName?.charAt(0) || ''}
+                              initial={movieActor.actor?.originName?.charAt(0) || movieActor.originName?.charAt(0) || ''}
                             />
                           </div>
-                          <h4 className="font-medium text-gray-800 text-sm">{movieActor.actor?.originName}</h4>
+                          <h4 className="font-medium text-gray-800 text-sm">{movieActor.actor?.originName || movieActor.originName}</h4>
+                          
                           {movieActor.characterName && (
-                            <p className="text-gray-600 text-xs mt-1">{movieActor.characterName}</p>
+                            <>
+                              <p className='text-[10px] -mb-0.5 text-gray-500'>trong vai</p>
+                              <p className="text-gray-600 text-xs mt-1">{movieActor.characterName}</p>
+                            </>
                           )}
                         </div>
                       ))}

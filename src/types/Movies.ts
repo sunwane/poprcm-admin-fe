@@ -18,22 +18,22 @@ export interface Movie {
     originalName: string;
     description: string;
     releaseYear: number;
-    type: string; // e.g., "single", "series", 'hoathinh'
+    type: string;
     duration: string; // e.g., "120 min", "45 min/ep"
     posterUrl?: string;
     thumbnailUrl?: string;
     trailerUrl?: string;
     totalEpisodes?: number;
     //rating: number;
-    director: string;
-    status: string; // e.g., "Ongoing", "Completed", "Hiatus"
+    director: string | string[]; // Support both single string and array
+    status: string;
     createdAt: Date;
     modifiedAt: Date;
     view: number;
     slug: string;
     tmdbScore?: number;
     imdbScore?: number;
-    lang: string; // vietsub, thuyet minh, etc.
+    lang: string;
     country: Country[];
     actors: MovieActor[];
     genres: Genre[];

@@ -126,7 +126,7 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Số lượng phim
+                {mode === 'import' ? 'Số lượng phim muốn thêm *' : 'Số trang muốn cập nhật *'}
               </label>
               <FormInput
                 name="movieCount"

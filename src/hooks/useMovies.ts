@@ -205,7 +205,7 @@ export const useMovies = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Bạn có chắc chắn muốn xóa phim này?')) {
       try {
         await MoviesService.deleteMovie(id);
@@ -229,6 +229,7 @@ export const useMovies = () => {
 
   // Movie Detail Modal handlers
   const openDetailModal = (movie: Movie) => {
+    console.log('Opening detail modal for movie:', movie);
     setSelectedMovie(movie);
     setIsDetailModalOpen(true);
   };
@@ -293,7 +294,7 @@ export const useMovies = () => {
   };
 
   // Increment view count
-  const handleIncrementView = async (id: number) => {
+  const handleIncrementView = async (id: string) => {
     try {
       const updatedMovie = await MoviesService.incrementViewCount(id);
       if (updatedMovie) {

@@ -27,17 +27,15 @@ class MovieImportService {
 
   async updateMovies(slug: string, maxPages: number = 5): Promise<any> {
     try {
+      console.log('Starting auto update movies with slug:', slug, 'and maxPages:', maxPages);
+
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`${this.baseURL}/movies/update-existing`, {
+      const response = await fetch(`${this.baseURL}/movies/update-existing?slug=${slug}&maxPages=${maxPages}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${authToken}`
         },
-        body: JSON.stringify({
-          slug: slug,
-          maxPages: maxPages
-        }),
       });
 
       if (!response.ok) {

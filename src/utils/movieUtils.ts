@@ -160,7 +160,7 @@ export const filterMoviesByQuery = (movies: Movie[], searchQuery: string): Movie
   return movies.filter(movie => 
     (movie.title?.toLowerCase().includes(query)) ||
     (movie.originalName?.toLowerCase().includes(query)) ||
-    (movie.director?.toLowerCase().includes(query))
+    (movie.director?.includes(query))
   );
 };
 
@@ -199,7 +199,7 @@ export const getStatusColor = (status: string | null | undefined): string => {
     return 'text-gray-700 bg-gray-100';
   }
 
-  switch (status.toLowerCase()) {
+  switch (status) {
     case 'completed':
       return 'text-green-700 bg-green-100';
     case 'ongoing':
@@ -221,7 +221,7 @@ export const getStatusText = (status: string | null | undefined): string => {
     return 'Unknown';
   }
 
-  switch (status.toLowerCase()) {
+  switch (status) {
     case 'completed':
       return 'Completed';
     case 'ongoing':
@@ -243,7 +243,7 @@ export const getTypeColor = (type: string | null | undefined): string => {
     return 'text-gray-700 bg-gray-100';
   }
 
-  switch (type.toLowerCase()) {
+  switch (type) {
     case 'single':
     case 'phim lẻ':
       return 'text-purple-700 bg-purple-100';
@@ -264,7 +264,7 @@ export const getTypeText = (type: string | null | undefined): string => {
     return 'Unknown';
   }
 
-  switch (type.toLowerCase()) {
+  switch (type) {
     case 'single':
       return 'Phim lẻ';
     case 'series':
@@ -282,7 +282,7 @@ export const getLangColor = (lang: string | null | undefined): string => {
     return 'text-gray-700 bg-gray-100';
   }
 
-  switch (lang.toLowerCase()) {
+  switch (lang) {
     case 'vietsub':
       return 'text-green-700 bg-green-100';
     case 'thuyết minh':

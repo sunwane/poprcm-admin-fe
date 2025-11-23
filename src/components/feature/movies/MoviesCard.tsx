@@ -18,7 +18,7 @@ import {
 interface MoviesCardProps {
   movies: Movie[];
   onEdit: (movie: Movie) => void;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   onViewDetail?: (movie: Movie) => void;
 }
 

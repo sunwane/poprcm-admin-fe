@@ -9,7 +9,6 @@ import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
 import LoadingOverlay from '@/components/ui/LoadingOverlay';
 import Notification from '@/components/ui/Notification';
-import { useState } from 'react';
 
 export default function Countries() {
   const {

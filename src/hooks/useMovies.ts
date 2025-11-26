@@ -13,6 +13,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 
 export const useMovies = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [totalMoviesCount, setTotalMoviesCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
@@ -42,22 +43,33 @@ export const useMovies = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Load movies on mount
+  // Load movies with pagination
+  const loadMoviesWithPagination = async () => {
+    try {
+      setLoading(true);
+      
+      // Convert 1-based currentPage to 0-based page for API
+      const page = currentPage - 1;
+      
+      // Get paginated movies
+      const moviesData = await MoviesService.getMoviesPaginated(page, itemsPerPage);
+      setMovies(moviesData);
+      
+      // Get total count for pagination calculation
+      const total = await MoviesService.getTotalMoviesCount();
+      setTotalMoviesCount(total);
+      
+    } catch (error) {
+      console.error('Error loading movies:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load movies on mount and when pagination changes
   useEffect(() => {
-    const loadMovies = async () => {
-      try {
-        setLoading(true);
-        const moviesData = await MoviesService.getAllMovies();
-        setMovies(moviesData);
-      } catch (error) {
-        console.error('Error loading movies:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadMovies();
-  }, []);
+    loadMoviesWithPagination();
+  }, [currentPage, itemsPerPage]);
 
   // Search movies when debounced query changes
   useEffect(() => {
@@ -83,9 +95,9 @@ export const useMovies = () => {
     searchMovies();
   }, [debouncedSearchQuery]);
 
-  // Apply all filters and sorting
+  // Apply client-side filters and sorting (for current page only)
   const filteredAndSortedMovies = useMemo(() => {
-    // Use search results if searching, otherwise use all movies
+    // Use search results if searching, otherwise use current page movies
     const sourceMovies = searchQuery.trim() ? searchResults : movies;
     let filtered = searchQuery.trim() ? sourceMovies : filterMoviesByQuery(movies, searchQuery);
     
@@ -108,24 +120,25 @@ export const useMovies = () => {
     return sortMovies(filtered, sortBy, sortOrder);
   }, [movies, searchQuery, searchResults, yearFilter, typeFilter, statusFilter, langFilter, sortBy, sortOrder]);
 
-  // Paginated movies
-  const paginatedMovies = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredAndSortedMovies.slice(startIndex, endIndex);
-  }, [filteredAndSortedMovies, currentPage, itemsPerPage]);
+  // For server-side pagination, movies are already paginated
+  const paginatedMovies = filteredAndSortedMovies;
 
-  // Pagination info
-  const totalPages = Math.ceil(filteredAndSortedMovies.length / itemsPerPage);
+  // Pagination info - use total count from server
+  const totalPages = Math.ceil(totalMoviesCount / itemsPerPage);
 
-  // Reset to first page when filters change
+  // Reset to first page when filters change and reload data
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, yearFilter, typeFilter, statusFilter, langFilter, sortBy, sortOrder]);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      // If already on page 1, manually reload
+      loadMoviesWithPagination();
+    }
+  }, [yearFilter, typeFilter, statusFilter, langFilter, sortBy, sortOrder]);
 
-  // Calculate stats
+  // Calculate stats (for current page movies, with total from server)
   const stats = useMemo(() => {
-    const total = movies.length;
+    const total = totalMoviesCount; // Use server total
     const totalMovies = movies.filter(m => m.type === 'Movie').length;
     const totalSeries = movies.filter(m => m.type === 'Series').length;
     const totalAnime = movies.filter(m => m.type === 'hoathinh').length;
@@ -185,9 +198,11 @@ export const useMovies = () => {
       moviesAddedOnLatestDate,
       moviesUpdatedOnLatestDate,
       averageRating: Math.round(averageRating * 10) / 10,
-      filteredCount: filteredAndSortedMovies.length
+      filteredCount: filteredAndSortedMovies.length,
+      currentPageCount: movies.length,
+      totalPages
     };
-  }, [movies, filteredAndSortedMovies]);
+  }, [movies, filteredAndSortedMovies, totalMoviesCount, totalPages]);
 
   // Get unique values for filters
   const filterOptions = useMemo(() => {
@@ -209,7 +224,8 @@ export const useMovies = () => {
     if (confirm('Bạn có chắc chắn muốn xóa phim này?')) {
       try {
         await MoviesService.deleteMovie(id);
-        setMovies(movies.filter(movie => movie.id !== id));
+        // Reload current page data
+        await loadMoviesWithPagination();
       } catch (error) {
         console.error('Error deleting movie:', error);
         alert('Có lỗi xảy ra khi xóa phim');
@@ -243,17 +259,14 @@ export const useMovies = () => {
     try {
       if (editingMovie) {
         // Update existing movie
-        const updatedMovie = await MoviesService.updateMovie(editingMovie.id, movieData);
-        if (updatedMovie) {
-          setMovies(movies.map(movie => 
-            movie.id === editingMovie.id ? updatedMovie : movie
-          ));
-        }
+        await MoviesService.updateMovie(editingMovie.id, movieData);
       } else {
         // Add new movie
-        const newMovie = await MoviesService.addMovie(movieData as Omit<Movie, 'id' | 'createdAt' | 'modifiedAt' | 'slug'>);
-        setMovies([...movies, newMovie]);
+        await MoviesService.addMovie(movieData as Omit<Movie, 'id' | 'createdAt' | 'modifiedAt' | 'slug'>);
       }
+      
+      // Reload current page data
+      await loadMoviesWithPagination();
       handleCloseModal();
     } catch (error) {
       console.error('Error saving movie:', error);
@@ -296,12 +309,9 @@ export const useMovies = () => {
   // Increment view count
   const handleIncrementView = async (id: string) => {
     try {
-      const updatedMovie = await MoviesService.incrementViewCount(id);
-      if (updatedMovie) {
-        setMovies(movies.map(movie => 
-          movie.id === id ? updatedMovie : movie
-        ));
-      }
+      await MoviesService.incrementViewCount(id);
+      // Reload current page to reflect updated view count
+      await loadMoviesWithPagination();
     } catch (error) {
       console.error('Error incrementing view count:', error);
     }

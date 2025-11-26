@@ -157,8 +157,6 @@ export class CountryService {
     }
   }
 
-
-
   // Lấy số lượng phim theo quốc gia (mock)
   static async getMovieCountByCountry(countryId: string): Promise<number> {
     const seed = parseInt(countryId) || 1;

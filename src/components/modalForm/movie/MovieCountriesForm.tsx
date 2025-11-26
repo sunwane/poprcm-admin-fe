@@ -21,7 +21,7 @@ const MovieCountriesForm: React.FC<MovieCountriesFormProps> = ({
   onToggleCountry
 }) => {
   const filteredCountries = countries.filter(country =>
-    country.name.includes(countrySearchTerm.toLowerCase())
+    country.name.includes(countrySearchTerm)
   );
 
   const selectedCountries = countries.filter(country => 

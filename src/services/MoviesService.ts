@@ -27,9 +27,11 @@ export class MoviesService {
       }));
   }
 
-  // Load data from API or mock
-  private static async loadMoviesData(): Promise<void> {
-    if (this.isDataLoaded) return;
+  // Load data from API or mock with pagination support
+  private static async loadMoviesData(page: number = 0, size: number = 1000): Promise<Movie[] | void> {
+    // For paginated calls, don't use cache
+    const isGettingAll = size >= 1000;
+    if (isGettingAll && this.isDataLoaded) return;
 
     if (!this.isServiceAvailable()) {
       console.info('API not available, using mock data');
@@ -43,7 +45,7 @@ export class MoviesService {
 
     try {
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`${this.API_BASE_URL}?page=0&size=1000`, {
+      const response = await fetch(`${this.API_BASE_URL}?page=${page}&size=${size}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -58,9 +60,17 @@ export class MoviesService {
       const apiResponse = await response.json();
       
       if (apiResponse.result && apiResponse.result.content && Array.isArray(apiResponse.result.content)) {
-        this.movies = apiResponse.result.content.map((movieResponse: any) => 
+        const mappedMovies = apiResponse.result.content.map((movieResponse: any) => 
           this.mapMovieResponseToMovie(movieResponse)
         );
+        
+        // For paginated calls, return the data directly without caching
+        if (!isGettingAll) {
+          return mappedMovies;
+        }
+        
+        // For getting all movies, cache the data
+        this.movies = mappedMovies;
         this.isDataLoaded = true;
       } else {
         throw new Error('Invalid API response structure');
@@ -69,10 +79,20 @@ export class MoviesService {
     } catch (error) {
       console.warn('Failed to load movies from API, using mock data:', error);
       // Fallback to mock data nếu API fail
-      this.movies = mockMovies.map(movie => ({
+      const fallbackMovies = mockMovies.map(movie => ({
         ...movie,
         actors: this.populateMovieActors(movie.id)
       }));
+      
+      // For paginated calls, return paginated mock data
+      if (!isGettingAll) {
+        const startIndex = page * size;
+        const endIndex = startIndex + size;
+        return fallbackMovies.slice(startIndex, endIndex);
+      }
+      
+      // For getting all movies, cache the data
+      this.movies = fallbackMovies;
       this.isDataLoaded = true;
     }
   }
@@ -125,6 +145,75 @@ export class MoviesService {
         serverName: e.serverName || ''
       })) || []
     };
+  }
+
+  // Get movies with pagination
+  static async getMoviesPaginated(page: number = 0, size: number = 10): Promise<Movie[]> {
+    const result = await this.loadMoviesData(page, size);
+    
+    if (result) {
+      // Paginated call returned data directly
+      return result;
+    }
+    
+    // Fallback to cached data with manual pagination
+    if (this.movies.length === 0) {
+      await this.loadMoviesData();
+    }
+    
+    const startIndex = page * size;
+    const endIndex = startIndex + size;
+    const paginatedMovies = this.movies.slice(startIndex, endIndex);
+    
+    // Kiểm tra nếu đang dùng mock data thì populate actors
+    if (!this.isServiceAvailable()) {
+      return paginatedMovies.map(movie => ({
+        ...movie,
+        actors: this.populateMovieActors(movie.id)
+      }));
+    }
+    
+    return paginatedMovies;
+  }
+
+  // Get total count of movies (for pagination calculation)
+  static async getTotalMoviesCount(): Promise<number> {
+    if (!this.isServiceAvailable()) {
+      return mockMovies.length;
+    }
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      // Get first page to check total from response metadata
+      const response = await fetch(`${this.API_BASE_URL}?page=0&size=1`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse = await response.json();
+      
+      // Check if API response has total count metadata
+      if (apiResponse.result && apiResponse.result.totalElements !== undefined) {
+        return apiResponse.result.totalElements;
+      } else if (apiResponse.result && apiResponse.result.content) {
+        // If no total metadata, get all data to count
+        await this.loadMoviesData();
+        return this.movies.length;
+      }
+      
+      throw new Error('Cannot determine total count from API response');
+      
+    } catch (error) {
+      console.warn('Failed to get total count from API, using mock data count:', error);
+      return mockMovies.length;
+    }
   }
 
   // Get all movies

@@ -20,7 +20,7 @@ const MovieGenresForm: React.FC<MovieGenresFormProps> = ({
   onToggleGenre
 }) => {
   const filteredGenres = genres.filter(genre =>
-    genre.genresName.toLowerCase().includes(genreSearchTerm.toLowerCase())
+    genre.genresName.includes(genreSearchTerm)
   );
 
   const selectedGenres = genres.filter(genre => 

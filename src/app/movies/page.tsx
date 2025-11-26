@@ -197,7 +197,7 @@ export default function Movies() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="p-6 border-b border-gray-100 flex justify-between items-center">
             <h2 className="text-xl font-bold text-gray-800">
-              Danh sách Phim ({stats.filteredCount})
+              Danh sách Phim ({stats.total})
             </h2>
             
             {/* Items per page selector */}
@@ -388,7 +388,7 @@ export default function Movies() {
             totalPages={totalPages}
             onPageChange={handlePageChange}
             itemsPerPage={itemsPerPage}
-            totalItems={stats.filteredCount}
+            totalItems={stats.total}
           />
         </div>
       ) : (
@@ -397,7 +397,7 @@ export default function Movies() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 py-4 px-5 mb-5">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-bold text-gray-800">
-                Danh sách Phim ({stats.filteredCount})
+                Danh sách Phim ({stats.total})
               </h2>
               
               {/* Items per page selector for grid */}
@@ -456,7 +456,7 @@ export default function Movies() {
               totalPages={totalPages}
               onPageChange={handlePageChange}
               itemsPerPage={itemsPerPage}
-              totalItems={stats.filteredCount}
+              totalItems={stats.total}
             />
           </div>
         </div>

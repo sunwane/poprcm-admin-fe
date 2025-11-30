@@ -95,7 +95,7 @@ export default function Countries() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <div className="text-2xl font-bold text-blue-900 mb-1">{stats.total}</div>
           <div className="text-gray-600 text-sm">Tổng quốc gia</div>
@@ -123,7 +123,7 @@ export default function Countries() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-800">
-            Danh sách Quốc gia ({filteredCountries.length})
+            Danh sách Quốc gia ({stats.total})
           </h2>
           
           {/* Items per page selector */}
@@ -231,7 +231,7 @@ export default function Countries() {
           totalPages={totalPages}
           onPageChange={handlePageChange}
           itemsPerPage={itemsPerPage}
-          totalItems={filteredCountries.length}
+          totalItems={stats.total}
         />
       </div>
 

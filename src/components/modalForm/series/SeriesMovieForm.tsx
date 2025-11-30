@@ -1,6 +1,7 @@
 import React from 'react';
 import { SeriesMovie } from '@/types/Series';
 import { Movie } from '@/types/Movies';
+import FormInput from '@/components/ui/FormInput';
 
 interface SeriesMovieFormProps {
   seriesMovies: SeriesMovie[];
@@ -57,13 +58,14 @@ const SeriesMovieForm: React.FC<SeriesMovieFormProps> = ({
         {/* Search Input */}
         <div className="relative mb-4">
           <div className="relative">
-            <input
+            <FormInput
               type="text"
+              name="searchQuery"
               placeholder="Tìm kiếm phim để thêm vào series..."
               value={searchQuery}
               onChange={(e) => onSearchQueryChange(e.target.value)}
               disabled={disabled}
-              className="w-full p-3 px-5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-5 pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-4">
               {isSearching ? (

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Country } from '@/types/Country';
 import { CountryService } from '@/services/CountryService';
+import { StatisticsService } from '@/services/StatisticsService';
 import { filterCountriesByName, sortCountries } from '@/utils/countryUtils';
 import { useConfirmModal } from './useConfirmModal';
 import { useDebounce } from './useDebounce';
@@ -13,11 +14,17 @@ interface NotificationState {
 
 export const useCountries = () => {
   const [countries, setCountries] = useState<Country[]>([]);
+  const [totalCountriesCount, setTotalCountriesCount] = useState(0);
   const [movieCounts, setMovieCounts] = useState<Record<string, number>>({});
+  const [realStatsData, setRealStatsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingCountry, setEditingCountry] = useState<Country | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  // Debounced search query với 10 giây
+  const debouncedSearchQuery = useDebounce(searchQuery, 10000);
+  // Search states
+  const [isSearching, setIsSearching] = useState(false);
   // CẬP NHẬT: Thêm 'movieCount' vào sortBy type
   const [sortBy, setSortBy] = useState<'name' | 'id' | 'movieCount'>('id');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -37,13 +44,21 @@ export const useCountries = () => {
     type: 'info'
   });
 
-  // Load countries function
-  const loadCountries = async () => {
+  // Load countries with pagination (similar to useMovies)
+  const loadCountriesWithPagination = async () => {
     try {
       setLoading(true);
-      const countriesData = await CountryService.getAllCountries();
       
+      // Convert 1-based currentPage to 0-based page for API
+      const page = currentPage - 1;
+      
+      // Get paginated countries
+      const countriesData = await CountryService.getCountriesPaginated(page, itemsPerPage);
       setCountries(countriesData);
+      
+      // Get total count for pagination calculation
+      const total = await CountryService.getTotalCountriesCount();
+      setTotalCountriesCount(total);
       
       // Load movie counts for each country
       const counts: Record<string, number> = {};
@@ -58,10 +73,82 @@ export const useCountries = () => {
     }
   };
 
-  // Load countries on mount
+  // Load real country stats and movie counts from StatisticsService
+  const loadRealCountryStats = async () => {
+    try {
+      const countryStats = await StatisticsService.getCountryStats();
+      if (countryStats) {
+        console.log('Loaded real country stats from API:', countryStats);
+        setRealStatsData(countryStats);
+        
+        // Convert country stats to movieCounts format
+        const counts: Record<string, number> = {};
+        countryStats.forEach(country => {
+          counts[country.id] = country.totalMovies;
+        });
+        setMovieCounts(counts);
+      }
+    } catch (error) {
+      console.warn('Failed to load real country stats:', error);
+    }
+  };
+
+  // Track search pending state
   useEffect(() => {
-    loadCountries();
-  }, []);
+    setIsSearching(searchQuery !== debouncedSearchQuery);
+  }, [searchQuery, debouncedSearchQuery]);
+
+  // Load countries with search support
+  const loadCountriesWithSearch = async () => {
+    try {
+      setLoading(true);
+      
+      // Convert 1-based currentPage to 0-based page for API
+      const page = currentPage - 1;
+      
+      let countriesData: Country[];
+      
+      if (debouncedSearchQuery.trim()) {
+        // Search mode
+        countriesData = await CountryService.searchCountries(debouncedSearchQuery, page, itemsPerPage);
+        
+        // Get total count for search results
+        const total = await CountryService.getSearchCountriesCount(debouncedSearchQuery);
+        setTotalCountriesCount(total);
+      } else {
+        // Normal mode
+        countriesData = await CountryService.getCountriesPaginated(page, itemsPerPage);
+        
+        const total = await CountryService.getTotalCountriesCount();
+        setTotalCountriesCount(total);
+      }
+      
+      setCountries(countriesData);
+      
+      // Try to load real stats first, fallback to mock if needed
+      await loadRealCountryStats();
+      
+      // If no real stats loaded, use mock movie counts
+      const currentRealStats = realStatsData;
+      if (!currentRealStats) {
+        const counts: Record<string, number> = {};
+        for (const country of countriesData) {
+          counts[country.id] = await CountryService.getMovieCountByCountry(country.id);
+        }
+        setMovieCounts(counts);
+      }
+      
+    } catch (error) {
+      console.error('Error loading countries:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load countries on mount and when pagination/search changes
+  useEffect(() => {
+    loadCountriesWithSearch();
+  }, [currentPage, itemsPerPage, debouncedSearchQuery]);
 
   // Filter and sort countries - CẬP NHẬT: Thêm sort theo movieCount
   const filteredCountries = useMemo(() => {
@@ -97,33 +184,65 @@ export const useCountries = () => {
     });
   }, [countries, searchQuery, sortBy, sortOrder, movieCounts]);
 
-  // Paginated countries
-  const paginatedCountries = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredCountries.slice(startIndex, endIndex);
-  }, [filteredCountries, currentPage, itemsPerPage]);
+  // For server-side pagination, countries are already paginated
+  const paginatedCountries = filteredCountries;
 
-  // Pagination info
-  const totalPages = Math.ceil(filteredCountries.length / itemsPerPage);
+  // Pagination info - use total count from server
+  const totalPages = Math.ceil(totalCountriesCount / itemsPerPage);
 
-  // Reset to first page when filters change
+  // Reset to first page when debounced search query changes
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, sortBy, sortOrder]);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [debouncedSearchQuery]);
 
-  // Calculate stats
+  // Reset to first page when filters change and reload data
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      // If already on page 1, manually reload
+      loadCountriesWithSearch();
+    }
+  }, [sortBy, sortOrder]);
+
+  // Calculate stats (use real data from StatisticsService when available)
   const stats = useMemo(() => {
+    const total = totalCountriesCount; // Use server total
+    
+    // Use real stats if available
+    if (realStatsData && Array.isArray(realStatsData)) {
+      const totalMovies = realStatsData.reduce((sum, country) => sum + country.totalMovies, 0);
+      const countriesWithMovies = realStatsData.filter(country => country.totalMovies > 0).length;
+      
+      return {
+        total,
+        countriesWithMovies,
+        avgMoviesPerCountry: total > 0 ? Math.round(totalMovies / total) : 0,
+        fromApi: true, // Real data from Statistics API
+        filteredCount: filteredCountries.length,
+        currentPageCount: countries.length,
+        totalPages,
+        totalMovies // Add total movies from real data
+      };
+    }
+    
+    // Fallback to mock calculation
     const totalMovies = Object.values(movieCounts).reduce((sum, count) => sum + count, 0);
     const countriesWithMovies = Object.values(movieCounts).filter(count => count > 0).length;
     
     return {
-      total: countries.length,
+      total,
       countriesWithMovies,
-      avgMoviesPerCountry: countries.length > 0 ? Math.round(totalMovies / countries.length) : 0,
-      fromApi: localStorage.getItem('serviceAvailable')
+      avgMoviesPerCountry: total > 0 ? Math.round(totalMovies / total) : 0,
+      fromApi: false, // Mock data
+      filteredCount: filteredCountries.length,
+      currentPageCount: countries.length,
+      totalPages,
+      totalMovies // Add total movies
     };
-  }, [countries, movieCounts, localStorage.getItem('serviceAvailable')]);
+  }, [countries, filteredCountries, movieCounts, totalCountriesCount, totalPages, realStatsData]);
 
   // Actions
   const handleEdit = (country: Country) => {
@@ -146,7 +265,7 @@ export const useCountries = () => {
         await CountryService.deleteCountry(id);
         
         // Reload data
-        await loadCountries();
+        await loadCountriesWithSearch();
       } catch (error) {
         console.error('Error deleting country:', error);
       } finally {
@@ -179,7 +298,7 @@ export const useCountries = () => {
 
       // Reload toàn bộ dữ liệu từ server để đảm bảo tính nhất quán
       console.log('Reloading countries...');
-      await loadCountries();
+      await loadCountriesWithSearch();
       
       showNotification(
         editingCountry ? 'Cập nhật quốc gia thành công!' : 'Thêm quốc gia thành công!',
@@ -271,6 +390,8 @@ export const useCountries = () => {
     showModal,
     editingCountry,
     searchQuery,
+    debouncedSearchQuery,
+    isSearching,
     sortBy,
     sortOrder,
     filteredCountries,

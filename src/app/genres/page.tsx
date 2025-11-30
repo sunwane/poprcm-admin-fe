@@ -122,7 +122,7 @@ export default function Genres() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-800">
-            Danh sách Thể loại ({filteredGenres.length})
+            Danh sách Thể loại ({stats.total})
           </h2>
           
           {/* Items per page selector */}
@@ -230,7 +230,7 @@ export default function Genres() {
           totalPages={totalPages}
           onPageChange={handlePageChange}
           itemsPerPage={itemsPerPage}
-          totalItems={filteredGenres.length}
+          totalItems={stats.total}
         />
       </div>
 

@@ -14,9 +14,11 @@ export class CountryService {
     return true;
   }
 
-  // Lấy dữ liệu từ API lần đầu
-  private static async loadCountriesFromApi(): Promise<void> {
-    if (this.isDataLoaded) return;
+  // Load data from API or mock with pagination support
+  private static async loadCountriesData(page: number = 0, size: number = 1000): Promise<Country[] | void> {
+    // For paginated calls, don't use cache
+    const isGettingAll = size >= 1000;
+    if (isGettingAll && this.isDataLoaded) return;
 
     if (!this.isServiceAvailable()) {
       console.info('API not available, using mock data');
@@ -26,16 +28,49 @@ export class CountryService {
     }
 
     try {
-      const response = await fetch(`${this.API_BASE_URL}`);
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`${this.API_BASE_URL}/paginated?page=${page}&size=${size}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const apiResponse: ApiResponse<Country[]> = await response.json();
-      if (apiResponse.result && Array.isArray(apiResponse.result)) {
-        this.countries = apiResponse.result;
+      const apiResponse: ApiResponse<any> = await response.json();
+      
+      // Handle paginated response
+      if (apiResponse.result && apiResponse.result.content && Array.isArray(apiResponse.result.content)) {
+        const mappedCountries = apiResponse.result.content.map((item: any) => ({
+          id: item.id,
+          name: item.name
+        }));
+        
+        // For paginated calls, return the data directly without caching
+        if (!isGettingAll) {
+          return mappedCountries;
+        }
+        
+        // For getting all countries, cache the data  
+        this.countries = mappedCountries;
         this.isDataLoaded = true;
+      } 
+      // Handle direct array response (for getAllCountries compatibility)
+      else if (apiResponse.result && Array.isArray(apiResponse.result)) {
+        const mappedCountries = apiResponse.result.map((item: any) => ({
+          id: item.id,
+          name: item.name
+        }));
+        
+        // For getting all countries, cache the data
+        this.countries = mappedCountries;
+        this.isDataLoaded = true;
+      } else {
+        throw new Error('Invalid API response structure');
       }
       
     } catch (error) {
@@ -43,22 +78,88 @@ export class CountryService {
     }
   }
 
-  // Lấy tất cả quốc gia
+  // Deprecated - kept for backward compatibility
+  private static async loadCountriesFromApi(): Promise<void> {
+    await this.loadCountriesData();
+  }
+
+  // Get countries with pagination (similar to MoviesService)
+  static async getCountriesPaginated(page: number = 0, size: number = 10): Promise<Country[]> {
+    const result = await this.loadCountriesData(page, size);
+    
+    if (result) {
+      // Paginated call returned data directly
+      return result;
+    }
+    
+    // Fallback to cached data with manual pagination
+    if (this.countries.length === 0) {
+      await this.loadCountriesData();
+    }
+    
+    const startIndex = page * size;
+    const endIndex = startIndex + size;
+    return this.countries.slice(startIndex, endIndex);
+  }
+
+  // Get total count of countries (for pagination calculation)
+  static async getTotalCountriesCount(): Promise<number> {
+    if (!this.isServiceAvailable()) {
+      return mockCountries.length;
+    }
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      // Get first page to check total from response metadata
+      const response = await fetch(`${this.API_BASE_URL}/paginated?page=0&size=1`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse: ApiResponse<any> = await response.json();
+      
+      // Check if API response has total count metadata
+      if (apiResponse.result && apiResponse.result.totalElements !== undefined) {
+        return apiResponse.result.totalElements;
+      } else if (apiResponse.result && apiResponse.result.content) {
+        // If no total metadata, get all data to count
+        await this.loadCountriesData();
+        return this.countries.length;
+      } else if (apiResponse.result && Array.isArray(apiResponse.result)) {
+        return apiResponse.result.length;
+      }
+      
+      throw new Error('Cannot determine total count from API response');
+      
+    } catch (error) {
+      console.warn('Failed to get total count from API, using mock data count:', error);
+      return mockCountries.length;
+    }
+  }
+
+  // Lấy tất cả quốc gia (giữ nguyên cho backward compatibility)
   static async getAllCountries(): Promise<Country[]> {
-    await this.loadCountriesFromApi();
+    await this.loadCountriesData();
     return [...this.countries];
   }
 
   // Lấy quốc gia theo ID
   static async getCountryById(id: string): Promise<Country | null> {
-    await this.loadCountriesFromApi();
+    await this.loadCountriesData();
     return this.countries.find(country => country.id === id) || null;
   }
 
     static async addCountry(countryData: Omit<Country, 'id'>): Promise<Country> {
     if (!this.isServiceAvailable()) {
       console.info('API not available, adding country locally');
-      await this.loadCountriesFromApi();
+      await this.loadCountriesData();
       const newCountry: Country = {
         id: (this.countries.length + 1).toString(),
         ...countryData
@@ -93,7 +194,7 @@ export class CountryService {
   static async updateCountry(id: string, countryData: Partial<Country>): Promise<Country | null> {
     if (!this.isServiceAvailable()) {
       console.info('API not available, updating country locally');
-      await this.loadCountriesFromApi();
+      await this.loadCountriesData();
     
       const index = this.countries.findIndex(country => country.id === id);
       if (index === -1) return null;
@@ -130,7 +231,7 @@ export class CountryService {
   static async deleteCountry(id: string): Promise<boolean> {
     if (!this.isServiceAvailable()) {
       console.info('API not available, deleting country locally');
-      await this.loadCountriesFromApi();
+      await this.loadCountriesData();
       const initialLength = this.countries.length;
       this.countries = this.countries.filter(country => country.id !== id);
       return this.countries.length < initialLength;
@@ -159,7 +260,7 @@ export class CountryService {
 
   // Kiểm tra tên quốc gia đã tồn tại
   static async checkCountryNameExists(name: string, excludeId?: string): Promise<boolean> {
-    await this.loadCountriesFromApi();
+    await this.loadCountriesData();
     
     return this.countries.some(country => 
       country.name.toLowerCase() === name.toLowerCase() && 
@@ -226,42 +327,115 @@ export class CountryService {
     return Math.abs(Math.floor((Math.sin(seed * 2) * 10000) % 100) + Math.floor(Math.random() * 50));
   }
 
-  // Lấy thống kê tổng quan
-  static async getCountryStats(): Promise<{
-    total: number;
-    mostPopular: Country | null;
-    leastPopular: Country | null;
-    totalMovies: number;
-    countriesWithMovies: number;
-    avgMoviesPerCountry: number;
-    fromApi: boolean;
-  }> {
-    await this.loadCountriesFromApi();
-    const isApiUp = this.isServiceAvailable();
-    
-    const total = this.countries.length;
-    const totalMovies = Math.floor(Math.random() * 2000) + 1000; // Tạm thời
-    
-    return {
-      total,
-      mostPopular: this.countries[0] || null,
-      leastPopular: this.countries[this.countries.length - 1] || null,
-      totalMovies,
-      countriesWithMovies: Math.floor(total * 0.8), // 80% countries have movies
-      avgMoviesPerCountry: total > 0 ? Math.round(totalMovies / total) : 0,
-      fromApi: this.isDataLoaded && isApiUp
-    };
+
+
+  // Search countries với API integration và pagination
+  static async searchCountries(query: string, page: number = 0, size: number = 20): Promise<Country[]> {
+    if (!query.trim()) {
+      return await this.getCountriesPaginated(page, size);
+    }
+
+    if (!this.isServiceAvailable()) {
+      // Mock data search với pagination
+      await this.loadCountriesData();
+      const searchTerm = query.toLowerCase().trim();
+      const filtered = this.countries.filter(country => 
+        country.name.toLowerCase().includes(searchTerm)
+      );
+      const startIndex = page * size;
+      const endIndex = startIndex + size;
+      return filtered.slice(startIndex, endIndex);
+    }
+
+    try {
+      // API call for search với pagination
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`${this.API_BASE_URL}/search?keyword=${encodeURIComponent(query)}&page=${page}&size=${size}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse: ApiResponse<any> = await response.json();
+      
+      if (apiResponse.result && apiResponse.result.content && Array.isArray(apiResponse.result.content)) {
+        return apiResponse.result.content.map((item: any) => ({
+          id: item.id,
+          name: item.name
+        }));
+      } else if (apiResponse.result && Array.isArray(apiResponse.result)) {
+        return apiResponse.result.map((item: any) => ({
+          id: item.id,
+          name: item.name
+        }));
+      }
+      return [];
+      
+    } catch (error) {
+      // Fallback to local search
+      console.warn('Search API failed, falling back to local search:', error);
+      await this.loadCountriesData();
+      const searchTerm = query.toLowerCase().trim();
+      const filtered = this.countries.filter(country => 
+        country.name.toLowerCase().includes(searchTerm)
+      );
+      const startIndex = page * size;
+      const endIndex = startIndex + size;
+      return filtered.slice(startIndex, endIndex);
+    }
   }
 
-  // Search countries theo tên
-  static async searchCountries(query: string): Promise<Country[]> {
-    await this.loadCountriesFromApi();
-    
-    if (!query.trim()) return this.countries;
-    
-    const searchTerm = query.toLowerCase().trim();
-    return this.countries.filter(country => 
-      country.name.toLowerCase().includes(searchTerm)
-    );
+  // Get total count for search results
+  static async getSearchCountriesCount(query: string): Promise<number> {
+    if (!query.trim()) {
+      return await this.getTotalCountriesCount();
+    }
+
+    if (!this.isServiceAvailable()) {
+      await this.loadCountriesData();
+      const searchTerm = query.toLowerCase().trim();
+      return this.countries.filter(country => 
+        country.name.toLowerCase().includes(searchTerm)
+      ).length;
+    }
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`${this.API_BASE_URL}/search?keyword=${encodeURIComponent(query)}&page=0&size=1`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse: ApiResponse<any> = await response.json();
+      
+      if (apiResponse.result && apiResponse.result.totalElements !== undefined) {
+        return apiResponse.result.totalElements;
+      }
+      
+      // Fallback - get all search results to count
+      const allResults = await this.searchCountries(query, 0, 1000);
+      return allResults.length;
+      
+    } catch (error) {
+      console.warn('Failed to get search count from API, using fallback:', error);
+      await this.loadCountriesData();
+      const searchTerm = query.toLowerCase().trim();
+      return this.countries.filter(country => 
+        country.name.toLowerCase().includes(searchTerm)
+      ).length;
+    }
   }
 }

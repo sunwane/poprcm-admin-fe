@@ -82,23 +82,10 @@ export class GenresService {
       
     } catch (error) {
       console.warn('Failed to load genres from API, using mock data:', error);
-      // Fallback to mock data nếu API fail
-      const fallbackGenres = [...mockGenres];
-      
-      // For paginated calls, return paginated mock data
-      if (!isGettingAll) {
-        const startIndex = page * size;
-        const endIndex = startIndex + size;
-        return fallbackGenres.slice(startIndex, endIndex);
-      }
-      
-      // For getting all genres, cache the data
-      this.genres = fallbackGenres;
-      this.isDataLoaded = true;
     }
   }
 
-  // Get genres with pagination
+  // Get genres with pagination (similar to MoviesService)
   static async getGenresPaginated(page: number = 0, size: number = 10): Promise<Genre[]> {
     const result = await this.loadGenresData(page, size);
     
@@ -126,7 +113,7 @@ export class GenresService {
     try {
       const authToken = localStorage.getItem('authToken');
       // Get first page to check total from response metadata
-      const response = await fetch(`${this.API_BASE_URL}?page=0&size=1`, {
+      const response = await fetch(`${this.API_BASE_URL}/paginated?page=0&size=1`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -346,28 +333,7 @@ export class GenresService {
     }
   }
 
-  // Lấy thống kê tổng quan
-  static async getGenreStats(): Promise<{
-    total: number;
-    mostPopular: Genre | null;
-    leastPopular: Genre | null;
-    totalMovies: number;
-    fromApi: boolean;
-  }> {
-    await this.loadGenresData();
-    const isApiUp = this.isServiceAvailable();
-    
-    const total = this.genres.length;
-    const totalMovies = Math.floor(Math.random() * 1000) + 500; // Tạm thời
-    
-    return {
-      total,
-      mostPopular: this.genres[0] || null,
-      leastPopular: this.genres[this.genres.length - 1] || null,
-      totalMovies,
-      fromApi: this.isDataLoaded && isApiUp
-    };
-  }
+
 
   // Lấy genres theo slug (nếu cần sau này)
   static async getGenreBySlug(slug: string): Promise<Genre | null> {
@@ -376,25 +342,28 @@ export class GenresService {
     return null;
   }
 
-  // Search genres với API integration
-  static async searchGenres(query: string): Promise<Genre[]> {
+  // Search genres với API integration và pagination
+  static async searchGenres(query: string, page: number = 0, size: number = 20): Promise<Genre[]> {
     if (!query.trim()) {
-      return await this.getAllGenres();
+      return await this.getGenresPaginated(page, size);
     }
 
     if (!this.isServiceAvailable()) {
-      // Mock data search
+      // Mock data search với pagination
       await this.loadGenresData();
       const searchTerm = query.toLowerCase().trim();
-      return this.genres.filter(genre => 
+      const filtered = this.genres.filter(genre => 
         genre.genresName.toLowerCase().includes(searchTerm)
       );
+      const startIndex = page * size;
+      const endIndex = startIndex + size;
+      return filtered.slice(startIndex, endIndex);
     }
 
     try {
-      // API call for search
+      // API call for search với pagination
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`${this.API_BASE_URL}/search?query=${encodeURIComponent(query)}&page=0&size=100`, {
+      const response = await fetch(`${this.API_BASE_URL}/search?keyword=${encodeURIComponent(query)}&page=${page}&size=${size}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -426,9 +395,60 @@ export class GenresService {
       console.warn('Search API failed, falling back to local search:', error);
       await this.loadGenresData();
       const searchTerm = query.toLowerCase().trim();
-      return this.genres.filter(genre => 
+      const filtered = this.genres.filter(genre => 
         genre.genresName.toLowerCase().includes(searchTerm)
       );
+      const startIndex = page * size;
+      const endIndex = startIndex + size;
+      return filtered.slice(startIndex, endIndex);
+    }
+  }
+
+  // Get total count for search results
+  static async getSearchGenresCount(query: string): Promise<number> {
+    if (!query.trim()) {
+      return await this.getTotalGenresCount();
+    }
+
+    if (!this.isServiceAvailable()) {
+      await this.loadGenresData();
+      const searchTerm = query.toLowerCase().trim();
+      return this.genres.filter(genre => 
+        genre.genresName.toLowerCase().includes(searchTerm)
+      ).length;
+    }
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`${this.API_BASE_URL}/search?keyword=${encodeURIComponent(query)}&page=0&size=1`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse: ApiResponse<any> = await response.json();
+      
+      if (apiResponse.result && apiResponse.result.totalElements !== undefined) {
+        return apiResponse.result.totalElements;
+      }
+      
+      // Fallback - get all search results to count
+      const allResults = await this.searchGenres(query, 0, 1000);
+      return allResults.length;
+      
+    } catch (error) {
+      console.warn('Failed to get search count from API, using fallback:', error);
+      await this.loadGenresData();
+      const searchTerm = query.toLowerCase().trim();
+      return this.genres.filter(genre => 
+        genre.genresName.toLowerCase().includes(searchTerm)
+      ).length;
     }
   }
 }

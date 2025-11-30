@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Genre } from '@/types/Genres';
 import { GenresService } from '@/services/GenresService';
+import { StatisticsService } from '@/services/StatisticsService';
 import { filterGenresByName, sortGenres } from '@/utils/genresUtils';
+import { useDebounce } from './useDebounce';
 
 interface NotificationState {
   isVisible: boolean;
@@ -11,11 +13,17 @@ interface NotificationState {
 
 export const useGenres = () => {
   const [genres, setGenres] = useState<Genre[]>([]);
+  const [totalGenresCount, setTotalGenresCount] = useState(0);
   const [movieCounts, setMovieCounts] = useState<Record<string, number>>({});
+  const [realStatsData, setRealStatsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingGenre, setEditingGenre] = useState<Genre | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  // Debounced search query với 10 giây
+  const debouncedSearchQuery = useDebounce(searchQuery, 10000);
+  // Search states
+  const [isSearching, setIsSearching] = useState(false);
   // CẬP NHẬT: Thêm 'movieCount' vào sortBy type
   const [sortBy, setSortBy] = useState<'name' | 'id' | 'movieCount'>('id');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -32,14 +40,59 @@ export const useGenres = () => {
     type: 'info'
   });
 
-  // Load genres function
-  const loadGenres = async () => {
+  // Track search pending state
+  useEffect(() => {
+    setIsSearching(searchQuery !== debouncedSearchQuery);
+  }, [searchQuery, debouncedSearchQuery]);
+
+  // Load real genre stats and movie counts from StatisticsService
+  const loadRealGenreStats = async () => {
+    try {
+      const genreStats = await StatisticsService.getGenreStats();
+      if (genreStats) {
+        console.log('Loaded real genre stats from API:', genreStats);
+        setRealStatsData(genreStats);
+        
+        // Convert genre stats to movieCounts format
+        const counts: Record<string, number> = {};
+        genreStats.forEach(genre => {
+          counts[genre.id] = genre.totalMovies;
+        });
+        setMovieCounts(counts);
+      }
+    } catch (error) {
+      console.warn('Failed to load real genre stats:', error);
+    }
+  };
+
+  // Load genres with search support
+  const loadGenresWithSearch = async () => {
     try {
       setLoading(true);
-      const genresData = await GenresService.getAllGenres();
       
-      console.log('Loaded genres:', genresData);
-      setGenres(genresData);
+      // Convert 1-based currentPage to 0-based page for API
+      const page = currentPage - 1;
+      
+      if (debouncedSearchQuery.trim()) {
+        // Search mode
+        const genresData = await GenresService.searchGenres(debouncedSearchQuery, page, itemsPerPage);
+        setGenres(genresData);
+        
+        // Get total count for search results
+        const total = await GenresService.getSearchGenresCount(debouncedSearchQuery);
+        setTotalGenresCount(total);
+      } else {
+        // Normal mode
+        const genresData = await GenresService.getGenresPaginated(page, itemsPerPage);
+        setGenres(genresData);
+        
+        const total = await GenresService.getTotalGenresCount();
+        setTotalGenresCount(total);
+      }
+
+      // Load real stats data in parallel
+      await loadRealGenreStats();
+      
     } catch (error) {
       console.error('Error loading genres:', error);
     } finally {
@@ -47,10 +100,10 @@ export const useGenres = () => {
     }
   };
 
-  // Load genres on mount
+  // Load genres on mount and when pagination/search changes
   useEffect(() => {
-    loadGenres();
-  }, []);
+    loadGenresWithSearch();
+  }, [currentPage, itemsPerPage, debouncedSearchQuery]);
 
   // Filter and sort genres - CẬP NHẬT: Thêm sort theo movieCount
   const filteredGenres = useMemo(() => {
@@ -86,35 +139,69 @@ export const useGenres = () => {
     });
   }, [genres, searchQuery, sortBy, sortOrder, movieCounts]);
 
-  // Paginated genres
-  const paginatedGenres = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return filteredGenres.slice(startIndex, endIndex);
-  }, [filteredGenres, currentPage, itemsPerPage]);
+  // For server-side pagination, genres are already paginated
+  const paginatedGenres = filteredGenres;
 
-  // Pagination info
-  const totalPages = Math.ceil(filteredGenres.length / itemsPerPage);
+  // Pagination info - use total count from server
+  const totalPages = Math.ceil(totalGenresCount / itemsPerPage);
 
-  // Reset to first page when filters change
+  // Reset to first page when debounced search query changes
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, sortBy, sortOrder]);
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [debouncedSearchQuery]);
 
-  // Calculate stats
+  // Reset to first page when filters change and reload data
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      // If already on page 1, manually reload
+      loadGenresWithSearch();
+    }
+  }, [sortBy, sortOrder]);
+
+  // Calculate stats (use real data from StatisticsService when available)
   const stats = useMemo(() => {
+    const total = totalGenresCount; // Use server total
+    
+    // Use real stats if available
+    if (realStatsData && Array.isArray(realStatsData)) {
+      const totalMovies = realStatsData.reduce((sum, genre) => sum + genre.totalMovies, 0);
+      const genresWithMovies = realStatsData.filter(genre => genre.totalMovies > 0).length;
+      const genresWithoutMovies = total - genresWithMovies;
+      
+      return {
+        total,
+        genresWithMovies,
+        genresWithoutMovies,
+        avgMoviesPerGenre: total > 0 ? Math.round(totalMovies / total) : 0,
+        fromApi: true, // Real data from Statistics API
+        filteredCount: filteredGenres.length,
+        currentPageCount: genres.length,
+        totalPages,
+        totalMovies // Add total movies from real data
+      };
+    }
+    
+    // Fallback to mock calculation
     const totalMovies = Object.values(movieCounts).reduce((sum, count) => sum + count, 0);
     const genresWithMovies = Object.values(movieCounts).filter(count => count > 0).length;
-    const genresWithoutMovies = genres.length - genresWithMovies;
+    const genresWithoutMovies = total - genresWithMovies;
     
     return {
-      total: genres.length,
+      total,
       genresWithMovies,
       genresWithoutMovies,
-      avgMoviesPerGenre: genres.length > 0 ? Math.round(totalMovies / genres.length) : 0,
-      fromApi: localStorage.getItem('serviceAvailable')
+      avgMoviesPerGenre: total > 0 ? Math.round(totalMovies / total) : 0,
+      fromApi: false, // Mock data
+      filteredCount: filteredGenres.length,
+      currentPageCount: genres.length,
+      totalPages,
+      totalMovies // Add total movies
     };
-  }, [genres, movieCounts, localStorage.getItem('serviceAvailable')]);
+  }, [genres, filteredGenres, movieCounts, totalGenresCount, totalPages, realStatsData]);
 
   // Actions
   const handleEdit = (genre: Genre) => {
@@ -179,7 +266,7 @@ export const useGenres = () => {
       
       // Reload toàn bộ dữ liệu từ server để đảm bảo tính nhất quán
       console.log('Reloading genres...');
-      await loadGenres();
+      await loadGenresWithSearch();
       
       // Show success notification
       showNotification(
@@ -265,6 +352,8 @@ export const useGenres = () => {
     showModal,
     editingGenre,
     searchQuery,
+    debouncedSearchQuery,
+    isSearching,
     sortBy,
     sortOrder,
     filteredGenres,

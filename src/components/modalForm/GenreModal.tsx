@@ -3,6 +3,7 @@ import { Genre } from '@/types/Genres';
 import { validateGenreName, formatGenreName } from '@/utils/genresUtils';
 import { GenresService } from '@/services/GenresService';
 import GradientButton from '@/components/ui/GradientButton';
+import FormInput from '@/components/ui/FormInput';
 
 interface GenreModalProps {
   isOpen: boolean;
@@ -128,22 +129,15 @@ export default function GenreModal({ isOpen, editingGenre, onClose, onSave }: Ge
             <label className="block text-sm font-medium text-gray-700 mb-2">
               ID thể loại <span className="text-red-500">*</span>
             </label>
-            <input
+            <FormInput
               type="text"
               name="id"
               placeholder={editingGenre ? "Nhập ID thể loại..." : "Nhập ID thể loại hoặc để trống"}
               value={formData.id}
               onChange={handleInputChange}
-              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm ${
-                errors.id ? 'border-red-500' : 'border-gray-300'
-              }`}
               disabled={isSubmitting}
+              error={errors.id}
             />
-            {errors.id && (
-              <div className="mt-2 text-red-600 text-sm">
-                {errors.id}
-              </div>
-            )}
           </div>
 
           {/* Genre Name Field */}
@@ -151,23 +145,16 @@ export default function GenreModal({ isOpen, editingGenre, onClose, onSave }: Ge
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tên thể loại <span className="text-red-500">*</span>
             </label>
-            <input
+            <FormInput
               type="text"
               name="genresName"
               placeholder="Nhập tên thể loại..."
               value={formData.genresName}
               onChange={handleInputChange}
-              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm ${
-                errors.genresName ? 'border-red-500' : 'border-gray-300'
-              }`}
               required
               disabled={isSubmitting}
+              error={errors.genresName}
             />
-            {errors.genresName && (
-              <div className="mt-2 text-red-600 text-sm">
-                {errors.genresName}
-              </div>
-            )}
           </div>
 
           {/* Submit Error */}

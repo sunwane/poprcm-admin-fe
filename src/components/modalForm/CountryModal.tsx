@@ -3,6 +3,7 @@ import { Country } from '@/types/Country';
 import { validateCountryName } from '@/utils/countryUtils';
 import { CountryService } from '@/services/CountryService';
 import GradientButton from '@/components/ui/GradientButton';
+import FormInput from '@/components/ui/FormInput';
 
 interface CountryModalProps {
   isOpen: boolean;
@@ -123,23 +124,16 @@ export default function CountryModal({ isOpen, editingCountry, onClose, onSave }
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tên quốc gia <span className="text-red-500">*</span>
             </label>
-            <input
+            <FormInput
               type="text"
               name="name"
               placeholder="Nhập tên quốc gia..."
               value={formData.name}
               onChange={handleInputChange}
-              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm ${
-                errors.name ? 'border-red-500' : 'border-gray-300'
-              }`}
               required
               disabled={isSubmitting}
+              error={errors.name}
             />
-            {errors.name && (
-              <div className="mt-2 text-red-600 text-sm">
-                {errors.name}
-              </div>
-            )}
           </div>
 
           {/* Submit Error */}

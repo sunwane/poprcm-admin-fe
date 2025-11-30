@@ -76,13 +76,13 @@ export default function NavigationBar() {
                         className="w-10 h-10 rounded-full object-cover shadow-md"
                         />
                     ) : (
-                        <GradientAvatar initial={user?.fullname?.charAt(0) || 'A'} />
+                        <GradientAvatar initial={user?.fullName?.charAt(0) || 'A'} />
                     )}
                   </div>
                     
                   <div className="flex-1 max-w-32 truncate">
                       <div className="text-sm font-medium text-gray-900 truncate">
-                          {user?.fullname || 'Admin User'}
+                          {user?.fullName || 'Admin User'}
                       </div>
                       <div className="text-xs text-gray-500 truncate">
                           {user?.email || 'admin@example.com'}

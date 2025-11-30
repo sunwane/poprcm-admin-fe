@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FormInput from '@/components/ui/FormInput';
 import GradientButton from '@/components/ui/GradientButton';
 import LoadingOverlay from '@/components/ui/LoadingOverlay';
@@ -13,10 +13,31 @@ interface AutoImportModalProps {
 }
 
 export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportModalProps) {
-  const [slug, setSlug] = useState('');
+  const [slug, setSlug] = useState('phim-moi');
   const [movieCount, setMovieCount] = useState<number>(10);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Helper function để get default values theo mode
+  const getDefaultValues = (currentMode: 'import' | 'update') => {
+    return {
+      slug: 'phim-moi',
+      movieCount: currentMode === 'import' ? 10 : 1
+    };
+  };
+
+  // Reset values mặc định khi mở modal hoặc thay đổi mode
+  useEffect(() => {
+    if (isOpen) {
+      // Reset error khi mở modal
+      setError('');
+      
+      // Set default values theo mode
+      const defaults = getDefaultValues(mode);
+      setSlug(defaults.slug);
+      setMovieCount(defaults.movieCount);
+    }
+  }, [isOpen, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,9 +68,7 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
         result = await MovieImportService.updateMovies(slug, movieCount);
       }
 
-      // Reset form và đóng modal
-      setSlug('phim-moi');
-      setMovieCount(10);
+      // Đóng modal (values sẽ được reset bởi useEffect khi mở lại)
       onClose();
       
       // Hiển thị thông báo thành công
@@ -62,8 +81,7 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
   };
 
   const handleClose = () => {
-    setSlug('');
-    setMovieCount(10);
+    // Chỉ clear error, values sẽ được reset bởi useEffect khi mở lại
     setError('');
     onClose();
   };

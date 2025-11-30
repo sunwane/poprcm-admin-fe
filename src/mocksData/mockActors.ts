@@ -6,7 +6,7 @@ export const mockActors: Actor[] = [
     tmdbId: '3223',
     originName: 'Robert Downey Jr.',
     profilePath: 'https://image.tmdb.org/t/p/w500/5qHNjhtjMD4YWH3UP0rm4tKwxCL.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['RDJ', 'Robert John Downey Jr.', 'Роберт Дауни мл.']
   },
   {
@@ -14,14 +14,14 @@ export const mockActors: Actor[] = [
     tmdbId: '1245',
     originName: 'Scarlett Johansson',
     profilePath: 'https://image.tmdb.org/t/p/w500/6NsMbJXRlDZuDzatN2akFdGuTvx.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Scarlett Ingrid Johansson', 'ScarJo', 'スカーレット・ヨハンソン']
   },
   {
     id: '3',
     tmdbId: '1136406',
     originName: 'Tom Holland',
-    gender: 'male',
+    gender: 'MALE',
     profilePath: 'https://image.tmdb.org/t/p/w500/2qhIDp44cAqP2clOgt2afQI07X8.jpg',
     alsoKnownAs: ['Thomas Stanley Holland', 'Tom Stanley Holland', 'トム・ホランド']
   },
@@ -30,7 +30,7 @@ export const mockActors: Actor[] = [
     tmdbId: '54693',
     originName: 'Emma Stone',
     profilePath: 'https://image.tmdb.org/t/p/w500/wqEypkRUUZEcFmPV4O4JpZznmNk.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Emily Jean Stone', 'Emily Stone', 'エマ・ストーン']
   },
   {
@@ -38,14 +38,14 @@ export const mockActors: Actor[] = [
     tmdbId: '6193',
     originName: 'Leonardo DiCaprio',
     profilePath: 'https://image.tmdb.org/t/p/w500/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['Leonardo Wilhelm DiCaprio', 'Leo DiCaprio', 'レオナルド・ディカプリオ']
   },
   {
     id: '6',
     tmdbId: '1813',
     originName: 'Anne Hathaway',
-    gender: 'female',
+    gender: 'FEMALE',
     profilePath: 'https://image.tmdb.org/t/p/w500/6u1fYtxG5eqjhtCPDx04pJphQRW.jpg',
     alsoKnownAs: ['Anne Jacqueline Hathaway', 'Annie', 'アン・ハサウェイ']
   },
@@ -54,7 +54,7 @@ export const mockActors: Actor[] = [
     tmdbId: '31',
     originName: 'Tom Hanks',
     profilePath: 'https://image.tmdb.org/t/p/w500/xndWFsBlClOJFRdhSt4NBwiPq2o.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['Thomas Jeffrey Hanks', 'トム・ハンクス', 'Том Хэнкс']
   },
   {
@@ -62,7 +62,7 @@ export const mockActors: Actor[] = [
     tmdbId: '5293',
     originName: 'Willem Dafoe',
     profilePath: 'https://image.tmdb.org/t/p/w500/ui8e4sgZAwMPi3hzEO53jyBJF9B.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['William James Dafoe', 'ウィレム・デフォー', 'Виллем Дефо']
   },
   {
@@ -70,7 +70,7 @@ export const mockActors: Actor[] = [
     tmdbId: '72129',
     originName: 'Jennifer Lawrence',
     profilePath: 'https://image.tmdb.org/t/p/w500/k6l8BWX1yqfGt95enzEkHoPvON4.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Jennifer Shrader Lawrence', 'Jen Lawrence', 'ジェニファー・ローレンス']
   },
   {
@@ -78,7 +78,7 @@ export const mockActors: Actor[] = [
     tmdbId: '500',
     originName: 'Tom Cruise',
     profilePath: 'https://image.tmdb.org/t/p/w500/eOh4ubpOm2Igdg0QH2ghj0mFtC.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['Thomas Cruise Mapother IV', 'TC', 'トム・クルーズ']
   },
   {
@@ -86,7 +86,7 @@ export const mockActors: Actor[] = [
     tmdbId: '6384',
     originName: 'Keanu Reeves',
     profilePath: 'https://image.tmdb.org/t/p/w500/4D0PpNI0kmP58hgrwGC3wCjxhnm.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['Keanu Charles Reeves', 'キアヌ・リーヴス', 'Киану Ривз']
   },
   {
@@ -94,7 +94,7 @@ export const mockActors: Actor[] = [
     tmdbId: '1920',
     originName: 'Winona Ryder',
     profilePath: 'https://image.tmdb.org/t/p/w500/zjwpCIeaFumamhhqz90ExqsBNqE.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Winona Laura Horowitz', 'Noni', 'ウィノナ・ライダー']
   },
   // Thêm 18 diễn viên mới
@@ -103,7 +103,7 @@ export const mockActors: Actor[] = [
     tmdbId: '12345',
     originName: 'Chris Hemsworth',
     profilePath: 'https://image.tmdb.org/t/p/w500/7D6hM9TPR9ZeRz3f1fEd8zDRzqE.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['Christopher Hemsworth', 'クリス・ヘムズワース']
   },
   {
@@ -111,7 +111,7 @@ export const mockActors: Actor[] = [
     tmdbId: '67890',
     originName: 'Natalie Portman',
     profilePath: 'https://image.tmdb.org/t/p/w500/8uVqe9ThcuYVNdh4O6ZYcr9AxqM.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Natalie Hershlag', 'ナタリー・ポートマン']
   },
   {
@@ -119,7 +119,7 @@ export const mockActors: Actor[] = [
     tmdbId: '54321',
     originName: 'Christian Bale',
     profilePath: 'https://image.tmdb.org/t/p/w500/qCpZn2e3dimwbryLnqxZuI88PTi.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['Christian Charles Philip Bale', 'クリスチャン・ベール']
   },
   {
@@ -127,7 +127,7 @@ export const mockActors: Actor[] = [
     tmdbId: '98765',
     originName: 'Gal Gadot',
     profilePath: 'https://image.tmdb.org/t/p/w500/plLfB60M5cJrnog8KvAKhI4UJuk.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['גל גדות', 'ガル・ガドット']
   },
   {
@@ -135,7 +135,7 @@ export const mockActors: Actor[] = [
     tmdbId: '11223',
     originName: 'Ryan Reynolds',
     profilePath: 'https://image.tmdb.org/t/p/w500/4SYTH5FdB0dAORV98Nwg3llgVnY.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['Ryan Rodney Reynolds', 'ライアン・レイノルズ']
   },
   {
@@ -143,7 +143,7 @@ export const mockActors: Actor[] = [
     tmdbId: '33445',
     originName: 'Margot Robbie',
     profilePath: 'https://image.tmdb.org/t/p/w500/eoWvKD60lT95Ss1MYNgVExpo5iU.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Margot Elise Robbie', 'マーゴット・ロビー']
   },
   {
@@ -151,7 +151,7 @@ export const mockActors: Actor[] = [
     tmdbId: '55667',
     originName: 'Dwayne Johnson',
     profilePath: 'https://image.tmdb.org/t/p/w500/cw8A0SprTxr7uSfcH7lwSRRhezJ.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['The Rock', 'ドウェイン・ジョンソン']
   },
   {
@@ -159,7 +159,7 @@ export const mockActors: Actor[] = [
     tmdbId: '77889',
     originName: 'Zendaya',
     profilePath: 'https://image.tmdb.org/t/p/w500/so3Gqz8xgEIbLx6aa3NNsX3rEZR.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Zendaya Maree Stoermer Coleman', 'ゼンデイヤ']
   },
   {
@@ -167,7 +167,7 @@ export const mockActors: Actor[] = [
     tmdbId: '99001',
     originName: 'Hugh Jackman',
     profilePath: 'https://image.tmdb.org/t/p/w500/oErEczcVUmJ9uD6i1w3xEZbK0mo.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['Hugh Michael Jackman', 'ヒュー・ジャックマン']
   },
   {
@@ -175,7 +175,7 @@ export const mockActors: Actor[] = [
     tmdbId: '22334',
     originName: 'Emily Blunt',
     profilePath: 'https://image.tmdb.org/t/p/w500/9xkGlFRqrN8btTLU0KQvOfn2PHr.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Emily Olivia Leah Blunt', 'エミリー・ブラント']
   },
   {
@@ -183,7 +183,7 @@ export const mockActors: Actor[] = [
     tmdbId: '44556',
     originName: 'Matt Damon',
     profilePath: 'https://image.tmdb.org/t/p/w500/elSlNgV8xVifsbHpFsqrPGxJToZ.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['Matthew Paige Damon', 'マット・デイモン']
   },
   {
@@ -191,7 +191,7 @@ export const mockActors: Actor[] = [
     tmdbId: '66778',
     originName: 'Emma Watson',
     profilePath: 'https://image.tmdb.org/t/p/w500/4U9G4YwTlIEb5345e9u5Xz1g0h5.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Emma Charlotte Duerre Watson', 'エマ・ワトソン']
   },
   {
@@ -199,7 +199,7 @@ export const mockActors: Actor[] = [
     tmdbId: '88990',
     originName: 'Daniel Radcliffe',
     profilePath: 'https://image.tmdb.org/t/p/w500/pc1o5u3xXc8tQxw2Kf9b0iLqL9P.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['Daniel Jacob Radcliffe', 'ダニエル・ラドクリフ']
   },
   {
@@ -207,7 +207,7 @@ export const mockActors: Actor[] = [
     tmdbId: '10101',
     originName: 'Meryl Streep',
     profilePath: 'https://image.tmdb.org/t/p/w500/8JZqP6t8J9qg5q9z9z9z9z9z.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Mary Louise Streep', 'メリル・ストリープ']
   },
   {
@@ -215,7 +215,7 @@ export const mockActors: Actor[] = [
     tmdbId: '20202',
     originName: 'Joaquin Phoenix',
     profilePath: 'https://image.tmdb.org/t/p/w500/9z9z9z9z9z9z9z9z9z9z9z9z9z.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['Joaquin Rafael Phoenix', 'ホアキン・フェニックス']
   },
   {
@@ -223,7 +223,7 @@ export const mockActors: Actor[] = [
     tmdbId: '30303',
     originName: 'Cate Blanchett',
     profilePath: 'https://image.tmdb.org/t/p/w500/9z9z9z9z9z9z9z9z9z9z9z9z9z.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Catherine Elise Blanchett', 'ケイト・ブランシェット']
   },
   {
@@ -231,7 +231,7 @@ export const mockActors: Actor[] = [
     tmdbId: '40404',
     originName: 'Brad Pitt',
     profilePath: 'https://image.tmdb.org/t/p/w500/9z9z9z9z9z9z9z9z9z9z9z9z9z.jpg',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: ['William Bradley Pitt', 'ブラッド・ピット']
   },
   {
@@ -239,7 +239,7 @@ export const mockActors: Actor[] = [
     tmdbId: '50505',
     originName: 'Angelina Jolie',
     profilePath: 'https://image.tmdb.org/t/p/w500/9z9z9z9z9z9z9z9z9z9z9z9z9z.jpg',
-    gender: 'female',
+    gender: 'FEMALE',
     alsoKnownAs: ['Angelina Jolie Voight', 'アンジェリーナ・ジョリー']
   }
 ];

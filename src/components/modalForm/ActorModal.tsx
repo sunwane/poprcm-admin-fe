@@ -8,20 +8,23 @@ import AvatarService from '@/services/UploadService';
 import GradientButton from '@/components/ui/GradientButton';
 import FormSelect from '@/components/ui/FormSelect';
 import FormInput from '@/components/ui/FormInput';
+import Notification from '@/components/ui/Notification';
 
 interface ActorModalProps {
   isOpen: boolean;
   editingActor: Actor | null;
   onClose: () => void;
-  onSave: (actorData: Partial<Actor>) => void;
+  onSave: (actorData: Partial<Actor>) => Promise<{ success: boolean; error?: string }>;
+  onUploadAvatar?: (actorId: string, file: File) => Promise<{ success: boolean; error?: string }>;
+  onDeleteAvatar?: (actorId: string) => Promise<{ success: boolean; error?: string }>;
 }
 
-export default function ActorModal({ isOpen, editingActor, onClose, onSave }: ActorModalProps) {
+export default function ActorModal({ isOpen, editingActor, onClose, onSave, onUploadAvatar, onDeleteAvatar }: ActorModalProps) {
   const [formData, setFormData] = useState({
     originName: '',
     tmdbId: '',
     profilePath: '',
-    gender: 'male',
+    gender: 'MALE',
     alsoKnownAs: [''],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -31,6 +34,17 @@ export default function ActorModal({ isOpen, editingActor, onClose, onSave }: Ac
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string>('');
+  
+  // Notification states
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
 
   // Reset form when modal opens/closes or editingActor changes
   useEffect(() => {
@@ -48,7 +62,7 @@ export default function ActorModal({ isOpen, editingActor, onClose, onSave }: Ac
           originName: '',
           tmdbId: '',
           profilePath: '',
-          gender: 'male',
+          gender: 'MALE',
           alsoKnownAs: [''],
         });
       }
@@ -71,8 +85,53 @@ export default function ActorModal({ isOpen, editingActor, onClose, onSave }: Ac
   const handleAvatarChange = async (file: File | null, previewUrl: string) => {
     setUploadError('');
 
-    if (file) {
+    if (file && editingActor && onUploadAvatar) {
       // Validate file
+      const validation = validateImageFile(file);
+      if (!validation.isValid) {
+        setUploadError(validation.error || 'File không hợp lệ');
+        return;
+      }
+
+      try {
+        setIsUploading(true);
+        
+        // Compress image if it's too large
+        let processedFile = file;
+        if (file.size > 1024 * 1024) {
+          processedFile = await compressImage(file, 800, 0.8);
+        }
+
+        // Upload avatar immediately for existing actor
+        const result = await onUploadAvatar(editingActor.id, processedFile);
+        
+        if (result.success) {
+          setFormData(prev => ({ ...prev, profilePath: previewUrl }));
+          setNotification({
+            show: true,
+            message: 'Tải ảnh lên thành công!',
+            type: 'success'
+          });
+        } else {
+          setUploadError(result.error || 'Không thể upload avatar');
+          setNotification({
+            show: true,
+            message: result.error || 'Không thể upload avatar',
+            type: 'error'
+          });
+        }
+      } catch (error) {
+        setUploadError('Không thể xử lý ảnh. Vui lòng thử lại.');
+        setNotification({
+          show: true,
+          message: 'Không thể xử lý ảnh. Vui lòng thử lại.',
+          type: 'error'
+        });
+      } finally {
+        setIsUploading(false);
+      }
+    } else if (file) {
+      // For new actor, just preview the image
       const validation = validateImageFile(file);
       if (!validation.isValid) {
         setUploadError(validation.error || 'File không hợp lệ');
@@ -82,21 +141,53 @@ export default function ActorModal({ isOpen, editingActor, onClose, onSave }: Ac
       try {
         // Compress image if it's too large
         let processedFile = file;
-        if (file.size > 1024 * 1024) { // Nếu file > 1MB, nén ảnh
+        if (file.size > 1024 * 1024) {
           processedFile = await compressImage(file, 800, 0.8);
         }
 
-        setAvatarFile(processedFile); // Lưu file để upload sau
-        setFormData(prev => ({ ...prev, profilePath: previewUrl })); // Cập nhật URL preview
+        setAvatarFile(processedFile);
+        setFormData(prev => ({ ...prev, profilePath: previewUrl }));
       } catch (error) {
         setUploadError('Không thể xử lý ảnh. Vui lòng thử lại.');
       }
     } else {
-      setAvatarFile(null);
-      setFormData(prev => ({ ...prev, profilePath: '' })); // Xóa URL preview nếu không có file
+      // Handle avatar deletion for existing actor
+      if (editingActor && formData.profilePath && onDeleteAvatar) {
+        try {
+          setIsUploading(true);
+          const result = await onDeleteAvatar(editingActor.id);
+          
+          if (result.success) {
+            setFormData(prev => ({ ...prev, profilePath: '' }));
+            setNotification({
+              show: true,
+              message: 'Xóa ảnh thành công!',
+              type: 'success'
+            });
+          } else {
+            setNotification({
+              show: true,
+              message: result.error || 'Không thể xóa avatar',
+              type: 'error'
+            });
+          }
+        } catch (error) {
+          setNotification({
+            show: true,
+            message: 'Có lỗi xảy ra khi xóa avatar',
+            type: 'error'
+          });
+        } finally {
+          setIsUploading(false);
+        }
+      } else {
+        setAvatarFile(null);
+        setFormData(prev => ({ ...prev, profilePath: '' }));
+      }
     }
   };
 
+  // Upload avatar for new actors only (fallback method)
   const uploadAvatar = async (file: File): Promise<string> => {
     try {
       setIsUploading(true);
@@ -184,8 +275,8 @@ export default function ActorModal({ isOpen, editingActor, onClose, onSave }: Ac
 
       let finalFormData = { ...formData };
 
-      // Upload avatar if there's a new file
-      if (avatarFile) {
+      // For new actor, upload avatar if there's a file
+      if (!editingActor && avatarFile) {
         try {
           const uploadedUrl = await uploadAvatar(avatarFile);
           finalFormData.profilePath = uploadedUrl;
@@ -199,15 +290,41 @@ export default function ActorModal({ isOpen, editingActor, onClose, onSave }: Ac
       const actorData = {
         originName: formatActorName(finalFormData.originName.trim()),
         tmdbId: finalFormData.tmdbId.trim(),
-        profilePath: finalFormData.profilePath,
+        profilePath: editingActor ? undefined : finalFormData.profilePath, // Don't update profilePath for existing actor
         gender: finalFormData.gender,
         alsoKnownAs: finalFormData.alsoKnownAs.filter(name => name.trim().length > 0),
       };
 
-      onSave(actorData);
+      const result = await onSave(actorData);
+      
+      if (result.success) {
+        setNotification({
+          show: true,
+          message: editingActor ? 'Cập nhật diễn viên thành công!' : 'Thêm diễn viên thành công!',
+          type: 'success'
+        });
+        
+        // Close modal after short delay
+        setTimeout(() => {
+          handleClose();
+        }, 1500);
+      } else {
+        setErrors({ submit: result.error || 'Có lỗi xảy ra khi lưu diễn viên' });
+        setNotification({
+          show: true,
+          message: result.error || 'Có lỗi xảy ra khi lưu diễn viên',
+          type: 'error'
+        });
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
-      setErrors({ submit: 'Có lỗi xảy ra khi lưu diễn viên' });
+      const errorMessage = 'Có lỗi xảy ra khi lưu diễn viên';
+      setErrors({ submit: errorMessage });
+      setNotification({
+        show: true,
+        message: errorMessage,
+        type: 'error'
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -256,6 +373,56 @@ export default function ActorModal({ isOpen, editingActor, onClose, onSave }: Ac
                     disabled={isSubmitting || isUploading}
                   />
                 </div>
+                
+                {/* Avatar Action Buttons */}
+                <div className="mt-4 flex justify-center space-x-3">
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const previewUrl = URL.createObjectURL(file);
+                          handleAvatarChange(file, previewUrl);
+                        }
+                      }}
+                      disabled={isSubmitting || isUploading}
+                    />
+                    <span className="inline-flex items-center px-3 py-2 border border-blue-300 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      {formData.profilePath ? 'Thay ảnh' : 'Thêm ảnh'}
+                    </span>
+                  </label>
+                  
+                  {formData.profilePath && (
+                    <button
+                      type="button"
+                      onClick={() => handleAvatarChange(null, '')}
+                      disabled={isSubmitting || isUploading}
+                      className="inline-flex items-center px-3 py-2 border border-red-300 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Xóa ảnh
+                    </button>
+                  )}
+                </div>
+                
+                {isUploading && (
+                  <div className="mt-3 text-blue-600 text-sm text-center flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle>
+                      <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path>
+                    </svg>
+                    Đang tải ảnh lên...
+                  </div>
+                )}
+                
                 {uploadError && (
                   <div className="mt-4 text-red-600 text-sm text-center">
                     {uploadError}
@@ -311,9 +478,9 @@ export default function ActorModal({ isOpen, editingActor, onClose, onSave }: Ac
                       filter={formData.gender}
                       onChange={(value: string) => setFormData(prev => ({ ...prev, gender: value }))}
                       options={[
-                        { value: 'male', label: 'Nam' },
-                        { value: 'female', label: 'Nữ' },
-                        { value: 'unknown', label: 'Không rõ' },
+                        { value: 'MALE', label: 'Nam' },
+                        { value: 'FEMALE', label: 'Nữ' },
+                        { value: 'UNKNOWN', label: 'Không rõ' },
                       ]}
                     />
                   </div>
@@ -400,6 +567,17 @@ export default function ActorModal({ isOpen, editingActor, onClose, onSave }: Ac
           </div>
         </form>
       </div>
+      
+      {/* Notification */}
+      <Notification
+        isVisible={notification.show}
+        message={notification.message}
+        type={notification.type}
+        onClose={() => setNotification(prev => ({ ...prev, show: false }))}
+        autoClose={true}
+        autoCloseDelay={3000}
+        position="bottom-right"
+      />
     </div>
   );
 }

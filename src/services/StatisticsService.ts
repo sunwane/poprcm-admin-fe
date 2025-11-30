@@ -4,7 +4,6 @@ import {
   CountryStatsDetail, 
   GenreStatsDetail,
   ApiResponse,
-  StatisticsError 
 } from '../types/Statistics';
 
 export class StatisticsService {

@@ -47,7 +47,8 @@ export class CountryService {
       if (apiResponse.result && apiResponse.result.content && Array.isArray(apiResponse.result.content)) {
         const mappedCountries = apiResponse.result.content.map((item: any) => ({
           id: item.id,
-          name: item.name
+          name: item.name,
+          movieCount: item.movieCount
         }));
         
         // For paginated calls, return the data directly without caching
@@ -63,7 +64,8 @@ export class CountryService {
       else if (apiResponse.result && Array.isArray(apiResponse.result)) {
         const mappedCountries = apiResponse.result.map((item: any) => ({
           id: item.id,
-          name: item.name
+          name: item.name,
+          movieCount: item.movieCount
         }));
         
         // For getting all countries, cache the data
@@ -76,11 +78,6 @@ export class CountryService {
     } catch (error) {
       console.warn('Failed to load countries from API, using mock data:', error);
     }
-  }
-
-  // Deprecated - kept for backward compatibility
-  private static async loadCountriesFromApi(): Promise<void> {
-    await this.loadCountriesData();
   }
 
   // Get countries with pagination (similar to MoviesService)

@@ -102,9 +102,9 @@ export default function MoviesCard({ movies, onEdit, onDelete, onViewDetail }: M
                   )}
                 </div>
                 
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-medium">Ngôn ngữ:</span>
-                  <span className={`text-xs font-bold ${getLangColor(movie.lang)} bg-transparent`}>
+                <div className="flex justify-between items-center space-x-3">
+                  <span className="text-gray-600 font-medium text-nowrap">Ngôn ngữ:</span>
+                  <span className={`text-xs font-bold line-clamp-1 truncate ${getLangColor(movie.lang)} bg-transparent`}>
                     {movie.lang}
                   </span>
                 </div>

@@ -50,7 +50,6 @@ export const useGenres = () => {
     try {
       const genreStats = await StatisticsService.getGenreStats();
       if (genreStats) {
-        console.log('Loaded real genre stats from API:', genreStats);
         setRealStatsData(genreStats);
         
         // Convert genre stats to movieCounts format

@@ -47,7 +47,8 @@ export class GenresService {
       if (apiResponse.result && apiResponse.result.content && Array.isArray(apiResponse.result.content)) {
         const mappedGenres = apiResponse.result.content.map((item: any) => ({
           id: item.id,
-          genresName: item.genresName
+          genresName: item.genresName,
+          movieCount: item.movieCount
         }));
         
         // For paginated calls, return the data directly without caching
@@ -181,9 +182,7 @@ export class GenresService {
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const apiResponse = await response.json();
-      
+      }      
       
       // Update local cache
       await this.loadGenresData();

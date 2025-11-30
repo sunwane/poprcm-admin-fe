@@ -13,12 +13,13 @@ import ConfirmModal from '@/components/ui/ConfirmModal';
 export default function Actors() {
   const {
     loading,
+    loadingStats,
     showModal,
     editingActor,
     filterGender,
     searchQuery,
-    filteredActors,
-    paginatedActors,
+    debouncedSearchQuery,
+    actors,
     movieCounts,
     stats,
     sortBy,
@@ -26,11 +27,14 @@ export default function Actors() {
     currentPage,
     totalPages,
     itemsPerPage,
+    totalElements,
     handleEdit,
     handleDelete,
     handleOpenAddModal,
     handleCloseModal,
     handleSaveActor,
+    handleUploadAvatar,
+    handleDeleteAvatar,
     handlePageChange,
     handleItemsPerPageChange,
     handleSort,
@@ -47,16 +51,6 @@ export default function Actors() {
       </div>
     );
   }
-
-  // Helper function to render sort icon
-  const renderSortIcon = (field: string) => {
-    if (sortBy !== field) return null;
-    return (
-      <svg className={`w-4 h-4 ml-1 ${sortOrder === 'asc' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-      </svg>
-    );
-  };
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
@@ -114,10 +108,10 @@ export default function Actors() {
               filter={filterGender}
               onChange={(gender: string) => setFilterGender(gender as typeof filterGender)}
               options={[
-                {value:'all', label:'Tất cả giới tính'},
-                {value:'male', label:'Nam'},
-                {value:'female', label:'Nữ'},
-                {value:'unknown', label:'Không rõ'},
+                {value:'ALL', label:'Tất cả giới tính'},
+                {value:'MALE', label:'Nam'},
+                {value:'FEMALE', label:'Nữ'},
+                {value:'UNKNOWN', label:'Không rõ'},
               ]}
             />
           </div>
@@ -137,7 +131,15 @@ export default function Actors() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
           <h2 className="text-xl font-bold text-gray-800">
-            Danh sách Diễn viên ({stats.total})
+            Danh sách Diễn viên ({debouncedSearchQuery ? `${totalElements} / ${stats.total}` : stats.total})
+            {loadingStats && (
+              <span className="ml-2 text-sm text-blue-600">
+                <svg className="inline animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle>
+                  <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path>
+                </svg>
+              </span>
+            )}
           </h2>
           
           {/* Items per page selector */}
@@ -194,7 +196,7 @@ export default function Actors() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {paginatedActors.map((actor) => (
+              {actors.map((actor) => (
                 <tr key={actor.id} className="hover:bg-blue-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center">
@@ -287,6 +289,8 @@ export default function Actors() {
         editingActor={editingActor}
         onClose={handleCloseModal}
         onSave={handleSaveActor}
+        onUploadAvatar={handleUploadAvatar}
+        onDeleteAvatar={handleDeleteAvatar}
       />
 
       {/* Confirm Modal */}

@@ -20,5 +20,5 @@ export interface MovieActor {
     actor?: Actor; // Optional for avoiding circular deps
 }
 
-export type FilterGender = 'all' | 'male' | 'female' | 'unknown';
+export type FilterGender = 'ALL' | 'MALE' | 'FEMALE' | 'UNKNOWN';
 export type SortBy = 'id' | 'movieCount';

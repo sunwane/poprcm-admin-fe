@@ -1,19 +1,19 @@
 import { Actor } from '@/types/Actor';
 
 export const getGenderColor = (gender: string): string => {
-  switch (gender.toLowerCase()) {
-    case 'male': return 'bg-blue-100 text-blue-800';
-    case 'female': return 'bg-pink-100 text-pink-800';
-    case 'unknown': return 'bg-gray-100 text-gray-800';
+  switch (gender.toUpperCase()) {
+    case 'MALE': return 'bg-blue-100 text-blue-800';
+    case 'FEMALE': return 'bg-pink-100 text-pink-800';
+    case 'UNKNOWN': return 'bg-gray-100 text-gray-800';
     default: return 'bg-gray-100 text-gray-800';
   }
 };
 
 export const getGenderDisplayName = (gender: string): string => {
-  switch (gender.toLowerCase()) {
-    case 'male': return 'Nam';
-    case 'female': return 'Nữ';
-    case 'unknown': return 'Không rõ';
+  switch (gender.toUpperCase()) {
+    case 'MALE': return 'Nam';
+    case 'FEMALE': return 'Nữ';
+    case 'UNKNOWN': return 'Không rõ';
     default: return 'Không rõ';
   }
 };

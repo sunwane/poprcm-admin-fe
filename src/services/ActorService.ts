@@ -2,7 +2,7 @@ import { Actor } from '@/types/Actor';
 import { mockActors } from '@/mocksData/mockActors';
 
 export class ActorService {
-  private static actors: Actor[] = [...mockActors];
+  private static actors: Actor[] = [];
   private static isDataLoaded = false;
   private static readonly API_BASE_URL = 'http://localhost:8088/api/actors';
 
@@ -18,35 +18,37 @@ export class ActorService {
   private static mapActorResponseToActor(actorResponse: any): Actor {
     return {
       id: actorResponse.actorId,
-      tmdbId: actorResponse.tmdbId?.toString(),
+      tmdbId: actorResponse.tmdbId?.toString() || '',
       originName: actorResponse.originName,
       profilePath: actorResponse.profilePath,
-      gender: this.mapGenderFromNumber(actorResponse.gender),
-      alsoKnownAs: [] // API không có field này, để trống
+      gender: actorResponse.genderDisplay ? actorResponse.genderDisplay.toUpperCase() : 'UNKNOWN',
+      alsoKnownAs: actorResponse.alsoKnownAs || []
     };
+  }
+
+  // Chuyển đổi gender từ string sang số cho API
+  private static mapGenderToNumber(gender: string): number {
+    switch (gender.toUpperCase()) {
+      case 'FEMALE': return 1;
+      case 'MALE': return 2;
+      default: return 0;
+    }
   }
 
   // Chuyển đổi gender từ số sang string
   private static mapGenderFromNumber(genderNum: number): string {
     switch (genderNum) {
-      case 1: return 'female';
-      case 2: return 'male';
-      default: return 'unknown';
+      case 1: return 'FEMALE';
+      case 2: return 'MALE';
+      default: return 'UNKNOWN';
     }
   }
 
-  // Chuyển đổi gender từ string sang số cho API
-  private static mapGenderToNumber(gender: string): number {
-    switch (gender.toLowerCase()) {
-      case 'female': return 1;
-      case 'male': return 2;
-      default: return 0;
-    }
-  }
-
-  // Load data from API or mock
-  private static async loadActorsData(): Promise<void> {
-    if (this.isDataLoaded) return;
+  // Load data from API or mock with pagination support
+  private static async loadActorsData(page: number = 0, size: number = 1000): Promise<Actor[] | void> {
+    // For paginated calls, don't use cache
+    const isGettingAll = size >= 1000;
+    if (isGettingAll && this.isDataLoaded) return;
 
     if (!this.isServiceAvailable()) {
       console.info('API not available, using mock data');
@@ -57,7 +59,7 @@ export class ActorService {
 
     try {
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`${this.API_BASE_URL}?page=0&size=100`, {
+      const response = await fetch(`${this.API_BASE_URL}?page=${page}&size=${size}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -71,21 +73,43 @@ export class ActorService {
 
       const apiResponse = await response.json();
       
+      // Handle paginated response
       if (apiResponse.result && apiResponse.result.content && Array.isArray(apiResponse.result.content)) {
-        this.actors = apiResponse.result.content.map((actorResponse: any) => 
+        const mappedActors = apiResponse.result.content.map((actorResponse: any) => 
           this.mapActorResponseToActor(actorResponse)
         );
+        
+        // For paginated calls, return the data directly without caching
+        if (!isGettingAll) {
+          return mappedActors;
+        }
+        
+        // For getting all actors, cache the data
+        this.actors = mappedActors;
         this.isDataLoaded = true;
-        console.log('Loaded actors from API:', this.actors.length);
+      } 
+      // Handle direct array response (non-paginated)
+      else if (apiResponse.result && Array.isArray(apiResponse.result)) {
+        const mappedActors = apiResponse.result.map((actorResponse: any) => 
+          this.mapActorResponseToActor(actorResponse)
+        );
+        
+        // For paginated calls, return paginated mock data
+        if (!isGettingAll) {
+          const startIndex = page * size;
+          const endIndex = startIndex + size;
+          return mappedActors.slice(startIndex, endIndex);
+        }
+        
+        // For getting all actors, cache the data
+        this.actors = mappedActors;
+        this.isDataLoaded = true;
       } else {
         throw new Error('Invalid API response structure');
       }
       
     } catch (error) {
       console.warn('Failed to load actors from API, using mock data:', error);
-      // Fallback to mock data nếu API fail
-      this.actors = [...mockActors];
-      this.isDataLoaded = true;
     }
   }
 
@@ -133,6 +157,143 @@ export class ActorService {
     }
   }
 
+  // Get actors with pagination
+  public static async getActorsPaginated(page: number, size: number, search?: string, gender?: string): Promise<{
+    content: Actor[],
+    totalElements: number,
+    totalPages: number,
+    number: number,
+    size: number
+  }> {
+    try {
+      if (!this.isServiceAvailable()) {
+        // Mock implementation with search
+        await this.loadActorsData();
+        let filteredActors = [...this.actors];
+        
+        if (search && search.trim()) {
+          const searchLower = search.toLowerCase();
+          filteredActors = this.actors.filter(actor => 
+            actor.originName.toLowerCase().includes(searchLower)
+          );
+        }
+
+        if (gender && gender !== 'ALL') {
+          filteredActors = filteredActors.filter(actor => 
+            actor.gender.toUpperCase() === gender.toUpperCase()
+          );
+        }
+
+        const startIndex = page * size;
+        const endIndex = startIndex + size;
+        const content = filteredActors.slice(startIndex, endIndex);
+        
+        return {
+          content,
+          totalElements: filteredActors.length,
+          totalPages: Math.ceil(filteredActors.length / size),
+          number: page,
+          size: size
+        };
+      }
+
+      // API call with search and gender filter
+      const authToken = localStorage.getItem('authToken');
+      let url = `${this.API_BASE_URL}?page=${page}&size=${size}`;
+      if (search && search.trim()) {
+        url += `&search=${encodeURIComponent(search)}`;
+      }
+      if (gender && gender !== 'ALL') {
+        url += `&gender=${encodeURIComponent(gender.toUpperCase())}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse = await response.json();
+      
+      if (apiResponse.result) {
+        const mappedActors = apiResponse.result.content?.map((actorResponse: any) => 
+          this.mapActorResponseToActor(actorResponse)
+        ) || [];
+
+        return {
+          content: mappedActors,
+          totalElements: apiResponse.result.totalElements || 0,
+          totalPages: apiResponse.result.totalPages || 0,
+          number: apiResponse.result.number || page,
+          size: apiResponse.result.size || size
+        };
+      }
+
+      throw new Error('Invalid API response structure');
+    } catch (error) {
+      console.error('Error loading actors with pagination:', error);
+      throw error;
+    }
+  }
+
+  // Get total actors count
+  public static async getTotalActorsCount(): Promise<number> {
+    try {
+      if (!this.isServiceAvailable()) {
+        await this.loadActorsData();
+        return this.actors.length;
+      }
+
+      // Try to get from statistics service first
+      const StatisticsService = await import('./StatisticsService');
+      const stats = await StatisticsService.StatisticsService.getEntityStats('actors');
+      
+      if (stats && typeof stats.total === 'number') {
+        return stats.total;
+      }
+
+      // Fallback to direct API call
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`${this.API_BASE_URL}/count`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+
+      if (response.ok) {
+        const countResponse = await response.json();
+        return countResponse.result || 0;
+      }
+
+      // If count endpoint doesn't exist, get first page to get total
+      const firstPageResponse = await fetch(`${this.API_BASE_URL}?page=0&size=1`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+
+      if (firstPageResponse.ok) {
+        const pageData = await firstPageResponse.json();
+        return pageData.result?.totalElements || 0;
+      }
+
+      return 0;
+    } catch (error) {
+      console.error('Error getting total actors count:', error);
+      return 0;
+    }
+  }
+
   // Add new actor
   static async addActor(actor: Omit<Actor, 'id'>): Promise<Actor> {
     if (!this.isServiceAvailable()) {
@@ -153,7 +314,7 @@ export class ActorService {
         originName: actor.originName,
         tmdbId: actor.tmdbId ? parseInt(actor.tmdbId) : 0,
         gender: this.mapGenderToNumber(actor.gender),
-        profilePath: null // Tạm thời để null vì BE cần sửa lại để hỗ trợ file upload
+        alsoKnownAs: actor.alsoKnownAs || []
       };
 
       const response = await fetch(`${this.API_BASE_URL}`, {
@@ -173,11 +334,6 @@ export class ActorService {
       
       if (apiResponse.result) {
         const newActor = this.mapActorResponseToActor(apiResponse.result);
-        
-        // Update local data
-        await this.loadActorsData();
-        this.actors.push(newActor);
-        
         return newActor;
       }
       
@@ -210,20 +366,21 @@ export class ActorService {
     try {
       const authToken = localStorage.getItem('authToken');
       
-      // Chuyển đổi Actor sang ActorUpdateRequest  
-      const requestBody = {
-        originName: actorData.originName,
-        tmdbId: actorData.tmdbId ? parseInt(actorData.tmdbId) : undefined,
-        gender: actorData.gender ? this.mapGenderToNumber(actorData.gender) : undefined,
-        profilePath: null // Tạm thời để null vì BE cần sửa lại để hỗ trợ file upload
-      };
-
-      // Loại bỏ các field undefined
-      Object.keys(requestBody).forEach(key => {
-        if (requestBody[key as keyof typeof requestBody] === undefined) {
-          delete requestBody[key as keyof typeof requestBody];
-        }
-      });
+      // Chuyển đổi Actor sang ActorUpdateRequest - chỉ gửi các field có giá trị
+      const requestBody: any = {};
+      
+      if (actorData.originName !== undefined && actorData.originName.trim()) {
+        requestBody.originName = actorData.originName.trim();
+      }
+      if (actorData.tmdbId !== undefined && actorData.tmdbId.trim()) {
+        requestBody.tmdbId = parseInt(actorData.tmdbId);
+      }
+      if (actorData.gender !== undefined) {
+        requestBody.gender = this.mapGenderToNumber(actorData.gender);
+      }
+      if (actorData.alsoKnownAs !== undefined) {
+        requestBody.alsoKnownAs = actorData.alsoKnownAs;
+      }
 
       const response = await fetch(`${this.API_BASE_URL}/${id}`, {
         method: 'PUT',
@@ -312,6 +469,82 @@ export class ActorService {
       
       this.actors.splice(index, 1);
       return Promise.resolve(true);
+    }
+  }
+
+  // Upload actor avatar
+  static async uploadActorAvatar(id: string, file: File): Promise<Actor | null> {
+    if (!this.isServiceAvailable()) {
+      console.info('API not available, cannot upload avatar');
+      return null;
+    }
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${this.API_BASE_URL}/${id}/avatar`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+          // Don't set Content-Type for FormData, browser will set it with boundary
+        },
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse = await response.json();
+      
+      if (apiResponse.result) {
+        const updatedActor = this.mapActorResponseToActor(apiResponse.result);
+        return updatedActor;
+      }
+      
+      throw new Error('Invalid API response structure');
+      
+    } catch (error) {
+      console.error('Failed to upload actor avatar:', error);
+      throw error;
+    }
+  }
+
+  // Delete actor avatar
+  static async deleteActorAvatar(id: string): Promise<Actor | null> {
+    if (!this.isServiceAvailable()) {
+      console.info('API not available, cannot delete avatar');
+      return null;
+    }
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`${this.API_BASE_URL}/${id}/avatar`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse = await response.json();
+      
+      if (apiResponse.result) {
+        const updatedActor = this.mapActorResponseToActor(apiResponse.result);
+        return updatedActor;
+      }
+      
+      throw new Error('Invalid API response structure');
+      
+    } catch (error) {
+      console.error('Failed to delete actor avatar:', error);
+      throw error;
     }
   }
 
@@ -418,9 +651,9 @@ export class ActorService {
     await this.loadActorsData();
     
     const total = this.actors.length;
-    const male = this.actors.filter(a => a.gender.toLowerCase() === 'male').length;
-    const female = this.actors.filter(a => a.gender.toLowerCase() === 'female').length;
-    const unknown = this.actors.filter(a => a.gender.toLowerCase() === 'unknown').length;
+    const male = this.actors.filter(a => a.gender.toUpperCase() === 'MALE').length;
+    const female = this.actors.filter(a => a.gender.toUpperCase() === 'FEMALE').length;
+    const unknown = this.actors.filter(a => a.gender.toUpperCase() === 'UNKNOWN').length;
     
     // Calculate total movies (mock)
     const totalMovies = Math.floor(Math.random() * 500) + 200;

@@ -421,7 +421,7 @@ export default function Movies() {
                 </div>
                 
                 {/* Pagination for grid */}
-                {/* <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
@@ -439,7 +439,7 @@ export default function Movies() {
                   >
                     →
                   </button>
-                </div> */}
+                </div>
               </div>
             </div>
           </div>

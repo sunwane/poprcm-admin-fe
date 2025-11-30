@@ -35,15 +35,6 @@ export class ActorService {
     }
   }
 
-  // Chuyển đổi gender từ số sang string
-  private static mapGenderFromNumber(genderNum: number): string {
-    switch (genderNum) {
-      case 1: return 'FEMALE';
-      case 2: return 'MALE';
-      default: return 'UNKNOWN';
-    }
-  }
-
   // Load data from API or mock with pagination support
   private static async loadActorsData(page: number = 0, size: number = 1000): Promise<Actor[] | void> {
     // For paginated calls, don't use cache

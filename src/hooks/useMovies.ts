@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Movie } from '@/types/Movies';
+import { Movie, MovieFilterRequest } from '@/types/Movies';
 import { MoviesService } from '@/services/MoviesService';
 import { 
   filterMoviesByQuery, 
@@ -47,7 +47,7 @@ export const useMovies = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Load movies with pagination
+  // Load movies with pagination and filters
   const loadMoviesWithPagination = async () => {
     try {
       setLoading(true);
@@ -55,13 +55,23 @@ export const useMovies = () => {
       // Convert 1-based currentPage to 0-based page for API
       const page = currentPage - 1;
       
-      // Get paginated movies
-      const moviesData = await MoviesService.getMoviesPaginated(page, itemsPerPage);
-      setMovies(moviesData);
+      // Prepare filter object
+      const filter = {
+        types: typeFilter !== 'all' ? [typeFilter] : undefined,
+        statuses: statusFilter !== 'all' ? [statusFilter] : undefined,
+        languages: langFilter !== 'all' ? [langFilter] : undefined,
+        releaseYear: yearFilter || undefined,
+        sortBy: sortBy === 'view' ? 'views' : sortBy === 'modifiedAt' ? 'updatedAt' : sortBy,
+        sortDirection: sortOrder
+      };
       
-      // Get total count for pagination calculation
-      const total = await MoviesService.getTotalMoviesCount();
-      setTotalMoviesCount(total);
+      // Get movies with filters
+      const { movies: moviesData, totalElements } = await MoviesService.getMoviesWithFilter(
+        filter, page, itemsPerPage
+      );
+      
+      setMovies(moviesData);
+      setTotalMoviesCount(totalElements);
       
     } catch (error) {
       console.error('Error loading movies:', error);
@@ -70,10 +80,15 @@ export const useMovies = () => {
     }
   };
 
-  // Load movies on mount and when pagination changes
+  // Reset to page 1 when filters change (not pagination)
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [typeFilter, statusFilter, langFilter, yearFilter ?? null, sortBy, sortOrder]);
+
+  // Load movies on mount and when pagination or filters change
   useEffect(() => {
     loadMoviesWithPagination();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, typeFilter, statusFilter, langFilter, yearFilter ?? null, sortBy, sortOrder]);
 
   // Search movies when debounced query changes
   useEffect(() => {
@@ -86,7 +101,19 @@ export const useMovies = () => {
 
       setIsSearching(true);
       try {
-        const results = await MoviesService.searchMovies(debouncedSearchQuery);
+        // Prepare filter for search
+        const filter = {
+          types: typeFilter !== 'all' ? [typeFilter] : undefined,
+          statuses: statusFilter !== 'all' ? [statusFilter] : undefined,
+          languages: langFilter !== 'all' ? [langFilter] : undefined,
+          releaseYear: yearFilter || undefined,
+          sortBy: sortBy === 'view' ? 'views' : sortBy === 'modifiedAt' ? 'updatedAt' : sortBy,
+          sortDirection: sortOrder
+        };
+        
+        const { movies: results } = await MoviesService.searchMoviesWithFilter(
+          debouncedSearchQuery, filter, 0, 100 // Get more results for search
+        );
         setSearchResults(results);
       } catch (error) {
         console.error('Error searching movies:', error);
@@ -97,32 +124,31 @@ export const useMovies = () => {
     };
 
     searchMovies();
-  }, [debouncedSearchQuery]);
+  }, [
+    debouncedSearchQuery, 
+    typeFilter, 
+    statusFilter, 
+    langFilter, 
+    yearFilter ?? null, // Ensure consistent value for null/undefined
+    sortBy, 
+    sortOrder
+  ]);
 
-  // Apply client-side filters and sorting (for current page only)
+  // Movies are already filtered and sorted by server, just apply search if needed
   const filteredAndSortedMovies = useMemo(() => {
-    // Use search results if searching, otherwise use current page movies
-    const sourceMovies = searchQuery.trim() ? searchResults : movies;
-    let filtered = searchQuery.trim() ? sourceMovies : filterMoviesByQuery(movies, searchQuery);
-    
-    if (yearFilter) {
-      filtered = filterMoviesByYear(filtered, yearFilter);
+    // If searching, use search results, otherwise use server-filtered movies
+    if (searchQuery.trim() && searchResults.length > 0) {
+      return searchResults;
     }
     
-    if (typeFilter !== 'all') {
-      filtered = filterMoviesByType(filtered, typeFilter);
+    // If there's a search query but no results yet, apply client-side search to current movies
+    if (searchQuery.trim()) {
+      return filterMoviesByQuery(movies, searchQuery);
     }
     
-    if (statusFilter !== 'all') {
-      filtered = filterMoviesByStatus(filtered, statusFilter);
-    }
-    
-    if (langFilter !== 'all') {
-      filtered = filterMoviesByLang(filtered, langFilter);
-    }
-    
-    return sortMovies(filtered, sortBy, sortOrder);
-  }, [movies, searchQuery, searchResults, yearFilter, typeFilter, statusFilter, langFilter, sortBy, sortOrder]);
+    // Otherwise, use movies as-is (already filtered by server)
+    return movies;
+  }, [movies, searchQuery, searchResults]);
 
   // For server-side pagination, movies are already paginated
   const paginatedMovies = filteredAndSortedMovies;
@@ -138,7 +164,7 @@ export const useMovies = () => {
       // If already on page 1, manually reload
       loadMoviesWithPagination();
     }
-  }, [yearFilter, typeFilter, statusFilter, langFilter, sortBy, sortOrder]);
+  }, [yearFilter ?? null, typeFilter, statusFilter, langFilter, sortBy, sortOrder]);
 
   // Calculate stats (for current page movies, with total from server)
   const stats = useMemo(() => {
@@ -320,6 +346,7 @@ export const useMovies = () => {
     setLangFilter('all');
     setSortBy('id');
     setSortOrder('asc');
+    setCurrentPage(1); // Reset to first page when clearing filters
   };
 
   // Increment view count

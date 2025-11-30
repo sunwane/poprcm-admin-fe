@@ -1,4 +1,4 @@
-import { Movie } from '@/types/Movies';
+import { Movie, MovieFilterRequest } from '@/types/Movies';
 import { mockMovies } from '@/mocksData/mockMovies';
 import { mockActors } from '@/mocksData/mockActors';
 import { mockMovieActors } from '@/mocksData/mockMovieActors';
@@ -28,7 +28,7 @@ export class MoviesService {
   }
 
   // Load data from API or mock with pagination support
-  private static async loadMoviesData(page: number = 0, size: number = 1000): Promise<Movie[] | void> {
+  static async loadMoviesData(page: number = 0, size: number = 1000): Promise<Movie[] | void> {
     // For paginated calls, don't use cache
     const isGettingAll = size >= 1000;
     if (isGettingAll && this.isDataLoaded) return;
@@ -78,22 +78,6 @@ export class MoviesService {
       
     } catch (error) {
       console.warn('Failed to load movies from API, using mock data:', error);
-      // Fallback to mock data nếu API fail
-      const fallbackMovies = mockMovies.map(movie => ({
-        ...movie,
-        actors: this.populateMovieActors(movie.id)
-      }));
-      
-      // For paginated calls, return paginated mock data
-      if (!isGettingAll) {
-        const startIndex = page * size;
-        const endIndex = startIndex + size;
-        return fallbackMovies.slice(startIndex, endIndex);
-      }
-      
-      // For getting all movies, cache the data
-      this.movies = fallbackMovies;
-      this.isDataLoaded = true;
     }
   }
 
@@ -101,9 +85,10 @@ export class MoviesService {
   private static mapMovieResponseToMovie(res: any): Movie {
     const { 
       id, title, originName, description = '', releaseYear, type = [], duration = '',
-      posterUrl, thumbUrl, trailerUrl, totalEpisodes, director = [], status = [],
-      createdAt, modifiedAt, views = 0, slug, tmdbScore, imdbScore, lang = [],
-      actors = [], genres = [], countries = [], episodes = []
+      posterUrl, thumbUrl, trailerUrl, totalEpisodes, currentEpisodeCount, 
+      director = [], status = [], createdAt, modifiedAt, views = 0, slug, 
+      tmdbScore, imdbScore, lang = [], actors = [], genres = [], 
+      countries = [], episodes = []
     } = res;
 
     return {
@@ -118,6 +103,7 @@ export class MoviesService {
       thumbnailUrl: `https://img.ophim.live/uploads/movies/${posterUrl}`,
       trailerUrl,
       totalEpisodes: totalEpisodes ? parseInt(totalEpisodes) : undefined,
+      currentEpisodeCount: currentEpisodeCount || undefined,
       director: Array.isArray(director) ? director.join(', ') : director,
       status: Array.isArray(status) ? status[0] || '' : status,
       createdAt: new Date(createdAt),
@@ -129,7 +115,7 @@ export class MoviesService {
       lang: Array.isArray(lang) ? lang[0] || '' : lang,
       country: countries?.map((c: any) => ({ id: c.id, name: c.name })) || [],
       actors: actors?.map((a: any) => ({
-        actorId: a.actorId,
+        actorId: a.actorId || a.id,
         originName: a.originName,
         characterName: a.characterName,
         profilePath: a.profilePath,
@@ -174,6 +160,138 @@ export class MoviesService {
     }
     
     return paginatedMovies;
+  }
+
+  // Get movies with filter + pagination
+  static async getMoviesWithFilter(
+    filter?: MovieFilterRequest,
+    page: number = 0, 
+    size: number = 10
+  ): Promise<{ movies: Movie[]; totalElements: number; totalPages: number }> {
+    if (!this.isServiceAvailable()) {
+      // Fallback to mock data with client-side filtering
+      let filteredMovies = [...mockMovies];
+      
+      if (filter) {
+        // Apply filters
+        if (filter.types && filter.types.length > 0 && !filter.types.includes('all')) {
+          filteredMovies = filteredMovies.filter(movie => 
+            filter.types!.some((type: string) => movie.type.toLowerCase().includes(type.toLowerCase()))
+          );
+        }
+        
+        if (filter.statuses && filter.statuses.length > 0 && !filter.statuses.includes('all')) {
+          filteredMovies = filteredMovies.filter(movie => 
+            filter.statuses!.some((status: string) => movie.status.toLowerCase().includes(status.toLowerCase()))
+          );
+        }
+        
+        if (filter.languages && filter.languages.length > 0 && !filter.languages.includes('all')) {
+          filteredMovies = filteredMovies.filter(movie => 
+            filter.languages!.some((lang: string) => movie.lang.toLowerCase().includes(lang.toLowerCase()))
+          );
+        }
+        
+        if (filter.releaseYear) {
+          filteredMovies = filteredMovies.filter(movie => movie.releaseYear === filter.releaseYear);
+        }
+        
+        if (filter.genreIds && filter.genreIds.length > 0) {
+          filteredMovies = filteredMovies.filter(movie => 
+            movie.genres.some(genre => filter.genreIds!.includes(genre.id))
+          );
+        }
+        
+        if (filter.countryIds && filter.countryIds.length > 0) {
+          filteredMovies = filteredMovies.filter(movie => 
+            movie.country.some(country => filter.countryIds!.includes(country.id))
+          );
+        }
+        
+        // Apply sorting
+        if (filter.sortBy) {
+          filteredMovies.sort((a, b) => {
+            let aValue: any = a[filter.sortBy as keyof Movie];
+            let bValue: any = b[filter.sortBy as keyof Movie];
+            
+            // Handle special cases
+            if (filter.sortBy === 'views') {
+              aValue = a.view;
+              bValue = b.view;
+            } else if (filter.sortBy === 'updatedAt') {
+              aValue = a.modifiedAt;
+              bValue = b.modifiedAt;
+            }
+            
+            if (aValue < bValue) return filter.sortDirection === 'desc' ? 1 : -1;
+            if (aValue > bValue) return filter.sortDirection === 'desc' ? -1 : 1;
+            return 0;
+          });
+        }
+      }
+      
+      const totalElements = filteredMovies.length;
+      const totalPages = Math.ceil(totalElements / size);
+      const startIndex = page * size;
+      const endIndex = startIndex + size;
+      const paginatedMovies = filteredMovies.slice(startIndex, endIndex).map(movie => ({
+        ...movie,
+        actors: this.populateMovieActors(movie.id)
+      }));
+      
+      return { movies: paginatedMovies, totalElements, totalPages };
+    }
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      
+      // Prepare filter payload
+      const filterPayload = filter ? {
+        genreIds: filter.genreIds?.length ? filter.genreIds : undefined,
+        countryIds: filter.countryIds?.length ? filter.countryIds : undefined,
+        types: filter.types?.length ? filter.types : undefined,
+        statuses: filter.statuses?.length ? filter.statuses : undefined,
+        releaseYear: filter.releaseYear,
+        languages: filter.languages?.length ? filter.languages : undefined,
+        sortBy: filter.sortBy,
+        sortDirection: filter.sortDirection
+      } : {};
+      
+      const response = await fetch(`${this.API_BASE_URL}/filter?page=${page}&size=${size}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(filterPayload)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Filter API failed: ${response.status}`);
+      }
+
+      const apiResponse = await response.json();
+      
+      if (apiResponse.result && apiResponse.result.content && Array.isArray(apiResponse.result.content)) {
+        const movies = apiResponse.result.content.map(this.mapMovieResponseToMovie);
+        const totalElements = apiResponse.result.totalElements || 0;
+        const totalPages = apiResponse.result.totalPages || 0;
+        
+        return { movies, totalElements, totalPages };
+      } else {
+        throw new Error('Invalid API response structure for filter');
+      }
+      
+    } catch (error) {
+      console.warn('Failed to filter movies from API, using fallback:', error);
+      
+      // Fallback to getMoviesPaginated
+      const movies = await this.getMoviesPaginated(page, size);
+      const totalElements = await this.getTotalMoviesCount();
+      const totalPages = Math.ceil(totalElements / size);
+      
+      return { movies, totalElements, totalPages };
+    }
   }
 
   // Get total count of movies (for pagination calculation)
@@ -397,6 +515,185 @@ export class MoviesService {
         ...movie,
         actors: this.populateMovieActors(movie.id)
       }));
+    }
+  }
+
+  // Search movies with filter + pagination
+  static async searchMoviesWithFilter(
+    query: string,
+    filter?: MovieFilterRequest,
+    page: number = 0,
+    size: number = 10
+  ): Promise<{ movies: Movie[]; totalElements: number; totalPages: number }> {
+    if (!query.trim()) {
+      // If no search query, use regular filter
+      return await this.getMoviesWithFilter(filter, page, size);
+    }
+
+    if (!this.isServiceAvailable()) {
+      // Fallback to client-side search + filter
+      await this.loadMoviesData();
+      const searchTerm = query.toLowerCase().trim();
+      
+      // First apply search
+      let filteredMovies = this.movies.filter(movie => {
+        const directors = Array.isArray(movie.director) ? movie.director.join(' ') : movie.director;
+        return (
+          movie.title.toLowerCase().includes(searchTerm) ||
+          movie.originalName.toLowerCase().includes(searchTerm) ||
+          directors.toLowerCase().includes(searchTerm) ||
+          movie.description.toLowerCase().includes(searchTerm)
+        );
+      });
+
+      // Then apply filters if provided
+      if (filter) {
+        if (filter.types && filter.types.length > 0 && !filter.types.includes('all')) {
+          filteredMovies = filteredMovies.filter(movie => 
+            filter.types!.some((type: string) => movie.type.toLowerCase().includes(type.toLowerCase()))
+          );
+        }
+        
+        if (filter.statuses && filter.statuses.length > 0 && !filter.statuses.includes('all')) {
+          filteredMovies = filteredMovies.filter(movie => 
+            filter.statuses!.some((status: string) => movie.status.toLowerCase().includes(status.toLowerCase()))
+          );
+        }
+        
+        if (filter.languages && filter.languages.length > 0 && !filter.languages.includes('all')) {
+          filteredMovies = filteredMovies.filter(movie => 
+            filter.languages!.some((lang: string) => movie.lang.toLowerCase().includes(lang.toLowerCase()))
+          );
+        }
+        
+        if (filter.releaseYear) {
+          filteredMovies = filteredMovies.filter(movie => movie.releaseYear === filter.releaseYear);
+        }
+        
+        // Apply sorting
+        if (filter.sortBy) {
+          filteredMovies.sort((a, b) => {
+            let aValue: any = a[filter.sortBy as keyof Movie];
+            let bValue: any = b[filter.sortBy as keyof Movie];
+            
+            if (filter.sortBy === 'views') {
+              aValue = a.view;
+              bValue = b.view;
+            } else if (filter.sortBy === 'updatedAt') {
+              aValue = a.modifiedAt;
+              bValue = b.modifiedAt;
+            }
+            
+            if (aValue < bValue) return filter.sortDirection === 'desc' ? 1 : -1;
+            if (aValue > bValue) return filter.sortDirection === 'desc' ? -1 : 1;
+            return 0;
+          });
+        }
+      }
+
+      const totalElements = filteredMovies.length;
+      const totalPages = Math.ceil(totalElements / size);
+      const startIndex = page * size;
+      const endIndex = startIndex + size;
+      const paginatedMovies = filteredMovies.slice(startIndex, endIndex).map(movie => ({
+        ...movie,
+        actors: this.populateMovieActors(movie.id)
+      }));
+
+      return { movies: paginatedMovies, totalElements, totalPages };
+    }
+
+    try {
+      // Use search API with filters - combine search with filter endpoint
+      const authToken = localStorage.getItem('authToken');
+      
+      // For now, use search API and apply filters client-side
+      // In the future, backend should support search + filter in one endpoint
+      const searchResponse = await fetch(`${this.API_BASE_URL}/search?query=${encodeURIComponent(query)}&page=0&size=1000`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!searchResponse.ok) {
+        throw new Error(`Search API failed: ${searchResponse.status}`);
+      }
+
+      const searchApiResponse = await searchResponse.json();
+      
+      if (searchApiResponse.result && searchApiResponse.result.content && Array.isArray(searchApiResponse.result.content)) {
+        let searchResults = searchApiResponse.result.content.map(this.mapMovieResponseToMovie);
+        
+        // Apply filters client-side for now
+        if (filter) {
+          if (filter.types && filter.types.length > 0 && !filter.types.includes('all')) {
+            searchResults = searchResults.filter((movie: Movie) => 
+              filter.types!.some((type: string) => movie.type.toLowerCase().includes(type.toLowerCase()))
+            );
+          }
+          
+          if (filter.statuses && filter.statuses.length > 0 && !filter.statuses.includes('all')) {
+            searchResults = searchResults.filter((movie: Movie) => 
+              filter.statuses!.some((status: string) => movie.status.toLowerCase().includes(status.toLowerCase()))
+            );
+          }
+          
+          if (filter.languages && filter.languages.length > 0 && !filter.languages.includes('all')) {
+            searchResults = searchResults.filter((movie: Movie) => 
+              filter.languages!.some((lang: string) => movie.lang.toLowerCase().includes(lang.toLowerCase()))
+            );
+          }
+          
+          if (filter.releaseYear) {
+            searchResults = searchResults.filter((movie: Movie) => movie.releaseYear === filter.releaseYear);
+          }
+          
+          // Apply sorting
+          if (filter.sortBy) {
+            searchResults.sort((a: Movie, b: Movie) => {
+              let aValue: any = a[filter.sortBy as keyof Movie];
+              let bValue: any = b[filter.sortBy as keyof Movie];
+              
+              if (filter.sortBy === 'views') {
+              aValue = a.view;
+              bValue = b.view;
+              } else if (filter.sortBy === 'updatedAt') {
+              aValue = a.modifiedAt;
+              bValue = b.modifiedAt;
+              }
+              
+              if (aValue < bValue) return filter.sortDirection === 'desc' ? 1 : -1;
+              if (aValue > bValue) return filter.sortDirection === 'desc' ? -1 : 1;
+              return 0;
+            });
+          }
+        }
+
+        const totalElements = searchResults.length;
+        const totalPages = Math.ceil(totalElements / size);
+        const startIndex = page * size;
+        const endIndex = startIndex + size;
+        const paginatedMovies = searchResults.slice(startIndex, endIndex);
+
+        return { movies: paginatedMovies, totalElements, totalPages };
+      }
+      
+      return { movies: [], totalElements: 0, totalPages: 0 };
+      
+    } catch (error) {
+      console.warn('Search with filter API failed, using fallback:', error);
+      
+      // Fallback to regular search
+      const searchResults = await this.searchMovies(query);
+      const totalElements = searchResults.length;
+      const totalPages = Math.ceil(totalElements / size);
+      const startIndex = page * size;
+      const endIndex = startIndex + size;
+      const paginatedMovies = searchResults.slice(startIndex, endIndex);
+      
+      return { movies: paginatedMovies, totalElements, totalPages };
     }
   }
 

@@ -1,5 +1,7 @@
 // Service for auto importing and updating movies
 
+import { MoviesService } from "./MoviesService";
+
 class MovieImportService {
   private baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8088/api';
 
@@ -18,6 +20,7 @@ class MovieImportService {
         throw new Error('Thêm phim tự động thất bại');
       }
 
+      await MoviesService.loadMoviesData(); // Refresh movie list after import
       return await response.json();
     } catch (error) {
       console.error('Auto import movies error:', error);

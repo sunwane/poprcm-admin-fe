@@ -12,6 +12,17 @@ export interface Episode {
     serverName: string; // e.g., "Vietsub", "ThuyetMinh"
 }
 
+export interface MovieFilterRequest {
+    genreIds?: string[];      // ["hanh-dong", "hai-huoc"]
+    countryIds?: string[];    // ["country-1", "country-2"]
+    types?: string[];         // ["series", "single", "hoathinh"]
+    statuses?: string[];      // ["completed", "ongoing", "trailer"]
+    releaseYear?: number;     // 2024
+    languages?: string[];     // ["vi", "en", "ja"]
+    sortBy?: string;          // "updatedAt", "views", "imdbScore", "tmdbScore", "poprcmScore"
+    sortDirection?: string;   // "asc" or "desc"
+}
+
 export interface Movie {
     id: string;
     title: string;
@@ -24,6 +35,7 @@ export interface Movie {
     thumbnailUrl?: string;
     trailerUrl?: string;
     totalEpisodes?: number;
+    currentEpisodeCount?: number; // Số tập hiện tại đã có
     //rating: number;
     director: string | string[]; // Support both single string and array
     status: string;

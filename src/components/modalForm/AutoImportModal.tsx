@@ -166,14 +166,16 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
 
           {/* Action Buttons */}
           <div className="flex space-x-3">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="flex-1 px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
-              disabled={loading}
-            >
-              Hủy
-            </button>
+            <div className='flex-1'>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="w-full flex-1 px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                disabled={loading}
+              >
+                Hủy
+              </button>
+            </div>
             <div className="flex-1">
               <GradientButton disabled={loading}>
                 {loading ? (

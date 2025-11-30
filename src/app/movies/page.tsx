@@ -148,7 +148,7 @@ export default function Movies() {
               onChange={setTypeFilter}
               options={[
                 { value: 'all', label: 'Tất cả' },
-                { value: 'Movie', label: 'Phim lẻ' },
+                { value: 'Single', label: 'Phim lẻ' },
                 { value: 'Series', label: 'Phim bộ' },
                 { value: 'hoathinh', label: 'Hoạt hình' }
               ]}
@@ -338,10 +338,10 @@ export default function Movies() {
                         {(movie.tmdbScore ?? 0) > 0 || (movie.imdbScore ?? 0) > 0 ? (
                           <>
                             {(movie.tmdbScore ?? 0) > 0 && (
-                              <div className="text-xs text-blue-500 bg-blue-50 py-1 px-2 rounded text-center w-fit">TMDB: {movie.tmdbScore}</div>
+                              <div className="text-xs text-blue-500 bg-blue-50 py-1 px-2 rounded text-center w-fit text-nowrap">TMDB: {movie.tmdbScore}</div>
                             )}
                             {(movie.imdbScore ?? 0) > 0 && (
-                              <div className="text-xs  text-yellow-500 bg-yellow-50 py-1 px-2 rounded text-center w-fit">IMDB: {movie.imdbScore}</div>
+                              <div className="text-xs  text-yellow-500 bg-yellow-50 py-1 px-2 rounded text-center w-fit text-nowrap">IMDB: {movie.imdbScore}</div>
                             )}
                           </>
                         ) : (

@@ -8,6 +8,7 @@ import ActorModal from '@/components/modalForm/ActorModal';
 import SearchBar from '@/components/ui/SearchBar';
 import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 export default function Actors() {
   const {
@@ -36,6 +37,7 @@ export default function Actors() {
     handleClearFilters,
     setFilterGender,
     setSearchQuery,
+    confirmModal,
   } = useActors();
 
   if (loading) {
@@ -285,6 +287,19 @@ export default function Actors() {
         editingActor={editingActor}
         onClose={handleCloseModal}
         onSave={handleSaveActor}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.options.title}
+        message={confirmModal.options.message}
+        confirmText={confirmModal.options.confirmText}
+        cancelText={confirmModal.options.cancelText}
+        confirmButtonType={confirmModal.options.confirmButtonType}
+        onConfirm={confirmModal.handleConfirm}
+        onCancel={confirmModal.handleCancel}
+        isLoading={confirmModal.isLoading}
       />
     </div>
   );

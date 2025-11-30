@@ -9,6 +9,7 @@ import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
 import LoadingOverlay from '@/components/ui/LoadingOverlay';
 import Notification from '@/components/ui/Notification';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 export default function Countries() {
   const {
@@ -20,7 +21,6 @@ export default function Countries() {
     sortOrder,
     filteredCountries,
     paginatedCountries,
-    movieCounts,
     stats,
     currentPage,
     totalPages,
@@ -38,7 +38,8 @@ export default function Countries() {
     isSyncing,
     notification,
     hideNotification,
-    syncCountries
+    syncCountries,
+    confirmModal
   } = useCountries();
 
   // Handle sync (không cần refresh trang vì đã tự động update trong hook)
@@ -65,7 +66,7 @@ export default function Countries() {
         <div className="flex items-center w-full max-w-3/5 space-x-3">
           <div className="flex-1 max-w-md">
             <SearchBar 
-                searchQuery={searchQuery} 
+                searchQuery={searchQuery}
                 onChange={setSearchQuery} 
                 placeholder='Tìm kiếm quốc gia...'
               />
@@ -198,8 +199,8 @@ export default function Countries() {
                     <div className="font-medium text-gray-800">{country.name}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-sm font-medium ${getMovieCountColor(movieCounts[country.id] || 0)}`}>
-                      {movieCounts[country.id] || 0}
+                    <span className={`px-2 py-1 rounded-full text-sm font-medium ${getMovieCountColor(country.movieCount || 0)}`}>
+                      {country.movieCount || 0}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -255,6 +256,19 @@ export default function Countries() {
         type={notification.type}
         onClose={hideNotification}
         position="bottom-right"
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.options.title}
+        message={confirmModal.options.message}
+        confirmText={confirmModal.options.confirmText}
+        cancelText={confirmModal.options.cancelText}
+        confirmButtonType={confirmModal.options.confirmButtonType}
+        onConfirm={confirmModal.handleConfirm}
+        onCancel={confirmModal.handleCancel}
+        isLoading={confirmModal.isLoading}
       />
     </div>
   );

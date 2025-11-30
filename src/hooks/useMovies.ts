@@ -10,6 +10,7 @@ import {
   sortMovies 
 } from '@/utils/movieUtils';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useConfirmModal } from './useConfirmModal';
 
 export const useMovies = () => {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -37,6 +38,9 @@ export const useMovies = () => {
   
   // Sorting
   const [sortBy, setSortBy] = useState<'id' | 'title' | 'releaseYear' | 'view' | 'createdAt' | 'modifiedAt' | 'rating'>('id');
+
+  // Confirm modal
+  const confirmModal = useConfirmModal();
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   
   // Pagination
@@ -221,14 +225,26 @@ export const useMovies = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Bạn có chắc chắn muốn xóa phim này?')) {
+    const confirmed = await confirmModal.openConfirm({
+      title: 'Xóa phim',
+      message: 'Bạn có chắc chắn muốn xóa phim này? Hành động này không thể hoàn tác.',
+      confirmText: 'Xóa',
+      cancelText: 'Hủy bỏ',
+      confirmButtonType: 'danger'
+    });
+
+    if (confirmed) {
       try {
+        confirmModal.setLoadingState(true);
         await MoviesService.deleteMovie(id);
         // Reload current page data
         await loadMoviesWithPagination();
       } catch (error) {
         console.error('Error deleting movie:', error);
+        // TODO: Thay thế alert bằng notification system
         alert('Có lỗi xảy ra khi xóa phim');
+      } finally {
+        confirmModal.setLoadingState(false);
       }
     }
   };
@@ -380,5 +396,8 @@ export const useMovies = () => {
     setSortBy,
     setSortOrder,
     setViewMode,
+
+    // Confirm modal
+    confirmModal,
   };
 };

@@ -1,4 +1,4 @@
-import { Movie} from '@/types/Movies';
+import { Movie } from '@/types/Movies';
 import { mockGenres } from './mockGenres';
 import { mockCountries } from './mockCountries';
 import { mockEpisodes } from './mockEpisodes';
@@ -148,7 +148,7 @@ export const mockMovies: Movie[] = [
     originalName: '千と千尋の神隠し',
     description: 'Chihiro, một cô bé 10 tuổi, cùng gia đình chuyển đến một thị trấn mới. Trên đường đi, họ lạc vào một thế giới kỳ lạ bị chi phối bởi các thần linh, phù thủy và quái vật, nơi con người bị biến thành động vật.',
     releaseYear: 2001,
-    type: 'single',
+    type: 'hoathinh',
     duration: '125 min',
     posterUrl: 'https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg',
     thumbnailUrl: 'https://image.tmdb.org',
@@ -202,7 +202,7 @@ export const mockMovies: Movie[] = [
     originalName: 'ワンピース',
     description: 'Monkey D. Luffy, một cậu bé có thể căng giãn cơ thể như cao su sau khi vô tình ăn phải trái ác quỷ, khám phá đại dương Grand Line cùng băng hải tặc Mũ Rơm để tìm kiếm kho báu huyền thoại One Piece.',
     releaseYear: 1999,
-    type: 'series',
+    type: 'hoathinh',
     duration: '24 min/ep',
     posterUrl: 'https://image.tmdb.org/t/p/w500/cMD9Ygz11zjJzAovURpO75Qg7rT.jpg',
     thumbnailUrl: 'https://image.tmdb.org/t/p/w500/e3NBjKqVT2BjWpAdb2CReqKEDbJ.jpg',
@@ -284,7 +284,7 @@ export const mockMovies: Movie[] = [
     originalName: '君の名は。',
     description: 'Mitsuha sống ở một thị trấn nhỏ ở vùng núi và mơ ước được sống ở Tokyo. Taki là một học sinh trung học ở Tokyo. Hai người chưa bao giờ gặp nhau, nhưng họ bắt đầu hoán đổi cơ thể trong giấc mơ.',
     releaseYear: 2016,
-    type: 'single',
+    type: 'hoathinh',
     duration: '106 min',
     posterUrl: 'https://image.tmdb.org/t/p/w500/xq1Ugd62d23K2knRUx6xxuALTZB.jpg',
     thumbnailUrl: 'https://image.tmdb.org/t/p/w500/mMtUybQ6hL24FXo0F3Z4j2KG7kZ.jpg',
@@ -603,5 +603,239 @@ export const mockMovies: Movie[] = [
     actors: [], // MovieActors for John Wick: Chapter 3
     genres: [mockGenres[0], mockGenres[7]], // Hành động, Tội phạm
     episodes: [] // No specific episode for this movie
+  },
+
+  {
+    id: "23",
+    title: 'Interstellar',
+    originalName: 'Interstellar',
+    description: 'Một nhóm phi hành gia thực hiện nhiệm vụ tìm kiếm hành tinh mới cho nhân loại khi Trái Đất đang dần trở nên không thể sống được.',
+    releaseYear: 2014,
+    type: 'single',
+    duration: '169 min',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg',
+    thumbnailUrl: 'https://image.tmdb.org/t/p/w500/8N0DNa9y5cfYEhU9JGedDg7APdU.jpg',
+    trailerUrl: 'https://www.youtube.com/watch?v=zSWdZVtXT7E',
+    director: 'Christopher Nolan',
+    status: 'completed',
+    createdAt: new Date('2024-03-01'),
+    modifiedAt: new Date('2024-03-01'),
+    view: 3000,
+    slug: 'interstellar',
+    tmdbScore: 8.6,
+    imdbScore: 8.6,
+    lang: 'Vietsub',
+    country: [mockCountries[5]], // Hoa Kỳ
+    actors: [],
+    genres: [mockGenres[4], mockGenres[5], mockGenres[6]], // Khoa học viễn tưởng, Phiêu lưu, Tâm lý
+    episodes: []
+  },
+
+  {
+    id: "24",
+    title: 'Inception',
+    originalName: 'Inception',
+    description: 'Dom Cobb, một kẻ trộm chuyên nghiệp, được giao nhiệm vụ xâm nhập vào giấc mơ của người khác để đánh cắp thông tin.',
+    releaseYear: 2010,
+    type: 'single',
+    duration: '148 min',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/qmDpIHrmpJINaRKAfWQfftjCdyi.jpg',
+    thumbnailUrl: 'https://image.tmdb.org/t/p/w500/s2bT29y0ngXxxu2IA8AOzzXTRhd.jpg',
+    trailerUrl: 'https://www.youtube.com/watch?v=YoHD9XEInc0',
+    director: 'Christopher Nolan',
+    status: 'completed',
+    createdAt: new Date('2024-03-02'),
+    modifiedAt: new Date('2024-03-02'),
+    view: 2500,
+    slug: 'inception',
+    tmdbScore: 8.8,
+    imdbScore: 8.8,
+    lang: 'Vietsub',
+    country: [mockCountries[5]], // Hoa Kỳ
+    actors: [],
+    genres: [mockGenres[4], mockGenres[14], mockGenres[6]], // Khoa học viễn tưởng, Bí ẩn, Tâm lý
+    episodes: []
+  },
+
+  {
+    id: "25",
+    title: 'The Matrix',
+    originalName: 'The Matrix',
+    description: 'Neo, một hacker máy tính, phát hiện ra rằng thế giới mà anh ta đang sống chỉ là một mô phỏng do máy móc tạo ra.',
+    releaseYear: 1999,
+    type: 'single',
+    duration: '136 min',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg',
+    thumbnailUrl: 'https://image.tmdb.org/t/p/w500/aoiY3b5g2x9F0w3G1GJ4f3Xz.jpg',
+    trailerUrl: 'https://www.youtube.com/watch?v=vKQi3bBA1y8',
+    director: 'The Wachowskis',
+    status: 'completed',
+    createdAt: new Date('2024-03-03'),
+    modifiedAt: new Date('2024-03-03'),
+    view: 4000,
+    slug: 'the-matrix',
+    tmdbScore: 8.7,
+    imdbScore: 8.7,
+    lang: 'Vietsub',
+    country: [mockCountries[5]], // Hoa Kỳ
+    actors: [],
+    genres: [mockGenres[4], mockGenres[0], mockGenres[14]], // Khoa học viễn tưởng, Hành động, Bí ẩn
+    episodes: []
+  },
+
+  {
+    id: "26",
+    title: 'The Godfather',
+    originalName: 'The Godfather',
+    description: 'Câu chuyện về gia đình mafia Corleone và cuộc đấu tranh quyền lực trong thế giới ngầm.',
+    releaseYear: 1972,
+    type: 'single',
+    duration: '175 min',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg',
+    thumbnailUrl: 'https://image.tmdb.org/t/p/w500/6xKCYgH16UzM77zZ4UnZ4F3Xz.jpg',
+    trailerUrl: 'https://www.youtube.com/watch?v=sY1S34973zA',
+    director: 'Francis Ford Coppola',
+    status: 'completed',
+    createdAt: new Date('2024-03-04'),
+    modifiedAt: new Date('2024-03-04'),
+    view: 5000,
+    slug: 'the-godfather',
+    tmdbScore: 9.2,
+    imdbScore: 9.2,
+    lang: 'Vietsub',
+    country: [mockCountries[5]], // Hoa Kỳ
+    actors: [],
+    genres: [mockGenres[7], mockGenres[6]], // Tội phạm, Tâm lý
+    episodes: []
+  },
+
+  {
+    id: "27",
+    title: 'The Shawshank Redemption',
+    originalName: 'The Shawshank Redemption',
+    description: 'Andy Dufresne, một người đàn ông bị kết án oan, tìm cách vượt qua cuộc sống trong tù và giành lại tự do.',
+    releaseYear: 1994,
+    type: 'single',
+    duration: '142 min',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg',
+    thumbnailUrl: 'https://image.tmdb.org/t/p/w500/5KCVkau1HEl7ZzfPsKAPM0sMiKc.jpg',
+    trailerUrl: 'https://www.youtube.com/watch?v=6hB3S9bIaco',
+    director: 'Frank Darabont',
+    status: 'completed',
+    createdAt: new Date('2024-03-05'),
+    modifiedAt: new Date('2024-03-05'),
+    view: 6000,
+    slug: 'the-shawshank-redemption',
+    tmdbScore: 9.3,
+    imdbScore: 9.3,
+    lang: 'Vietsub',
+    country: [mockCountries[5]], // Hoa Kỳ
+    actors: [],
+    genres: [mockGenres[6], mockGenres[13]], // Tâm lý, Gia đình
+    episodes: []
+  },
+
+  {
+    id: "28",
+    title: 'Titanic',
+    originalName: 'Titanic',
+    description: 'Câu chuyện tình yêu giữa Jack và Rose trên con tàu Titanic định mệnh.',
+    releaseYear: 1997,
+    type: 'single',
+    duration: '195 min',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg',
+    thumbnailUrl: 'https://image.tmdb.org/t/p/w500/6VmFqApQRyZZzmiGOQq2C92jyvH.jpg',
+    trailerUrl: 'https://www.youtube.com/watch?v=kVrqfYjkTdQ',
+    director: 'James Cameron',
+    status: 'completed',
+    createdAt: new Date('2024-03-06'),
+    modifiedAt: new Date('2024-03-06'),
+    view: 7000,
+    slug: 'titanic',
+    tmdbScore: 7.8,
+    imdbScore: 7.8,
+    lang: 'Vietsub',
+    country: [mockCountries[5]], // Hoa Kỳ
+    actors: [],
+    genres: [mockGenres[3], mockGenres[13]], // Tình cảm, Gia đình
+    episodes: []
+  },
+
+  {
+    id: "29",
+    title: 'Avatar',
+    originalName: 'Avatar',
+    description: 'Jake Sully, một cựu lính thủy đánh bộ, được gửi đến hành tinh Pandora và tham gia vào cuộc chiến bảo vệ người Na\'vi.',
+    releaseYear: 2009,
+    type: 'single',
+    duration: '162 min',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/6EiRUJpuoeQPghrs3YNktfnqOVh.jpg',
+    thumbnailUrl: 'https://image.tmdb.org/t/p/w500/8uO0gUM8aNqYLs1OsTBQiXu0fEv.jpg',
+    trailerUrl: 'https://www.youtube.com/watch?v=5PSNL1qE6VY',
+    director: 'James Cameron',
+    status: 'completed',
+    createdAt: new Date('2024-03-07'),
+    modifiedAt: new Date('2024-03-07'),
+    view: 8000,
+    slug: 'avatar',
+    tmdbScore: 7.9,
+    imdbScore: 7.9,
+    lang: 'Vietsub',
+    country: [mockCountries[5]], // Hoa Kỳ
+    actors: [],
+    genres: [mockGenres[4], mockGenres[5], mockGenres[6]], // Khoa học viễn tưởng, Phiêu lưu, Tâm lý
+    episodes: []
+  },
+
+  {
+    id: "30",
+    title: 'The Lion King',
+    originalName: 'The Lion King',
+    description: 'Simba, một chú sư tử trẻ, phải đối mặt với trách nhiệm làm vua sau cái chết của cha mình.',
+    releaseYear: 1994,
+    type: 'hoathinh',
+    duration: '88 min',
+    posterUrl: 'https://image.tmdb.org/t/p/w500/sKCr78MXSLixwmZ8DyJLrpMsd15.jpg',
+    thumbnailUrl: 'https://image.tmdb.org/t/p/w500/2dH8T3OeXxqjPp8aQYV7e7K1x.jpg',
+    trailerUrl: 'https://www.youtube.com/watch?v=4sj1MT05lAA',
+    director: 'Roger Allers, Rob Minkoff',
+    status: 'completed',
+    createdAt: new Date('2024-03-08'),
+    modifiedAt: new Date('2024-03-08'),
+    view: 9000,
+    slug: 'the-lion-king',
+    tmdbScore: 8.5,
+    imdbScore: 8.5,
+    lang: 'Vietsub',
+    country: [mockCountries[5]], // Hoa Kỳ
+    actors: [],
+    genres: [mockGenres[9], mockGenres[13]], // Hoạt hình, Gia đình
+    episodes: []
+  },
+
+  {
+    id: "31",
+    title: 'Phi vụ động trời',
+    originalName: 'Zootopia',
+    description: 'Từ con voi lớn nhất đến Shrew nhỏ nhất, thành phố Zootopia là một đô thị động vật có vú, nơi động vật khác nhau sống và phát triển mạnh. Khi Judy Hopps trở thành con thỏ đầu tiên tham gia lực lượng cảnh sát, cô nhanh chóng học được sự khó khăn như thế nào để thực thi luật pháp. Quyết tâm chứng minh mình, Judy nhảy vào cơ hội để giải quyết một vụ án bí ẩn. Thật không may, điều đó có nghĩa là làm việc với Nick Wilde, một Fily Fox, người khiến công việc của cô ấy trở nên khó khăn hơn nữa.',
+    releaseYear: 2016,
+    type: 'hoathinh',
+    duration: '108 min',
+    posterUrl: 'https://img.ophim.live/uploads/movies/phi-vu-dong-troi-thumb.jpg',
+    thumbnailUrl: 'https://img.ophim.live/uploads/movies/phi-vu-dong-troi-poster.jpg',
+    trailerUrl: 'https://www.youtube.com/watch?v=jWM0ct-OLsM',
+    director: 'Byron Howard, Rich Moore',
+    status: 'completed',
+    createdAt: new Date('2024-06-10'),
+    modifiedAt: new Date('2024-06-10'),
+    view: 1500,
+    slug: 'phi-vu-dong-troi',
+    tmdbScore: 8.0,
+    imdbScore: 8.0,
+    lang: 'Vietsub',
+    country: [mockCountries[5]], // Hoa Kỳ
+    actors: [],
+    genres: [mockGenres[9], mockGenres[13]], // Hoạt hình, Gia đình
+    episodes: []
   }
 ];

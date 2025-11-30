@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { User, FilterGender, FilterRole } from '@/types/User';
 import { UserService } from '@/services/UserService';
+import { useConfirmModal } from './useConfirmModal';
 
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -20,6 +21,9 @@ export const useUsers = () => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Confirm modal
+  const confirmModal = useConfirmModal();
 
   // Load users on mount
   useEffect(() => {
@@ -116,14 +120,26 @@ export const useUsers = () => {
   // };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
+    const confirmed = await confirmModal.openConfirm({
+      title: 'Xóa người dùng',
+      message: 'Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.',
+      confirmText: 'Xóa',
+      cancelText: 'Hủy bỏ',
+      confirmButtonType: 'danger'
+    });
+
+    if (confirmed) {
       try {
+        confirmModal.setLoadingState(true);
         const success = await UserService.deleteUser(id);
         if (success) {
-          setUsers(users.filter(user => user.id !== id));
+          // Reload data
+          await loadUsers();
         }
       } catch (error) {
         console.error('Error deleting user:', error);
+      } finally {
+        confirmModal.setLoadingState(false);
       }
     }
   };
@@ -221,5 +237,8 @@ export const useUsers = () => {
     setFilterGender,
     setFilterRole,
     setSearchQuery,
+
+    // Confirm modal
+    confirmModal,
   };
 };

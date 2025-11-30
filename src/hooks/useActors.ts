@@ -2,9 +2,11 @@ import { useState, useEffect, useMemo } from 'react';
 import { Actor, FilterGender, SortBy } from '@/types/Actor';
 import { ActorService } from '@/services/ActorService';
 import { filterActorsByQuery, sortActors } from '@/utils/actorUtils';
+import { useConfirmModal } from './useConfirmModal';
 
 export const useActors = () => {
   const [actors, setActors] = useState<Actor[]>([]);
+  const [totalActorsCount, setTotalActorsCount] = useState(0);
   const [movieCounts, setMovieCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -20,26 +22,31 @@ export const useActors = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // Confirm modal
+  const confirmModal = useConfirmModal();
+
+  // Load actors function
+  const loadActors = async () => {
+    try {
+      setLoading(true);
+      const actorsData = await ActorService.getAllActors();
+      setActors(actorsData);
+      
+      // Load movie counts for each actor
+      const counts: Record<string, number> = {};
+      for (const actor of actorsData) {
+        counts[actor.id] = await ActorService.getMovieCountByActor(actor.id);
+      }
+      setMovieCounts(counts);
+    } catch (error) {
+      console.error('Error loading actors:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Load actors on mount
   useEffect(() => {
-    const loadActors = async () => {
-      try {
-        const actorsData = await ActorService.getAllActors();
-        setActors(actorsData);
-        
-        // Load movie counts for each actor
-        const counts: Record<string, number> = {};
-        for (const actor of actorsData) {
-          counts[actor.id] = await ActorService.getMovieCountByActor(actor.id);
-        }
-        setMovieCounts(counts);
-      } catch (error) {
-        console.error('Error loading actors:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     loadActors();
   }, []);
 
@@ -93,16 +100,25 @@ export const useActors = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Bạn có chắc chắn muốn xóa diễn viên này?')) {
+    const confirmed = await confirmModal.openConfirm({
+      title: 'Xóa diễn viên',
+      message: 'Bạn có chắc chắn muốn xóa diễn viên này? Hành động này không thể hoàn tác.',
+      confirmText: 'Xóa',
+      cancelText: 'Hủy bỏ',
+      confirmButtonType: 'danger'
+    });
+
+    if (confirmed) {
       try {
+        confirmModal.setLoadingState(true);
         await ActorService.deleteActor(id);
-        setActors(actors.filter(actor => actor.id !== id));
-        // Remove from movieCounts
-        const newMovieCounts = { ...movieCounts };
-        delete newMovieCounts[id];
-        setMovieCounts(newMovieCounts);
+        
+        // Reload current page data
+        await loadActors();
       } catch (error) {
         console.error('Error deleting actor:', error);
+      } finally {
+        confirmModal.setLoadingState(false);
       }
     }
   };
@@ -199,5 +215,8 @@ export const useActors = () => {
     handleClearFilters, // THÊM MỚI
     setFilterGender,
     setSearchQuery,
+
+    // Confirm modal
+    confirmModal,
   };
 };

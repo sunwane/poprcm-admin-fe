@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { Country } from '@/types/Country';
 import { CountryService } from '@/services/CountryService';
 import { filterCountriesByName, sortCountries } from '@/utils/countryUtils';
+import { useConfirmModal } from './useConfirmModal';
+import { useDebounce } from './useDebounce';
 
 interface NotificationState {
   isVisible: boolean;
@@ -22,6 +24,9 @@ export const useCountries = () => {
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Confirm modal
+  const confirmModal = useConfirmModal();
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Sync states
@@ -32,27 +37,29 @@ export const useCountries = () => {
     type: 'info'
   });
 
+  // Load countries function
+  const loadCountries = async () => {
+    try {
+      setLoading(true);
+      const countriesData = await CountryService.getAllCountries();
+      
+      setCountries(countriesData);
+      
+      // Load movie counts for each country
+      const counts: Record<string, number> = {};
+      for (const country of countriesData) {
+        counts[country.id] = await CountryService.getMovieCountByCountry(country.id);
+      }
+      setMovieCounts(counts);
+    } catch (error) {
+      console.error('Error loading countries:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Load countries on mount
   useEffect(() => {
-    const loadCountries = async () => {
-      try {
-        const countriesData = await CountryService.getAllCountries();
-        
-        setCountries(countriesData);
-        
-        // Load movie counts for each country
-        const counts: Record<string, number> = {};
-        for (const country of countriesData) {
-          counts[country.id] = await CountryService.getMovieCountByCountry(country.id);
-        }
-        setMovieCounts(counts);
-      } catch (error) {
-        console.error('Error loading countries:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     loadCountries();
   }, []);
 
@@ -125,16 +132,25 @@ export const useCountries = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Bạn có chắc chắn muốn xóa quốc gia này?')) {
+    const confirmed = await confirmModal.openConfirm({
+      title: 'Xóa quốc gia',
+      message: 'Bạn có chắc chắn muốn xóa quốc gia này? Hành động này không thể hoàn tác.',
+      confirmText: 'Xóa',
+      cancelText: 'Hủy bỏ',
+      confirmButtonType: 'danger'
+    });
+
+    if (confirmed) {
       try {
+        confirmModal.setLoadingState(true);
         await CountryService.deleteCountry(id);
-        setCountries(countries.filter(country => country.id !== id));
-        // Remove from movieCounts
-        const newMovieCounts = { ...movieCounts };
-        delete newMovieCounts[id];
-        setMovieCounts(newMovieCounts);
+        
+        // Reload data
+        await loadCountries();
       } catch (error) {
         console.error('Error deleting country:', error);
+      } finally {
+        confirmModal.setLoadingState(false);
       }
     }
   };
@@ -153,22 +169,27 @@ export const useCountries = () => {
     try {
       if (editingCountry) {
         // Update existing country
-        const updatedCountry = await CountryService.updateCountry(editingCountry.id, countryData);
-        if (updatedCountry) {
-          setCountries(countries.map(country => 
-            country.id === editingCountry.id ? updatedCountry : country
-          ));
-        }
+        console.log('Updating country:', editingCountry.id, countryData);
+        await CountryService.updateCountry(editingCountry.id, countryData);
       } else {
         // Add new country
-        const newCountry = await CountryService.addCountry(countryData as Omit<Country, 'id'>);
-        setCountries([...countries, newCountry]);
-        // Initialize movie count for new country
-        setMovieCounts(prev => ({ ...prev, [newCountry.id]: 0 }));
+        console.log('Adding new country:', countryData);
+        await CountryService.addCountry(countryData as Omit<Country, 'id'>);
       }
+
+      // Reload toàn bộ dữ liệu từ server để đảm bảo tính nhất quán
+      console.log('Reloading countries...');
+      await loadCountries();
+      
+      showNotification(
+        editingCountry ? 'Cập nhật quốc gia thành công!' : 'Thêm quốc gia thành công!',
+        'success'
+      );
+
       handleCloseModal();
     } catch (error) {
       console.error('Error saving country:', error);
+      showNotification('Có lỗi xảy ra khi lưu quốc gia', 'error');
     }
   };
 
@@ -280,5 +301,8 @@ export const useCountries = () => {
     showNotification,
     hideNotification,
     syncCountries,
+
+    // Confirm modal
+    confirmModal,
   };
 };

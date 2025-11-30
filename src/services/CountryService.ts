@@ -35,15 +35,11 @@ export class CountryService {
       const apiResponse: ApiResponse<Country[]> = await response.json();
       if (apiResponse.result && Array.isArray(apiResponse.result)) {
         this.countries = apiResponse.result;
-        console.info('Countries loaded from API:', this.countries);
         this.isDataLoaded = true;
       }
       
     } catch (error) {
       console.warn('Failed to load countries from API, using mock data:', error);
-      // Fallback to mock data nếu API fail
-      this.countries = [...mockCountries];
-      this.isDataLoaded = true;
     }
   }
 
@@ -59,39 +55,106 @@ export class CountryService {
     return this.countries.find(country => country.id === id) || null;
   }
 
-  // Thêm quốc gia mới (chỉ local - không gửi lên API)
-  static async addCountry(countryData: Omit<Country, 'id'>): Promise<Country> {
-    await this.loadCountriesFromApi();
-    
-    const newCountry: Country = {
-      id: (Math.max(...this.countries.map(c => Number(c.id)), 0) + 1).toString(),
-      ...countryData
-    };
-    
-    this.countries.push(newCountry);
-    return newCountry;
+    static async addCountry(countryData: Omit<Country, 'id'>): Promise<Country> {
+    if (!this.isServiceAvailable()) {
+      console.info('API not available, adding country locally');
+      await this.loadCountriesFromApi();
+      const newCountry: Country = {
+        id: (this.countries.length + 1).toString(),
+        ...countryData
+      };
+      this.countries.push(newCountry);
+      return newCountry;
+    }
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`${this.API_BASE_URL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(countryData)
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const newCountry: Country = await response.json();
+      // Refresh cache sau khi thêm thành công
+      this.isDataLoaded = false;
+      this.countries = [];
+      return newCountry;
+    } catch (error) {
+      console.warn('Failed to add country via API, falling back to local add:', error);
+      throw error;
+    }
   }
 
-  // Cập nhật quốc gia (chỉ local)
   static async updateCountry(id: string, countryData: Partial<Country>): Promise<Country | null> {
-    await this.loadCountriesFromApi();
+    if (!this.isServiceAvailable()) {
+      console.info('API not available, updating country locally');
+      await this.loadCountriesFromApi();
     
-    const index = this.countries.findIndex(country => country.id === id);
-    if (index === -1) return null;
-    
-    this.countries[index] = { ...this.countries[index], ...countryData };
-    return this.countries[index];
+      const index = this.countries.findIndex(country => country.id === id);
+      if (index === -1) return null;
+      
+      this.countries[index] = { ...this.countries[index], ...countryData };
+      return this.countries[index];
+    }
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`${this.API_BASE_URL}/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(countryData)
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const updatedCountry: Country = await response.json();
+      // Refresh cache sau khi cập nhật thành công
+      this.isDataLoaded = false;
+      this.countries = [];
+      return updatedCountry;
+    } catch (error) {
+      console.warn('Failed to update country via API, falling back to local update:', error);
+      throw error;
+    }
   }
 
   // Xóa quốc gia (chỉ local)
   static async deleteCountry(id: string): Promise<boolean> {
-    await this.loadCountriesFromApi();
-    
-    const index = this.countries.findIndex(country => country.id === id);
-    if (index === -1) return false;
-    
-    this.countries.splice(index, 1);
-    return true;
+    if (!this.isServiceAvailable()) {
+      console.info('API not available, deleting country locally');
+      await this.loadCountriesFromApi();
+      const initialLength = this.countries.length;
+      this.countries = this.countries.filter(country => country.id !== id);
+      return this.countries.length < initialLength;
+    }
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`${this.API_BASE_URL}/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // Refresh cache sau khi xóa thành công
+      this.isDataLoaded = false;
+      this.countries = [];
+      return true;
+    } catch (error) {
+      console.warn('Failed to delete country via API, falling back to local delete:', error);
+      throw error;
+    }
   }
 
   // Kiểm tra tên quốc gia đã tồn tại

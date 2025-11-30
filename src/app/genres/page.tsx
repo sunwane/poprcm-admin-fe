@@ -198,8 +198,8 @@ export default function Genres() {
                     <div className="font-medium text-gray-800">{genre.genresName}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-sm font-medium ${getMovieCountColor(movieCounts[genre.id] || 0)}`}>
-                      {movieCounts[genre.id] || 0}
+                    <span className={`px-2 py-1 rounded-full text-sm font-medium ${getMovieCountColor(genre.movieCount || 0)}`}>
+                      {genre.movieCount || 0}
                     </span>
                   </td>
                   <td className="px-6 py-4">

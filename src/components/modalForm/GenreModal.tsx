@@ -8,11 +8,12 @@ interface GenreModalProps {
   isOpen: boolean;
   editingGenre: Genre | null;
   onClose: () => void;
-  onSave: (genreData: Partial<Genre>) => void;
+  onSave: (genreData: Partial<Genre> & { id?: string }) => void;
 }
 
 export default function GenreModal({ isOpen, editingGenre, onClose, onSave }: GenreModalProps) {
   const [formData, setFormData] = useState({
+    id: '',
     genresName: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -23,10 +24,12 @@ export default function GenreModal({ isOpen, editingGenre, onClose, onSave }: Ge
     if (isOpen) {
       if (editingGenre) {
         setFormData({
+          id: editingGenre.id,
           genresName: editingGenre.genresName,
         });
       } else {
         setFormData({
+          id: '',
           genresName: '',
         });
       }
@@ -78,9 +81,11 @@ export default function GenreModal({ isOpen, editingGenre, onClose, onSave }: Ge
       }
 
       const genreData = {
+        id: formData.id.trim() || undefined, // Use provided ID or undefined for auto-generation
         genresName: formatGenreName(formData.genresName.trim()),
       };
 
+      console.log('Submitting genre data:', genreData);
       onSave(genreData);
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -118,6 +123,29 @@ export default function GenreModal({ isOpen, editingGenre, onClose, onSave }: Ge
         </div>
 
         <form onSubmit={handleSubmit}>
+          {/* Genre ID Field - Show for both create and edit */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              ID thể loại <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="id"
+              placeholder={editingGenre ? "Nhập ID thể loại..." : "Nhập ID thể loại hoặc để trống"}
+              value={formData.id}
+              onChange={handleInputChange}
+              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm ${
+                errors.id ? 'border-red-500' : 'border-gray-300'
+              }`}
+              disabled={isSubmitting}
+            />
+            {errors.id && (
+              <div className="mt-2 text-red-600 text-sm">
+                {errors.id}
+              </div>
+            )}
+          </div>
+
           {/* Genre Name Field */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">

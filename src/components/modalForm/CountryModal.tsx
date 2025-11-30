@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Country } from '@/types/Country';
-import { validateCountryName, formatCountryName } from '@/utils/countryUtils';
+import { validateCountryName } from '@/utils/countryUtils';
 import { CountryService } from '@/services/CountryService';
 import GradientButton from '@/components/ui/GradientButton';
 
@@ -13,7 +13,7 @@ interface CountryModalProps {
 
 export default function CountryModal({ isOpen, editingCountry, onClose, onSave }: CountryModalProps) {
   const [formData, setFormData] = useState({
-    countryName: '',
+    name: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -23,11 +23,11 @@ export default function CountryModal({ isOpen, editingCountry, onClose, onSave }
     if (isOpen) {
       if (editingCountry) {
         setFormData({
-          countryName: editingCountry.countryName,
+          name: editingCountry.name,
         });
       } else {
         setFormData({
-          countryName: '',
+          name: '',
         });
       }
       setErrors({});
@@ -48,17 +48,17 @@ export default function CountryModal({ isOpen, editingCountry, onClose, onSave }
     const newErrors: Record<string, string> = {};
 
     // Validate country name
-    const nameValidation = validateCountryName(formData.countryName);
+    const nameValidation = validateCountryName(formData.name);
     if (!nameValidation.isValid) {
-      newErrors.countryName = nameValidation.error || 'Tên quốc gia không hợp lệ';
+      newErrors.name = nameValidation.error || 'Tên quốc gia không hợp lệ';
     } else {
       // Check if country name already exists
       const exists = await CountryService.checkCountryNameExists(
-        formData.countryName.trim(),
+        formData.name.trim(),
         editingCountry?.id
       );
       if (exists) {
-        newErrors.countryName = 'Tên quốc gia đã tồn tại';
+        newErrors.name = 'Tên quốc gia đã tồn tại';
       }
     }
 
@@ -78,7 +78,7 @@ export default function CountryModal({ isOpen, editingCountry, onClose, onSave }
       }
 
       const countryData = {
-        countryName: formatCountryName(formData.countryName.trim()),
+        name: formData.name.trim(),
       };
 
       onSave(countryData);
@@ -125,19 +125,19 @@ export default function CountryModal({ isOpen, editingCountry, onClose, onSave }
             </label>
             <input
               type="text"
-              name="countryName"
+              name="name"
               placeholder="Nhập tên quốc gia..."
-              value={formData.countryName}
+              value={formData.name}
               onChange={handleInputChange}
               className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm ${
-                errors.countryName ? 'border-red-500' : 'border-gray-300'
+                errors.name ? 'border-red-500' : 'border-gray-300'
               }`}
               required
               disabled={isSubmitting}
             />
-            {errors.countryName && (
+            {errors.name && (
               <div className="mt-2 text-red-600 text-sm">
-                {errors.countryName}
+                {errors.name}
               </div>
             )}
           </div>

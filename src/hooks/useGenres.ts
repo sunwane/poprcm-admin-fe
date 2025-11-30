@@ -32,28 +32,23 @@ export const useGenres = () => {
     type: 'info'
   });
 
+  // Load genres function
+  const loadGenres = async () => {
+    try {
+      setLoading(true);
+      const genresData = await GenresService.getAllGenres();
+      
+      console.log('Loaded genres:', genresData);
+      setGenres(genresData);
+    } catch (error) {
+      console.error('Error loading genres:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Load genres on mount
   useEffect(() => {
-    const loadGenres = async () => {
-      try {
-        const genresData = await GenresService.getAllGenres();
-        
-        // Kiểm tra xem có đang dùng API hay không (đơn giản)
-        setGenres(genresData);
-        
-        // Load movie counts for each genre
-        const counts: Record<string, number> = {};
-        for (const genre of genresData) {
-          counts[genre.id] = await GenresService.getMovieCountByGenre(genre.id);
-        }
-        setMovieCounts(counts);
-      } catch (error) {
-        console.error('Error loading genres:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     loadGenres();
   }, []);
 
@@ -154,24 +149,48 @@ export const useGenres = () => {
 
   const handleSaveGenre = async (genreData: Partial<Genre>) => {
     try {
+      console.log('Saving genre data:', genreData);
+
+      // Validate genresName
+      if (!genreData.id || genreData.id.trim() === '') {
+        showNotification('Từ khóa không được để trống', 'error');
+        return;
+      }
+      
+      // Validate genresName
+      if (!genreData.genresName || genreData.genresName.trim() === '') {
+        showNotification('Tên thể loại không được để trống', 'error');
+        return;
+      }
+      
       if (editingGenre) {
         // Update existing genre
-        const updatedGenre = await GenresService.updateGenre(editingGenre.id, genreData);
-        if (updatedGenre) {
-          setGenres(genres.map(genre => 
-            genre.id === editingGenre.id ? updatedGenre : genre
-          ));
-        }
+        console.log('Updating genre:', editingGenre.id, genreData);
+        await GenresService.updateGenre(editingGenre.id, genreData);
       } else {
         // Add new genre
-        const newGenre = await GenresService.addGenre(genreData as Omit<Genre, 'id'>);
-        setGenres([...genres, newGenre]);
-        // Initialize movie count for new genre
-        setMovieCounts(prev => ({ ...prev, [newGenre.id]: 0 }));
+        console.log('Adding new genre:', genreData);
+        const genreToAdd: Genre = {
+          id: genreData.id || 'temp-id-' + Date.now(),
+          genresName: genreData.genresName.trim(),
+        };
+        await GenresService.addGenre(genreToAdd);
       }
+      
+      // Reload toàn bộ dữ liệu từ server để đảm bảo tính nhất quán
+      console.log('Reloading genres...');
+      await loadGenres();
+      
+      // Show success notification
+      showNotification(
+        editingGenre ? 'Cập nhật thể loại thành công!' : 'Thêm thể loại thành công!',
+        'success'
+      );
+
       handleCloseModal();
     } catch (error) {
       console.error('Error saving genre:', error);
+      showNotification('Có lỗi xảy ra khi lưu thể loại', 'error');
     }
   };
 
@@ -220,13 +239,6 @@ export const useGenres = () => {
         // Refresh data after sync
         const newGenres = await GenresService.refreshGenresFromApi();
         setGenres(newGenres);
-        
-        // Reload movie counts
-        const counts: Record<string, number> = {};
-        for (const genre of newGenres) {
-          counts[genre.id] = await GenresService.getMovieCountByGenre(genre.id);
-        }
-        setMovieCounts(counts);
         
         return true;
       } else {

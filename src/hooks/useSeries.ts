@@ -10,6 +10,7 @@ import {
   SeriesSortBy,
   SortOrder
 } from '@/utils/seriesUtils';
+import { useConfirmModal } from './useConfirmModal';
 
 interface UseSeriesOptions {
   initialPage?: number;
@@ -37,6 +38,9 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
   
   // View state
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+
+  // Confirm modal
+  const confirmModal = useConfirmModal();
   
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -147,13 +151,24 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa series này?')) return;
+    const confirmed = await confirmModal.openConfirm({
+      title: 'Xóa series',
+      message: 'Bạn có chắc chắn muốn xóa series này? Hành động này không thể hoàn tác.',
+      confirmText: 'Xóa',
+      cancelText: 'Hủy bỏ',
+      confirmButtonType: 'danger'
+    });
+
+    if (!confirmed) return;
     
     try {
+      confirmModal.setLoadingState(true);
       await SeriesService.deleteSeries(id);
       await loadSeries(); // Reload data
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi xóa series');
+    } finally {
+      confirmModal.setLoadingState(false);
     }
   };
 
@@ -201,27 +216,45 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
       }
 
       if (movieIds && movieIds.length > 0) {
-        confirm('Bạn có chắc chắn muốn thêm các phim đã chọn vào series này?');
-        console.log('Adding movies to series:', movieIds);
-        movieIds.forEach(async (movieId) => {
-          const addingMoviesResult = await SeriesService.addMovieToSeries(savedSeries.id, movieId);
-
-          if (!addingMoviesResult.success) {
-            console.warn('Adding movie to series failed:', addingMoviesResult.message);
-          }
+        const confirmAdd = await confirmModal.openConfirm({
+          title: 'Thêm phim vào series',
+          message: `Bạn có chắc chắn muốn thêm ${movieIds.length} phim đã chọn vào series này?`,
+          confirmText: 'Thêm phim',
+          cancelText: 'Hủy bỏ',
+          confirmButtonType: 'primary'
         });
+        
+        if (confirmAdd) {
+          console.log('Adding movies to series:', movieIds);
+          movieIds.forEach(async (movieId) => {
+            const addingMoviesResult = await SeriesService.addMovieToSeries(savedSeries.id, movieId);
+
+            if (!addingMoviesResult.success) {
+              console.warn('Adding movie to series failed:', addingMoviesResult.message);
+            }
+          });
+        }
       }
 
       if (removedMovieIds && removedMovieIds.length > 0) {
-        confirm('Bạn có chắc chắn muốn xóa các phim đã chọn khỏi series này?');
-        console.log('Removing movies from series:', removedMovieIds);
-        removedMovieIds.forEach(async (removedMovieId) => {
-          const addingMoviesResult = await SeriesService.removeMovieFromSeries(savedSeries.id, removedMovieId);
-
-          if (!addingMoviesResult.success) {
-            console.warn('Adding movie to series failed:', addingMoviesResult.message);
-          }
+        const confirmRemove = await confirmModal.openConfirm({
+          title: 'Xóa phim khỏi series',
+          message: `Bạn có chắc chắn muốn xóa ${removedMovieIds.length} phim đã chọn khỏi series này?`,
+          confirmText: 'Xóa phim',
+          cancelText: 'Hủy bỏ',
+          confirmButtonType: 'warning'
         });
+        
+        if (confirmRemove) {
+          console.log('Removing movies from series:', removedMovieIds);
+          removedMovieIds.forEach(async (removedMovieId) => {
+            const removingMoviesResult = await SeriesService.removeMovieFromSeries(savedSeries.id, removedMovieId);
+
+            if (!removingMoviesResult.success) {
+              console.warn('Removing movie from series failed:', removingMoviesResult.message);
+            }
+          });
+        }
       }
       
       await loadSeries(); // Reload data
@@ -264,13 +297,24 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
 
   // Bulk operations
   const handleBulkDelete = async (ids: string[]) => {
-    if (!confirm(`Bạn có chắc chắn muốn xóa ${ids.length} series đã chọn?`)) return;
+    const confirmed = await confirmModal.openConfirm({
+      title: 'Xóa nhiều series',
+      message: `Bạn có chắc chắn muốn xóa ${ids.length} series đã chọn? Hành động này không thể hoàn tác.`,
+      confirmText: 'Xóa tất cả',
+      cancelText: 'Hủy bỏ',
+      confirmButtonType: 'danger'
+    });
+
+    if (!confirmed) return;
     
     try {
+      confirmModal.setLoadingState(true);
       await SeriesService.bulkDeleteSeries(ids);
       await loadSeries();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi xóa series');
+    } finally {
+      confirmModal.setLoadingState(false);
     }
   };
 
@@ -391,6 +435,9 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
     
     // Utils
     refreshData,
-    setError
+    setError,
+
+    // Confirm modal
+    confirmModal
   };
 };

@@ -18,6 +18,7 @@ import AutoImportModal from '@/components/modalForm/AutoImportModal';
 import SearchBar from '@/components/ui/SearchBar';
 import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 import ToggleButton from '@/components/ui/ToggleButton';
 import MoviesCard from '@/components/feature/movies/MoviesCard';
 import MovieStatsCard from '@/components/feature/movies/MovieStatsCard';
@@ -67,6 +68,7 @@ export default function Movies() {
     selectedMovie,
     openDetailModal,
     closeDetailModal,
+    confirmModal,
   } = useMovies();
 
   const handleOpenAutoImport = (mode: 'import' | 'update') => {
@@ -482,6 +484,19 @@ export default function Movies() {
         isOpen={isDetailModalOpen}
         movie={selectedMovie}
         onClose={closeDetailModal}
+      />
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.options.title}
+        message={confirmModal.options.message}
+        confirmText={confirmModal.options.confirmText}
+        cancelText={confirmModal.options.cancelText}
+        confirmButtonType={confirmModal.options.confirmButtonType}
+        onConfirm={confirmModal.handleConfirm}
+        onCancel={confirmModal.handleCancel}
+        isLoading={confirmModal.isLoading}
       />
     </div>
   );

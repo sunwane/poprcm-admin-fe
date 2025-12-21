@@ -106,8 +106,67 @@ export class ActorService {
 
   // Get all actors
   static async getAllActors(): Promise<Actor[]> {
-    await this.loadActorsData();
-    return [...this.actors];
+    if (!this.isServiceAvailable()) {
+      console.info('API not available, using mock data');
+      this.actors = [...mockActors];
+      this.isDataLoaded = true;
+      return [...this.actors];
+    }
+
+    // Load all actors by paginating through all pages
+    try {
+      const authToken = localStorage.getItem('authToken');
+      
+      // First, get the total count
+      const firstResponse = await fetch(`${this.API_BASE_URL}?page=0&size=1`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!firstResponse.ok) {
+        throw new Error(`HTTP error! status: ${firstResponse.status}`);
+      }
+
+      const firstApiResponse = await firstResponse.json();
+      const totalElements = firstApiResponse.result?.totalElements || 0;
+            
+      // Now load all actors with a large page size
+      const response = await fetch(`${this.API_BASE_URL}?page=0&size=${Math.max(totalElements, 5000)}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const apiResponse = await response.json();
+      
+      if (apiResponse.result && apiResponse.result.content && Array.isArray(apiResponse.result.content)) {
+        const mappedActors = apiResponse.result.content.map((actorResponse: any) => 
+          this.mapActorResponseToActor(actorResponse)
+        );
+        
+        this.actors = mappedActors;
+        this.isDataLoaded = true;
+        
+        return [...this.actors];
+      } else {
+        throw new Error('Invalid API response structure');
+      }
+    } catch (error) {
+      console.error('Error loading all actors from API:', error);
+      console.info('Falling back to mock data');
+      this.actors = [...mockActors];
+      this.isDataLoaded = true;
+      return [...this.actors];
+    }
   }
 
   // Get actor by ID

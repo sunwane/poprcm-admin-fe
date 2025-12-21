@@ -215,47 +215,8 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
         }
       }
 
-      if (movieIds && movieIds.length > 0) {
-        const confirmAdd = await confirmModal.openConfirm({
-          title: 'Thêm phim vào series',
-          message: `Bạn có chắc chắn muốn thêm ${movieIds.length} phim đã chọn vào series này?`,
-          confirmText: 'Thêm phim',
-          cancelText: 'Hủy bỏ',
-          confirmButtonType: 'primary'
-        });
-        
-        if (confirmAdd) {
-          console.log('Adding movies to series:', movieIds);
-          movieIds.forEach(async (movieId) => {
-            const addingMoviesResult = await SeriesService.addMovieToSeries(savedSeries.id, movieId);
-
-            if (!addingMoviesResult.success) {
-              console.warn('Adding movie to series failed:', addingMoviesResult.message);
-            }
-          });
-        }
-      }
-
-      if (removedMovieIds && removedMovieIds.length > 0) {
-        const confirmRemove = await confirmModal.openConfirm({
-          title: 'Xóa phim khỏi series',
-          message: `Bạn có chắc chắn muốn xóa ${removedMovieIds.length} phim đã chọn khỏi series này?`,
-          confirmText: 'Xóa phim',
-          cancelText: 'Hủy bỏ',
-          confirmButtonType: 'warning'
-        });
-        
-        if (confirmRemove) {
-          console.log('Removing movies from series:', removedMovieIds);
-          removedMovieIds.forEach(async (removedMovieId) => {
-            const removingMoviesResult = await SeriesService.removeMovieFromSeries(savedSeries.id, removedMovieId);
-
-            if (!removingMoviesResult.success) {
-              console.warn('Removing movie from series failed:', removingMoviesResult.message);
-            }
-          });
-        }
-      }
+      // Note: Movie additions/removals are already handled in SeriesService.addSeries/updateSeries
+      // No need to call addMovieToSeries/removeMovieFromSeries again here
       
       await loadSeries(); // Reload data
       handleCloseModal();

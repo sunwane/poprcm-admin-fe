@@ -9,7 +9,7 @@ interface SeriesModalProps {
   isOpen: boolean;
   editingSeries: Series | null;
   onClose: () => void;
-  onSave: (seriesData: Omit<Series, 'id'>, posterFile?: File) => Promise<void>;
+  onSave: (seriesData: Omit<Series, 'id'>, posterFile?: File, movieIds?: string[], removedMovieIds?: string[]) => Promise<void>;
 }
 
 const SeriesModal: React.FC<SeriesModalProps> = ({
@@ -63,6 +63,40 @@ const SeriesModal: React.FC<SeriesModalProps> = ({
     setErrors(prev => ({ ...prev, submit: undefined }));
 
     try {
+      // Helper function to validate and clean movie IDs
+      const validateMovieIds = (seriesMovies: any[]): string[] => {
+        return (seriesMovies || [])
+          .map(sm => sm.movieId?.toString())
+          .filter(Boolean)
+          .filter(id => id && id !== 'undefined' && id !== 'null' && id.trim() !== '');
+      };
+
+      // Calculate movie changes if editing existing series
+      let movieIds: string[] | undefined;
+      let removedMovieIds: string[] | undefined;
+
+      if (editingSeries) {
+        // Get original movies from existing series (what's currently in the database)
+        const originalSeriesMovies = editingSeries.seriesMovies || [];
+        const originalMovieIds = validateMovieIds(originalSeriesMovies);
+        
+        // Get new movies from form data (what user wants the series to have)
+        const newSeriesMovies = formData.seriesMovies || [];
+        const newMovieIds = validateMovieIds(newSeriesMovies);
+        
+        // Movies to ADD: in new list but NOT in original list
+        const movieIdsToAdd = newMovieIds.filter(id => !originalMovieIds.includes(id));
+        movieIds = movieIdsToAdd.length > 0 ? movieIdsToAdd : undefined;
+        
+        // Movies to REMOVE: in original list but NOT in new list  
+        const movieIdsToRemove = originalMovieIds.filter(id => !newMovieIds.includes(id));
+        removedMovieIds = movieIdsToRemove.length > 0 ? movieIdsToRemove : undefined;
+      } else {
+        // For new series, all movies are additions
+        const newMovieIds = validateMovieIds(formData.seriesMovies || []);
+        movieIds = newMovieIds.length > 0 ? newMovieIds : undefined;
+      }
+
       await onSave({
         name: formData.name.trim(),
         description: formData.description.trim(),
@@ -70,7 +104,7 @@ const SeriesModal: React.FC<SeriesModalProps> = ({
         releaseYear: formData.releaseYear,
         posterUrl: formData.posterUrl.trim(),
         seriesMovies: formData.seriesMovies
-      }, posterFile || undefined);
+      }, posterFile || undefined, movieIds, removedMovieIds);
     } catch (error) {
       setErrors(prev => ({ 
         ...prev, 

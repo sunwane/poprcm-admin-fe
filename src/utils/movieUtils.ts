@@ -10,69 +10,47 @@ export const formatDuration = (duration: string): string => {
   return duration.trim();
 };
 
-// Validate movie title
+// Validate movie title - simplified
 export const validateMovieTitle = (title: string): { isValid: boolean; error?: string } => {
   if (!title || title.trim().length === 0) {
     return { isValid: false, error: 'Tên phim không được để trống' };
   }
   
-  if (title.trim().length < 2) {
-    return { isValid: false, error: 'Tên phim phải có ít nhất 2 ký tự' };
-  }
-  
-  if (title.trim().length > 200) {
-    return { isValid: false, error: 'Tên phim không được vượt quá 200 ký tự' };
+  if (title.trim().length > 500) {
+    return { isValid: false, error: 'Tên phim quá dài' };
   }
   
   return { isValid: true };
 };
 
-// Validate original name
+// Validate original name - simplified (optional)
 export const validateOriginalName = (originalName: string): { isValid: boolean; error?: string } => {
-  if (!originalName || originalName.trim().length === 0) {
-    return { isValid: false, error: 'Tên gốc không được để trống' };
-  }
-  
-  if (originalName.trim().length < 2) {
-    return { isValid: false, error: 'Tên gốc phải có ít nhất 2 ký tự' };
-  }
-  
-  if (originalName.trim().length > 200) {
-    return { isValid: false, error: 'Tên gốc không được vượt quá 200 ký tự' };
+  // Tên gốc không bắt buộc
+  if (originalName && originalName.trim().length > 500) {
+    return { isValid: false, error: 'Tên gốc quá dài' };
   }
   
   return { isValid: true };
 };
 
-// Validate release year
+// Validate release year - relaxed
 export const validateReleaseYear = (year: number): { isValid: boolean; error?: string } => {
-  const currentYear = new Date().getFullYear();
-  
   if (!year || isNaN(year)) {
     return { isValid: false, error: 'Năm phát hành không hợp lệ' };
   }
   
-  if (year < 1900) {
-    return { isValid: false, error: 'Năm phát hành không được nhỏ hơn 1900' };
-  }
-  
-  if (year > currentYear + 5) {
-    return { isValid: false, error: `Năm phát hành không được lớn hơn ${currentYear + 5}` };
+  if (year < 1800 || year > 2100) {
+    return { isValid: false, error: 'Năm phát hành không hợp lệ' };
   }
   
   return { isValid: true };
 };
 
-// Validate total episodes for series
+// Validate total episodes - simplified
 export const validateTotalEpisodes = (totalEpisodes: number | undefined, type: string): { isValid: boolean; error?: string } => {
-  if (type === 'Series' || type === 'Phim bộ') {
-    if (!totalEpisodes || totalEpisodes < 1) {
-      return { isValid: false, error: 'Phim bộ phải có ít nhất 1 tập' };
-    }
-    
-    if (totalEpisodes > 10000) {
-      return { isValid: false, error: 'Số tập không được vượt quá 10000' };
-    }
+  // Chỉ validate khi là series và có nhập totalEpisodes
+  if ((type === 'series' || type === 'Series') && totalEpisodes && totalEpisodes < 1) {
+    return { isValid: false, error: 'Số tập phải lớn hơn 0' };
   }
   
   return { isValid: true };

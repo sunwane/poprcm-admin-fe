@@ -55,9 +55,19 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
     actorSearchQuery,
     setActorSearchQuery,
     filteredActors,
+    paginatedActors,
     handleAddActor,
     handleRemoveActor,
     handleUpdateCharacterName,
+
+    // Actor pagination
+    actorCurrentPage,
+    actorItemsPerPage,
+    totalActorPages,
+    handleActorPageChange,
+
+    // Options
+    actors,
 
     // Episode management
     handleAddEpisode,
@@ -73,7 +83,7 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
     e.preventDefault();
     
     // Must have basic info, countries, and genres to save
-    const hasBasicInfo = formData.title.trim() && formData.originalName.trim() && formData.description.trim();
+    const hasBasicInfo = formData.title.trim() && formData.slug.trim() && formData.originalName.trim() && formData.description.trim();
     const hasCountries = formData.selectedCountries.length > 0;
     const hasGenres = formData.selectedGenres.length > 0;
     
@@ -81,6 +91,30 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
     
     if (!canSaveMovie) {
       return;
+    }
+    
+    // Check for actors without TMDB ID
+    const actorsWithoutTmdbId = formData.selectedActors.filter(selectedActor => {
+      const actor = actors.find(a => a.id === selectedActor.actorId);
+      return actor && !actor.tmdbId;
+    });
+
+    if (actorsWithoutTmdbId.length > 0) {
+      const actorNames = actorsWithoutTmdbId.map(selectedActor => {
+        const actor = actors.find(a => a.id === selectedActor.actorId);
+        return actor?.originName;
+      }).filter(Boolean);
+      
+      const shouldContinue = window.confirm(
+        `Cảnh báo: ${actorsWithoutTmdbId.length} diễn viên không có TMDB ID có thể gây lỗi khi lưu:\n\n` +
+        `${actorNames.join(', ')}\n\n` +
+        `Bạn có muốn tiếp tục lưu không?`
+      );
+      
+      if (!shouldContinue) {
+        setActiveTab('actors');
+        return;
+      }
     }
     
     if (!validateForm()) {
@@ -94,6 +128,7 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
     try {
       const movieData = {
         title: formData.title.trim(),
+        slug: formData.slug.trim(),
         originalName: formData.originalName.trim(),
         description: formData.description.trim(),
         releaseYear: formData.releaseYear,
@@ -114,6 +149,18 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
         episodes: formData.episodes
       };
 
+      console.log('🔍 MovieModal sending data:', {
+        selectedActors: formData.selectedActors,
+        actorsData: formData.selectedActors.map(a => ({
+          id: a.id,
+          actorId: a.actorId,
+          actorIdType: typeof a.actorId,
+          actorObject: a.actor,
+          actorObjectId: a.actor?.id,
+          characterName: a.characterName
+        }))
+      });
+
       onSave(movieData);
     } catch (error) {
       setErrors(prev => ({ 
@@ -133,7 +180,7 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
 
   // Handle next tab navigation
   const handleNextTab = () => {
-    const hasBasicInfo = formData.title.trim() && formData.originalName.trim() && formData.description.trim();
+    const hasBasicInfo = formData.title.trim() && formData.slug.trim() && formData.originalName.trim() && formData.description.trim();
     const hasCountries = formData.selectedCountries.length > 0;
     const hasGenres = formData.selectedGenres.length > 0;
 
@@ -275,7 +322,8 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
 
                 {activeTab === 'actors' && (
                   <MovieActorsForm
-                    actors={filteredActors}
+                    actors={paginatedActors}
+                    allActors={actors}
                     selectedActors={formData.selectedActors}
                     actorSearchTerm={actorSearchQuery}
                     isProcessing={isSubmitting}
@@ -288,6 +336,11 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                     }}
                     onRemoveActor={handleRemoveActor}
                     onUpdateCharacterName={handleUpdateCharacterName}
+                    currentPage={actorCurrentPage}
+                    itemsPerPage={actorItemsPerPage}
+                    totalPages={totalActorPages}
+                    totalItems={filteredActors.length}
+                    onPageChange={handleActorPageChange}
                   />
                 )}
 
@@ -342,7 +395,7 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                   <div className="flex items-center space-x-4">
                     {/* Next Tab Button */}
                     {(() => {
-                      const hasBasicInfo = formData.title.trim() && formData.originalName.trim() && formData.description.trim();
+                      const hasBasicInfo = formData.title.trim() && formData.slug.trim() && formData.originalName.trim() && formData.description.trim();
                       const hasCountries = formData.selectedCountries.length > 0;
                       const hasGenres = formData.selectedGenres.length > 0;
                       
@@ -377,13 +430,13 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                     {/* Warning Message */}
                     <div className="text-sm text-blue-500">
                       {(() => {
-                        const hasBasicInfo = formData.title.trim() && formData.originalName.trim() && formData.description.trim();
+                        const hasBasicInfo = formData.title.trim() && formData.slug.trim() && formData.originalName.trim() && formData.description.trim();
                         const hasCountries = formData.selectedCountries.length > 0;
                         const hasGenres = formData.selectedGenres.length > 0;
                         const canSaveMovie = hasBasicInfo && hasCountries && hasGenres;
                         
                         if (!canSwitchTabs && activeTab === 'info') {
-                          return 'Nhập tên phim để mở khóa các tab khác';
+                          return 'Nhập tên phim và slug để mở khóa các tab khác';
                         }
                         
                         if (!canSaveMovie) {
@@ -414,7 +467,7 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                     <GradientButton 
                       onClick={handleSaveClick}
                       disabled={(() => {
-                        const hasBasicInfo = formData.title.trim() && formData.originalName.trim() && formData.description.trim();
+                        const hasBasicInfo = formData.title.trim() && formData.slug.trim() && formData.originalName.trim() && formData.description.trim();
                         const hasCountries = formData.selectedCountries.length > 0;
                         const hasGenres = formData.selectedGenres.length > 0;
                         const canSaveMovie = hasBasicInfo && hasCountries && hasGenres;

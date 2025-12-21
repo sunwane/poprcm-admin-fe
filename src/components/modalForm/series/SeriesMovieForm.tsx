@@ -97,8 +97,14 @@ const SeriesMovieForm: React.FC<SeriesMovieFormProps> = ({
                   />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-gray-800 truncate">{movie.title}</p>
-                    <p className="text-sm text-gray-500 truncate">{movie.originalName}</p>
-                    <p className="text-xs text-gray-400">{movie.releaseYear} • {movie.duration}</p>
+                    <p className="text-sm text-gray-500 truncate">
+                      {movie.originalName && movie.originalName !== movie.title ? movie.originalName : `Type: ${movie.type || 'Movie'}`}
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      {movie.releaseYear}
+                      {movie.duration && movie.duration.trim() !== '' && movie.duration !== 'N/A' ? ` • ${movie.duration}` : ''}
+                      {movie.status ? ` • ${movie.status}` : ''}
+                    </p>
                   </div>
                   <button className="text-blue-500 hover:text-blue-600 text-sm font-medium">
                     Thêm
@@ -137,7 +143,8 @@ const SeriesMovieForm: React.FC<SeriesMovieFormProps> = ({
           </div>
         ) : (
           <div className="space-y-2">
-            {seriesMovies.map((seriesMovie, index) => (
+            {seriesMovies.map((seriesMovie, index) => {
+              return (
               <div
                 key={seriesMovie.id}
                 draggable={!disabled}
@@ -181,13 +188,19 @@ const SeriesMovieForm: React.FC<SeriesMovieFormProps> = ({
                 {/* Movie Info */}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-800 truncate text-sm">
-                    {seriesMovie.movie?.title}
+                    {seriesMovie.movie?.title || `Movie ID: ${seriesMovie.movieId}`}
                   </p>
                   <p className="text-xs text-gray-500 truncate">
-                    {seriesMovie.movie?.originalName}
+                    {seriesMovie.movie?.originalName && seriesMovie.movie.originalName !== seriesMovie.movie.title 
+                      ? seriesMovie.movie.originalName 
+                      : `Type: ${seriesMovie.movie?.type || 'Movie'}`}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {seriesMovie.movie?.releaseYear} • {seriesMovie.movie?.duration}
+                    {seriesMovie.movie?.releaseYear || 'N/A'}
+                    {seriesMovie.movie?.duration && seriesMovie.movie.duration.trim() !== '' && seriesMovie.movie.duration !== 'N/A'
+                      ? ` • Duration: ${seriesMovie.movie.duration}` 
+                      : ''}
+                    {seriesMovie.movie?.status ? ` • ${seriesMovie.movie.status}` : ''}
                   </p>
                 </div>
 
@@ -204,7 +217,8 @@ const SeriesMovieForm: React.FC<SeriesMovieFormProps> = ({
                   </button>
                 )}
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>

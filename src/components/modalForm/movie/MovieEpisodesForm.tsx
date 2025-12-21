@@ -437,16 +437,6 @@ const MovieEpisodesForm: React.FC<MovieEpisodesFormProps> = ({
             </p>
           </div>
         )}
-
-        {/* Drag & Drop Instructions */}
-        {episodes.length > 1 && !editingEpisode && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-sm text-yellow-700">
-              💡 <strong>Mẹo:</strong> Kéo và thả các tập phim để sắp xếp lại thứ tự trong cùng server. 
-              Số tập phim sẽ được giữ nguyên theo số đã nhập và chỉ có thể di chuyển trong cùng server.
-            </p>
-          </div>
-        )}
       </div>
     </div>
   );

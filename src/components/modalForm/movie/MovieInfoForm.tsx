@@ -64,6 +64,26 @@ const MovieInfoForm: React.FC<MovieInfoFormProps> = ({
               )}
             </div>
 
+            {/* Slug */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Slug URL <span className="text-red-500">*</span>
+              </label>
+              <FormInput
+                name="slug"
+                value={formData.slug || ''}
+                onChange={(e) => onInputChange('slug', e.target.value)}
+                placeholder="zootopia-2025 (dùng cho URL)"
+                disabled={isProcessing}
+              />
+              {errors.slug && (
+                <p className="text-red-500 text-sm mt-1">{errors.slug}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Slug dùng làm URL định danh duy nhất cho phim (vd: zootopia-2025)
+              </p>
+            </div>
+
             {/* Release Year */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -111,25 +131,26 @@ const MovieInfoForm: React.FC<MovieInfoFormProps> = ({
               )}
             </div>
 
-            {/* Total Episodes (if series) */}
-            {formData.type === 'Series' && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Tổng số tập
-                </label>
-                <FormInput
-                  name="totalEpisodes"
-                  value={formData.totalEpisodes?.toString() || ''}
-                  onChange={(e) => onInputChange('totalEpisodes', parseInt(e.target.value) || undefined)}
-                  type="number"
-                  placeholder="24"
-                  disabled={isProcessing}
-                />
-                {errors.totalEpisodes && (
-                  <p className="text-red-500 text-sm mt-1">{errors.totalEpisodes}</p>
-                )}
-              </div>
-            )}
+            {/* Total Episodes */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Tổng số tập {formData.type === 'Series' && <span className="text-red-500">*</span>}
+              </label>
+              <FormInput
+                name="totalEpisodes"
+                value={formData.totalEpisodes?.toString() || ''}
+                onChange={(e) => onInputChange('totalEpisodes', parseInt(e.target.value) || undefined)}
+                type="number"
+                placeholder={formData.type === 'single' ? '1 (cho phim lẻ)' : '24 (cho series)'}
+                disabled={isProcessing}
+              />
+              {errors.totalEpisodes && (
+                <p className="text-red-500 text-sm mt-1">{errors.totalEpisodes}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                {formData.type === 'single' ? 'Phim lẻ thường là 1 tập' : 'Số tập dự kiến của series'}
+              </p>
+            </div>
 
             {/* Director */}
             <div>
@@ -260,7 +281,7 @@ const MovieInfoForm: React.FC<MovieInfoFormProps> = ({
                 </label>
                 <FormInput
                   name="tmdbScore"
-                  value={formData.tmdbScore?.toString() || ''}
+                  value={formData.tmdbScore?.toString() || '0'}
                   onChange={(e) => onInputChange('tmdbScore', parseFloat(e.target.value) || undefined)}
                   type="number"
                   placeholder="8.5"
@@ -275,7 +296,7 @@ const MovieInfoForm: React.FC<MovieInfoFormProps> = ({
                 </label>
                 <FormInput
                   name="imdbScore"
-                  value={formData.imdbScore?.toString() || ''}
+                  value={formData.imdbScore?.toString() || '0'}
                   onChange={(e) => onInputChange('imdbScore', parseFloat(e.target.value) || undefined)}
                   type="number"
                   placeholder="8.5"

@@ -2,6 +2,7 @@ import { Movie, MovieFilterRequest } from '@/types/Movies';
 import { mockMovies } from '@/mocksData/mockMovies';
 import { mockActors } from '@/mocksData/mockActors';
 import { mockMovieActors } from '@/mocksData/mockMovieActors';
+import MovieImportService from '@/services/MovieImportService';
 
 export class MoviesService {
   private static movies: Movie[] = [...mockMovies]; // Initialize with mock data
@@ -125,7 +126,6 @@ export class MoviesService {
         id: e.id,
         title: e.title || '',
         episodeNumber: e.episodeNumber || 0,
-        createdAt: new Date(e.createdAt || Date.now()),
         videoUrl: e.videoUrl || '',
         m3u8Url: e.m3u8Url,
         serverName: e.serverName || ''
@@ -162,6 +162,71 @@ export class MoviesService {
     return paginatedMovies;
   }
 
+  // Private helper for client-side filtering
+  private static applyClientSideFilter(movies: Movie[], filter?: MovieFilterRequest): Movie[] {
+    if (!filter) return movies;
+    
+    let filteredMovies = [...movies];
+    
+    // Apply filters
+    if (filter.types && filter.types.length > 0 && !filter.types.includes('all')) {
+      filteredMovies = filteredMovies.filter(movie => 
+        filter.types!.some((type: string) => movie.type.toLowerCase().includes(type.toLowerCase()))
+      );
+    }
+    
+    if (filter.statuses && filter.statuses.length > 0 && !filter.statuses.includes('all')) {
+      filteredMovies = filteredMovies.filter(movie => 
+        filter.statuses!.some((status: string) => movie.status.toLowerCase().includes(status.toLowerCase()))
+      );
+    }
+    
+    if (filter.languages && filter.languages.length > 0 && !filter.languages.includes('all')) {
+      filteredMovies = filteredMovies.filter(movie => 
+        filter.languages!.some((lang: string) => movie.lang.toLowerCase().includes(lang.toLowerCase()))
+      );
+    }
+    
+    if (filter.releaseYear) {
+      filteredMovies = filteredMovies.filter(movie => movie.releaseYear === filter.releaseYear);
+    }
+    
+    if (filter.genreIds && filter.genreIds.length > 0) {
+      filteredMovies = filteredMovies.filter(movie => 
+        movie.genres.some(genre => filter.genreIds!.includes(genre.id))
+      );
+    }
+    
+    if (filter.countryIds && filter.countryIds.length > 0) {
+      filteredMovies = filteredMovies.filter(movie => 
+        movie.country.some(country => filter.countryIds!.includes(country.id))
+      );
+    }
+    
+    // Apply sorting
+    if (filter.sortBy) {
+      filteredMovies.sort((a, b) => {
+        let aValue: any = a[filter.sortBy as keyof Movie];
+        let bValue: any = b[filter.sortBy as keyof Movie];
+        
+        // Handle special cases
+        if (filter.sortBy === 'views') {
+          aValue = a.view;
+          bValue = b.view;
+        } else if (filter.sortBy === 'updatedAt') {
+          aValue = a.modifiedAt;
+          bValue = b.modifiedAt;
+        }
+        
+        if (aValue < bValue) return filter.sortDirection === 'desc' ? 1 : -1;
+        if (aValue > bValue) return filter.sortDirection === 'desc' ? -1 : 1;
+        return 0;
+      });
+    }
+    
+    return filteredMovies;
+  }
+
   // Get movies with filter + pagination
   static async getMoviesWithFilter(
     filter?: MovieFilterRequest,
@@ -170,65 +235,7 @@ export class MoviesService {
   ): Promise<{ movies: Movie[]; totalElements: number; totalPages: number }> {
     if (!this.isServiceAvailable()) {
       // Fallback to mock data with client-side filtering
-      let filteredMovies = [...mockMovies];
-      
-      if (filter) {
-        // Apply filters
-        if (filter.types && filter.types.length > 0 && !filter.types.includes('all')) {
-          filteredMovies = filteredMovies.filter(movie => 
-            filter.types!.some((type: string) => movie.type.toLowerCase().includes(type.toLowerCase()))
-          );
-        }
-        
-        if (filter.statuses && filter.statuses.length > 0 && !filter.statuses.includes('all')) {
-          filteredMovies = filteredMovies.filter(movie => 
-            filter.statuses!.some((status: string) => movie.status.toLowerCase().includes(status.toLowerCase()))
-          );
-        }
-        
-        if (filter.languages && filter.languages.length > 0 && !filter.languages.includes('all')) {
-          filteredMovies = filteredMovies.filter(movie => 
-            filter.languages!.some((lang: string) => movie.lang.toLowerCase().includes(lang.toLowerCase()))
-          );
-        }
-        
-        if (filter.releaseYear) {
-          filteredMovies = filteredMovies.filter(movie => movie.releaseYear === filter.releaseYear);
-        }
-        
-        if (filter.genreIds && filter.genreIds.length > 0) {
-          filteredMovies = filteredMovies.filter(movie => 
-            movie.genres.some(genre => filter.genreIds!.includes(genre.id))
-          );
-        }
-        
-        if (filter.countryIds && filter.countryIds.length > 0) {
-          filteredMovies = filteredMovies.filter(movie => 
-            movie.country.some(country => filter.countryIds!.includes(country.id))
-          );
-        }
-        
-        // Apply sorting
-        if (filter.sortBy) {
-          filteredMovies.sort((a, b) => {
-            let aValue: any = a[filter.sortBy as keyof Movie];
-            let bValue: any = b[filter.sortBy as keyof Movie];
-            
-            // Handle special cases
-            if (filter.sortBy === 'views') {
-              aValue = a.view;
-              bValue = b.view;
-            } else if (filter.sortBy === 'updatedAt') {
-              aValue = a.modifiedAt;
-              bValue = b.modifiedAt;
-            }
-            
-            if (aValue < bValue) return filter.sortDirection === 'desc' ? 1 : -1;
-            if (aValue > bValue) return filter.sortDirection === 'desc' ? -1 : 1;
-            return 0;
-          });
-        }
-      }
+      const filteredMovies = this.applyClientSideFilter(mockMovies, filter);
       
       const totalElements = filteredMovies.length;
       const totalPages = Math.ceil(totalElements / size);
@@ -384,65 +391,31 @@ export class MoviesService {
 
   // Add new movie
   static async addMovie(movieData: Omit<Movie, 'id' | 'createdAt' | 'modifiedAt' | 'slug'>): Promise<Movie> {
-    this.loadMoviesData();
-    
-    const newMovie: Movie = {
-      id: (Math.max(...this.movies.map(m => parseInt(m.id)), 0) + 1).toString(),
-      ...movieData,
-      createdAt: new Date(),
-      modifiedAt: new Date(),
-      slug: this.generateSlug(movieData.title),
-      view: 0,
-      actors: []
-    };
-    
-    this.movies.push(newMovie);
-    return newMovie;
+    const result = await MovieImportService.addMovie(movieData);
+    // Refresh cached data
+    this.refreshData();
+    return result;
   }
 
   // Update movie
   static async updateMovie(id: string, movieData: Partial<Movie>): Promise<Movie | null> {
-    this.loadMoviesData();
-    
-    const index = this.movies.findIndex(movie => movie.id === id);
-    if (index === -1) return null;
-    
-    // Update slug if title changed
-    if (movieData.title && movieData.title !== this.movies[index].title) {
-      movieData.slug = this.generateSlug(movieData.title);
-    }
-    
-    this.movies[index] = {
-      ...this.movies[index],
-      ...movieData,
-      modifiedAt: new Date()
-    };
-    
-    return {
-      ...this.movies[index],
-      actors: this.populateMovieActors(id)
-    };
+    const result = await MovieImportService.updateMovie(id, movieData);
+    // Refresh cached data
+    this.refreshData();
+    return result;
   }
 
   // Delete movie
   static async deleteMovie(id: string): Promise<boolean> {
-    this.loadMoviesData();
-    
-    const index = this.movies.findIndex(movie => movie.id === id);
-    if (index === -1) return false;
-    
-    this.movies.splice(index, 1);
-    return true;
+    const result = await MovieImportService.deleteMovie(id);
+    // Refresh cached data
+    this.refreshData();
+    return result;
   }
 
   // Check if movie title exists
   static async checkMovieTitleExists(title: string, excludeId?: string): Promise<boolean> {
-    this.loadMoviesData();
-    
-    return this.movies.some(movie => 
-      movie.title.toLowerCase() === title.toLowerCase() && 
-      movie.id !== excludeId
-    );
+    return await MovieImportService.checkMovieTitleExists(title, excludeId);
   }
 
   // Search movies with API integration
@@ -518,6 +491,20 @@ export class MoviesService {
     }
   }
 
+  // Private helper for client-side search
+  private static applyClientSideSearch(movies: Movie[], query: string): Movie[] {
+    const searchTerm = query.toLowerCase().trim();
+    return movies.filter(movie => {
+      const directors = Array.isArray(movie.director) ? movie.director.join(' ') : movie.director;
+      return (
+        movie.title.toLowerCase().includes(searchTerm) ||
+        movie.originalName.toLowerCase().includes(searchTerm) ||
+        directors.toLowerCase().includes(searchTerm) ||
+        movie.description.toLowerCase().includes(searchTerm)
+      );
+    });
+  }
+
   // Search movies with filter + pagination
   static async searchMoviesWithFilter(
     query: string,
@@ -533,63 +520,10 @@ export class MoviesService {
     if (!this.isServiceAvailable()) {
       // Fallback to client-side search + filter
       await this.loadMoviesData();
-      const searchTerm = query.toLowerCase().trim();
       
-      // First apply search
-      let filteredMovies = this.movies.filter(movie => {
-        const directors = Array.isArray(movie.director) ? movie.director.join(' ') : movie.director;
-        return (
-          movie.title.toLowerCase().includes(searchTerm) ||
-          movie.originalName.toLowerCase().includes(searchTerm) ||
-          directors.toLowerCase().includes(searchTerm) ||
-          movie.description.toLowerCase().includes(searchTerm)
-        );
-      });
-
-      // Then apply filters if provided
-      if (filter) {
-        if (filter.types && filter.types.length > 0 && !filter.types.includes('all')) {
-          filteredMovies = filteredMovies.filter(movie => 
-            filter.types!.some((type: string) => movie.type.toLowerCase().includes(type.toLowerCase()))
-          );
-        }
-        
-        if (filter.statuses && filter.statuses.length > 0 && !filter.statuses.includes('all')) {
-          filteredMovies = filteredMovies.filter(movie => 
-            filter.statuses!.some((status: string) => movie.status.toLowerCase().includes(status.toLowerCase()))
-          );
-        }
-        
-        if (filter.languages && filter.languages.length > 0 && !filter.languages.includes('all')) {
-          filteredMovies = filteredMovies.filter(movie => 
-            filter.languages!.some((lang: string) => movie.lang.toLowerCase().includes(lang.toLowerCase()))
-          );
-        }
-        
-        if (filter.releaseYear) {
-          filteredMovies = filteredMovies.filter(movie => movie.releaseYear === filter.releaseYear);
-        }
-        
-        // Apply sorting
-        if (filter.sortBy) {
-          filteredMovies.sort((a, b) => {
-            let aValue: any = a[filter.sortBy as keyof Movie];
-            let bValue: any = b[filter.sortBy as keyof Movie];
-            
-            if (filter.sortBy === 'views') {
-              aValue = a.view;
-              bValue = b.view;
-            } else if (filter.sortBy === 'updatedAt') {
-              aValue = a.modifiedAt;
-              bValue = b.modifiedAt;
-            }
-            
-            if (aValue < bValue) return filter.sortDirection === 'desc' ? 1 : -1;
-            if (aValue > bValue) return filter.sortDirection === 'desc' ? -1 : 1;
-            return 0;
-          });
-        }
-      }
+      // Apply search first, then filters
+      const searchResults = this.applyClientSideSearch(this.movies, query);
+      const filteredMovies = this.applyClientSideFilter(searchResults, filter);
 
       const totalElements = filteredMovies.length;
       const totalPages = Math.ceil(totalElements / size);
@@ -604,11 +538,9 @@ export class MoviesService {
     }
 
     try {
-      // Use search API with filters - combine search with filter endpoint
+      // Use search API with filters
       const authToken = localStorage.getItem('authToken');
       
-      // For now, use search API and apply filters client-side
-      // In the future, backend should support search + filter in one endpoint
       const searchResponse = await fetch(`${this.API_BASE_URL}/search?query=${encodeURIComponent(query)}&page=0&size=1000`, {
         method: 'GET',
         headers: {
@@ -626,50 +558,8 @@ export class MoviesService {
       if (searchApiResponse.result && searchApiResponse.result.content && Array.isArray(searchApiResponse.result.content)) {
         let searchResults = searchApiResponse.result.content.map(this.mapMovieResponseToMovie);
         
-        // Apply filters client-side for now
-        if (filter) {
-          if (filter.types && filter.types.length > 0 && !filter.types.includes('all')) {
-            searchResults = searchResults.filter((movie: Movie) => 
-              filter.types!.some((type: string) => movie.type.toLowerCase().includes(type.toLowerCase()))
-            );
-          }
-          
-          if (filter.statuses && filter.statuses.length > 0 && !filter.statuses.includes('all')) {
-            searchResults = searchResults.filter((movie: Movie) => 
-              filter.statuses!.some((status: string) => movie.status.toLowerCase().includes(status.toLowerCase()))
-            );
-          }
-          
-          if (filter.languages && filter.languages.length > 0 && !filter.languages.includes('all')) {
-            searchResults = searchResults.filter((movie: Movie) => 
-              filter.languages!.some((lang: string) => movie.lang.toLowerCase().includes(lang.toLowerCase()))
-            );
-          }
-          
-          if (filter.releaseYear) {
-            searchResults = searchResults.filter((movie: Movie) => movie.releaseYear === filter.releaseYear);
-          }
-          
-          // Apply sorting
-          if (filter.sortBy) {
-            searchResults.sort((a: Movie, b: Movie) => {
-              let aValue: any = a[filter.sortBy as keyof Movie];
-              let bValue: any = b[filter.sortBy as keyof Movie];
-              
-              if (filter.sortBy === 'views') {
-              aValue = a.view;
-              bValue = b.view;
-              } else if (filter.sortBy === 'updatedAt') {
-              aValue = a.modifiedAt;
-              bValue = b.modifiedAt;
-              }
-              
-              if (aValue < bValue) return filter.sortDirection === 'desc' ? 1 : -1;
-              if (aValue > bValue) return filter.sortDirection === 'desc' ? -1 : 1;
-              return 0;
-            });
-          }
-        }
+        // Apply filters client-side (until backend supports search + filter combined)
+        searchResults = this.applyClientSideFilter(searchResults, filter);
 
         const totalElements = searchResults.length;
         const totalPages = Math.ceil(totalElements / size);
@@ -901,18 +791,10 @@ export class MoviesService {
 
   // Increment view count
   static async incrementViewCount(id: string): Promise<Movie | null> {
-    this.loadMoviesData();
-    
-    const index = this.movies.findIndex(movie => movie.id === id);
-    if (index === -1) return null;
-    
-    this.movies[index].view += 1;
-    this.movies[index].modifiedAt = new Date();
-    
-    return {
-      ...this.movies[index],
-      actors: this.populateMovieActors(id)
-    };
+    const result = await MovieImportService.incrementViewCount(id);
+    // Refresh cached data
+    this.refreshData();
+    return result;
   }
 
   // Get unique release years
@@ -949,16 +831,6 @@ export class MoviesService {
     return [...new Set(allLanguages)].filter(Boolean);
   }
 
-  // Helper method to generate slug
-  private static generateSlug(title: string): string {
-    return title
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  }
-
   // Refresh data
   static refreshData(): void {
     this.movies = [...mockMovies];
@@ -967,28 +839,18 @@ export class MoviesService {
 
   // Bulk operations
   static async bulkUpdateStatus(movieIds: string[], status: string): Promise<Movie[]> {
-    this.loadMoviesData();
-    
-    const updatedMovies: Movie[] = [];
-    for (const id of movieIds) {
-      const updatedMovie = await this.updateMovie(id, { status });
-      if (updatedMovie) {
-        updatedMovies.push(updatedMovie);
-      }
-    }
-    
-    return updatedMovies;
+    const result = await MovieImportService.bulkUpdateStatus(movieIds, status);
+    // Refresh cached data
+    this.refreshData();
+    return result;
   }
 
   // Bulk delete
   static async bulkDeleteMovies(movieIds: string[]): Promise<boolean> {
-    this.loadMoviesData();
-    
-    for (const id of movieIds) {
-      await this.deleteMovie(id);
-    }
-    
-    return true;
+    const result = await MovieImportService.bulkDeleteMovies(movieIds);
+    // Refresh cached data
+    this.refreshData();
+    return result;
   }
 
   // Get actors for a specific movie

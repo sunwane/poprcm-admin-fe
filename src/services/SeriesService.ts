@@ -21,37 +21,39 @@ export class SeriesService {
       status: seriesResponse.status,
       posterUrl: seriesResponse.posterUrl || '',
       releaseYear: seriesResponse.releaseYear?.toString() || new Date().getFullYear().toString(),
-      seriesMovies: seriesResponse.movies ? seriesResponse.movies.map((movieInSeries: any) => ({
+      seriesMovies: seriesResponse.movies ? seriesResponse.movies.map((movieInSeries: any) => {
+        return ({
         id: `sm-${movieInSeries.movieId}-${seriesResponse.id}`,
-        movieId: parseInt(movieInSeries.movieId),
+        movieId: movieInSeries.movieId, // Keep as string to match backend
         seriesId: seriesResponse.id,
         seasonNumber: movieInSeries.seasonNumber || 1,
         movie: {
-          id: parseInt(movieInSeries.movieId),
-          title: movieInSeries.movieTitle || 'Unknown Title',
-          originalName: movieInSeries.movieTitle || 'Unknown Title',
-          description: '',
-          releaseYear: parseInt(movieInSeries.movieReleaseYear) || new Date().getFullYear(),
-          type: movieInSeries.movieType || 'Movie',
-          duration: '',
+          id: movieInSeries.movieId || '',
+          title: movieInSeries.movieTitle || `Movie ${movieInSeries.movieId}`,
+          originalName: movieInSeries.originalName || '',
+          description: movieInSeries.description || '',
+          releaseYear: movieInSeries.releaseYear || new Date().getFullYear(),
+          duration: movieInSeries.duration || 'N/A',
+          type: 'N/A',
           posterUrl: movieInSeries.moviePosterUrl || '',
-          thumbnailUrl: movieInSeries.moviePosterUrl || '',
-          trailerUrl: '',
-          director: '',
-          status: 'Completed',
+          thumbnailUrl: movieInSeries.thumbUrl || movieInSeries.moviePosterUrl || '',
+          trailerUrl: movieInSeries.trailerUrl || '',
+          director: Array.isArray(movieInSeries.director) ? movieInSeries.director.join(', ') : (movieInSeries.director || ''),
+          status: movieInSeries.status || 'Completed',
           createdAt: new Date(),
           modifiedAt: new Date(),
-          view: 0,
+          view: movieInSeries.views || 0,
           slug: movieInSeries.movieSlug || '',
-          tmdbScore: 0,
-          imdbScore: 0,
-          lang: 'vi',
-          country: [],
+          tmdbScore: movieInSeries.tmdbScore || 0,
+          imdbScore: movieInSeries.imdbScore || 0,
+          lang: movieInSeries.lang || 'vi',
+          country: movieInSeries.countries || [],
           actors: [],
-          genres: [],
+          genres: movieInSeries.genres || [],
           episodes: []
         }
-      })) : []
+      });
+    }) : []
     };
   }
 
@@ -77,12 +79,13 @@ export class SeriesService {
       }
 
       const apiResponse = await response.json();
+      console.log('API response for series data:', apiResponse);
       
       if (apiResponse.result && apiResponse.result.content && Array.isArray(apiResponse.result.content)) {
         const series = apiResponse.result.content.map((seriesResponse: any) => 
           this.mapSeriesResponseToSeries(seriesResponse)
         );
-        console.log('Loaded series from API:', series.length);
+        console.log('Loaded series from API:', series);
         return series;
       } else {
         throw new Error('Invalid API response structure');
@@ -172,8 +175,13 @@ export class SeriesService {
         
         // Add movies to series if provided
         if (movieIds && movieIds.length > 0) {
-          for (const movieId of movieIds) {
-            await this.addMovieToSeries(newSeries.id, movieId);
+          for (let i = 0; i < movieIds.length; i++) {
+            const movieId = movieIds[i];
+            const seasonNumber = i + 1; // Auto-increment season number
+            const result = await this.addMovieToSeries(newSeries.id, movieId, seasonNumber);
+            if (!result.success) {
+              console.warn(`Failed to add movie ${movieId} to series ${newSeries.id}:`, result.message);
+            }
           }
         }
         
@@ -232,16 +240,81 @@ export class SeriesService {
       if (apiResponse.result) {
         const updatedSeries = this.mapSeriesResponseToSeries(apiResponse.result);
         
-        // Handle movie changes
+        // Handle movie changes: Remove first, then add
+        let hasMovieChanges = false;
+        
         if (removedMovieIds && removedMovieIds.length > 0) {
-          for (const movieId of removedMovieIds) {
-            await this.removeMovieFromSeries(id, movieId);
+          console.log(`=== PROCESSING MOVIE REMOVALS ===`);
+          console.log(`Removing ${removedMovieIds.length} movies from series ${id}:`, removedMovieIds);
+          
+          // Validate movie IDs before attempting removal
+          const validRemovedIds = removedMovieIds.filter(movieId => {
+            if (!movieId || movieId === 'undefined' || movieId === 'null' || movieId.trim() === '') {
+              console.warn(`Skipping invalid movieId for removal: "${movieId}"`);
+              return false;
+            }
+            return true;
+          });
+          
+          console.log(`Valid movie IDs to remove:`, validRemovedIds);
+          
+          for (const movieId of validRemovedIds) {
+            console.log(`Attempting to remove movie ${movieId} from series ${id}`);
+            const result = await this.removeMovieFromSeries(id, movieId);
+            if (!result.success) {
+              // Log error but don't fail the entire operation
+              console.error(`Failed to remove movie ${movieId} from series ${id}:`, result.message);
+            } else {
+              console.log(`✓ Successfully removed movie ${movieId} from series ${id}`);
+              hasMovieChanges = true;
+            }
           }
+          console.log(`=== FINISHED MOVIE REMOVALS ===`);
         }
         
         if (movieIds && movieIds.length > 0) {
-          for (const movieId of movieIds) {
-            await this.addMovieToSeries(id, movieId);
+          console.log(`=== PROCESSING MOVIE ADDITIONS ===`);
+          console.log(`Adding ${movieIds.length} movies to series ${id}:`, movieIds);
+          
+          // Validate movie IDs before attempting addition
+          const validAddIds = movieIds.filter(movieId => {
+            if (!movieId || movieId === 'undefined' || movieId === 'null' || movieId.trim() === '') {
+              console.warn(`Skipping invalid movieId for addition: "${movieId}"`);
+              return false;
+            }
+            return true;
+          });
+          
+          console.log(`Valid movie IDs to add:`, validAddIds);
+          
+          // Get current series to determine next season number (after removals)
+          const currentSeries = await this.getSeriesById(id);
+          const currentMaxSeason = Math.max(0, ...(currentSeries?.seriesMovies?.map(sm => sm.seasonNumber) || []));
+          console.log(`Current max season number in series: ${currentMaxSeason}`);
+          
+          for (let i = 0; i < validAddIds.length; i++) {
+            const movieId = validAddIds[i];
+            const seasonNumber = currentMaxSeason + i + 1; // Continue from max season
+            console.log(`Attempting to add movie ${movieId} to series ${id} with season ${seasonNumber}`);
+            const result = await this.addMovieToSeries(id, movieId, seasonNumber);
+            if (!result.success) {
+              // Log error but don't fail the entire operation
+              console.error(`Failed to add movie ${movieId} to series ${id}:`, result.message);
+            } else {
+              console.log(`✓ Successfully added movie ${movieId} to series ${id} with season ${seasonNumber}`);
+              hasMovieChanges = true;
+            }
+          }
+          console.log(`=== FINISHED MOVIE ADDITIONS ===`);
+        }
+        
+        // If there were movie changes, reload the series to get updated data
+        if (hasMovieChanges) {
+          console.log(`Reloading series ${id} after movie changes`);
+          const reloadedSeries = await this.getSeriesById(id);
+          if (reloadedSeries) {
+            console.log(`Successfully reloaded series ${id} with updated movies:`, reloadedSeries.seriesMovies);
+            return reloadedSeries;
           }
         }
         
@@ -607,7 +680,7 @@ export class SeriesService {
       
       const requestBody = {
         movieId: movieId.toString(),
-        //seasonNumber: seasonNumber
+        seasonNumber: seasonNumber
       };
 
       const response = await fetch(`${this.API_BASE_URL}/${seriesId}/movies`, {
@@ -651,7 +724,12 @@ export class SeriesService {
 
     try {
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`${this.API_BASE_URL}/${seriesId}/movies/${movieId}`, {
+      const apiUrl = `${this.API_BASE_URL}/${seriesId}/movies/${movieId}`;
+      
+      console.log(`DEBUG - Calling DELETE ${apiUrl}`);
+      console.log(`DEBUG - Auth token present:`, !!authToken);
+      
+      const response = await fetch(apiUrl, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -659,14 +737,40 @@ export class SeriesService {
         }
       });
       
+      console.log(`DEBUG - Remove movie response status: ${response.status}`);
+      console.log(`DEBUG - Remove movie response ok:`, response.ok);
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.log(`DEBUG - Error response body:`, errorText);
+        
+        // Handle specific error cases
+        if (response.status === 400) {
+          try {
+            const errorJson = JSON.parse(errorText);
+            if (errorJson.code === 1008 && errorJson.message === "Movie is not in series") {
+              // Movie is already not in series - consider this a success
+              console.warn(`Movie ${movieId} is not in series ${seriesId} (already removed or never existed)`);
+              return {
+                success: true,
+                message: 'Movie was already removed or not in series'
+              };
+            }
+          } catch (parseError) {
+            // If can't parse as JSON, continue with original error handling
+            console.warn('Could not parse error response as JSON:', parseError);
+          }
+        }
+        
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
 
       const apiResponse = await response.json();
+      console.log(`DEBUG - Remove movie API response:`, apiResponse);
       
       if (apiResponse.result) {
         const updatedSeries = this.mapSeriesResponseToSeries(apiResponse.result);
+        console.log(`DEBUG - Updated series after removing movie:`, updatedSeries);
         
         return {
           success: true,
@@ -675,9 +779,11 @@ export class SeriesService {
         };
       }
       
+      // Even if no result, consider it successful if status is OK
+      console.log(`DEBUG - Movie ${movieId} removed from series ${seriesId} (no result returned)`);
       return {
         success: true,
-        message: 'Movie removed from series successfully'
+        message: apiResponse.message || 'Movie removed from series successfully'
       };
       
     } catch (error) {

@@ -162,7 +162,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                           <p className="text-gray-800 font-medium">{movie.totalEpisodes? movie.totalEpisodes : "?"}</p>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-500">Năm</label>
+                          <label className="text-sm font-medium text-gray-500">Năm phát hành</label>
                           <p className="text-gray-800 font-medium">{movie.releaseYear}</p>
                         </div>
                         <div>
@@ -219,12 +219,14 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                 </div>
                   <div className='grid grid-cols-2 align-center mt-5 border-t pt-4 gap-x-4 border-gray-200'>
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Từ khóa</label>
+                      <label className="text-sm font-medium text-gray-500">Từ khóa (Slug)</label>
                       <p className="text-gray-800 font-medium">{movie.slug}</p>
                     </div>
                     <div className=''>
                       <label className="text-sm font-medium text-gray-500">Đạo diễn</label>
-                      <p className="text-gray-800 font-medium">{movie.director ? movie.director : "Không có thông tin"}</p>
+                      <p className="text-gray-800 font-medium">
+                        {Array.isArray(movie.director) ? movie.director.join(', ') : (movie.director || "Không có thông tin")}
+                      </p>
                     </div>
                   </div>
                   <div className="mt-4">
@@ -237,6 +239,16 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
 
               {/* Content Section */}
               <div className="px-6 pb-6">
+                {/* Episodes Section */}
+                {movie.episodes && movie.episodes.length > 0 && (
+                  <div className="mt-8">
+                    <EpisodesSection
+                      episodes={movie.episodes}
+                      onEpisodeClick={openVideoPopup}
+                    />
+                  </div>
+                )}
+
                 {/* Actors Section */}
                 {movie.actors && movie.actors.length > 0 && (
                   <div className="mt-8">
@@ -278,16 +290,6 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
-
-                {/* Episodes Section */}
-                {movie.episodes && movie.episodes.length > 0 && (
-                  <div className="mt-8">
-                    <EpisodesSection
-                      episodes={movie.episodes}
-                      onEpisodeClick={openVideoPopup}
-                    />
                   </div>
                 )}
               </div>

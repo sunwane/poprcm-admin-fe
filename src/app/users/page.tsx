@@ -54,14 +54,14 @@ export default function Users() {
           <h1 className="text-3xl font-bold text-gray-800 mb-1">Quản lý Người dùng</h1>
           <p className="text-gray-600">Quản lý tất cả người dùng hiện có trong hệ thống</p>
         </div>
-        <div className="flex items-center space-x-4">          
+        {/* <div className="flex items-center space-x-4">          
           <GradientButton onClick={handleOpenAddModal}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 12h14m-7 7V5"/>
             </svg>
             <span>Thêm Người dùng</span>
           </GradientButton>
-        </div>
+        </div> */}
       </div>
 
       {/* Stats Cards */}

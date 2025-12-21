@@ -12,6 +12,14 @@ export interface Episode {
     serverName: string; // e.g., "Vietsub", "ThuyetMinh"
 }
 
+export interface EpisodeCreateRequest {
+    title: string;
+    episodeNumber: number;
+    videoUrl: string;
+    m3u8Url?: string;
+    serverName: string;
+}
+
 export interface MovieFilterRequest {
     genreIds?: string[];      // ["hanh-dong", "hai-huoc"]
     countryIds?: string[];    // ["country-1", "country-2"]
@@ -36,7 +44,6 @@ export interface Movie {
     trailerUrl?: string;
     totalEpisodes?: number;
     currentEpisodeCount?: number; // Số tập hiện tại đã có
-    //rating: number;
     director: string | string[]; // Support both single string and array
     status: string;
     createdAt: Date;

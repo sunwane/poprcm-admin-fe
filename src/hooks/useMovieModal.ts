@@ -10,6 +10,7 @@ import { ActorService } from '@/services/ActorService';
 
 export interface MovieFormData {
   title: string;
+  slug: string;
   originalName: string;
   description: string;
   releaseYear: number;
@@ -32,6 +33,7 @@ export interface MovieFormData {
 
 export interface MovieFormErrors {
   title?: string;
+  slug?: string;
   originalName?: string;
   description?: string;
   releaseYear?: string;
@@ -52,10 +54,11 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
   // Form data
   const [formData, setFormData] = useState<MovieFormData>({
     title: '',
+    slug: '',
     originalName: '',
     description: '',
     releaseYear: new Date().getFullYear(),
-    type: 'Movie',
+    type: 'single',
     duration: '',
     posterUrl: '',
     thumbnailUrl: '',
@@ -90,6 +93,10 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
   const [countrySearchQuery, setCountrySearchQuery] = useState('');
   const [actorSearchQuery, setActorSearchQuery] = useState('');
 
+  // Actor pagination states
+  const [actorCurrentPage, setActorCurrentPage] = useState(1);
+  const [actorItemsPerPage] = useState(20);
+
   // Episode drag state
   const [draggedEpisodeIndex, setDraggedEpisodeIndex] = useState<number | null>(null);
   const [dragOverEpisodeIndex, setDragOverEpisodeIndex] = useState<number | null>(null);
@@ -121,9 +128,27 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
   // Reset form when modal opens/closes or editingMovie changes
   useEffect(() => {
     if (isOpen) {
+      // Reset search and pagination when modal opens
+      setActorSearchQuery('');
+      setActorCurrentPage(1);
+      
       if (editingMovie) {
+        console.log('🔍 Loading editing movie data:', {
+          movieId: editingMovie.id,
+          existingActors: editingMovie.actors,
+          actorsStructure: editingMovie.actors?.map(a => ({
+            id: a.id,
+            actorId: a.actorId,
+            actorIdType: typeof a.actorId,
+            actorObject: a.actor,
+            actorObjectId: a.actor?.id,
+            characterName: a.characterName
+          }))
+        });
+        
         setFormData({
           title: editingMovie.title,
+          slug: editingMovie.slug || '',
           originalName: editingMovie.originalName,
           description: editingMovie.description,
           releaseYear: editingMovie.releaseYear,
@@ -146,17 +171,18 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
       } else {
         setFormData({
           title: '',
+          slug: '',
           originalName: '',
           description: '',
           releaseYear: new Date().getFullYear(),
-          type: 'Movie',
+          type: 'single',
           duration: '',
           posterUrl: '',
           thumbnailUrl: '',
           trailerUrl: '',
           totalEpisodes: undefined,
           director: '',
-          status: 'Completed',
+          status: 'completed',
           lang: 'Vietsub',
           tmdbScore: undefined,
           imdbScore: undefined,
@@ -256,6 +282,24 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
     );
   }, [actors, actorSearchQuery, formData.selectedActors]);
 
+  // Actor pagination logic
+  const paginatedActors = useMemo(() => {
+    const startIndex = (actorCurrentPage - 1) * actorItemsPerPage;
+    const endIndex = startIndex + actorItemsPerPage;
+    return filteredActors.slice(startIndex, endIndex);
+  }, [filteredActors, actorCurrentPage, actorItemsPerPage]);
+
+  const totalActorPages = Math.ceil(filteredActors.length / actorItemsPerPage);
+
+  const handleActorPageChange = (page: number) => {
+    setActorCurrentPage(page);
+  };
+
+  // Reset pagination when search query changes
+  useEffect(() => {
+    setActorCurrentPage(1);
+  }, [actorSearchQuery]);
+
   const handleAddActor = (actor: Actor) => {
     if (!formData.selectedActors.some(ma => ma.actor?.id === actor.id)) {
       const newMovieActor: MovieActor = {
@@ -266,6 +310,14 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
         characterName: ''
       };
       
+      console.log('🔍 Adding actor to form:', {
+        actorId: newMovieActor.actorId,
+        actorIdType: typeof newMovieActor.actorId,
+        actorObject: newMovieActor.actor,
+        actorObjectId: newMovieActor.actor?.id,
+        actorObjectIdType: typeof newMovieActor.actor?.id
+      });
+      
       setFormData(prev => ({
         ...prev,
         selectedActors: [...prev.selectedActors, newMovieActor]
@@ -275,17 +327,25 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
   };
 
   const handleRemoveActor = (actorId: string) => {
+    console.log('🔍 Removing actor:', actorId);
+    console.log('🔍 Current selected actors:', formData.selectedActors.map(ma => ({ 
+      actorId: ma.actorId, 
+      actorObjectId: ma.actor?.id 
+    })));
+    
     setFormData(prev => ({
       ...prev,
-      selectedActors: prev.selectedActors.filter(ma => ma.actor?.id !== actorId)
+      selectedActors: prev.selectedActors.filter(ma => ma.actorId !== actorId)
     }));
   };
 
   const handleUpdateCharacterName = (actorId: string, characterName: string) => {
+    console.log('🔍 Updating character name for actor:', actorId, 'to:', characterName);
+    
     setFormData(prev => ({
       ...prev,
       selectedActors: prev.selectedActors.map(ma => 
-        ma.actor?.id === actorId 
+        ma.actorId === actorId 
           ? { ...ma, characterName }
           : ma
       )
@@ -419,38 +479,35 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
     setDragOverEpisodeIndex(null);
   };
 
-  // Validation
+  // Simplified validation - chỉ validate những trường thực sự cần thiết
   const validateForm = (): boolean => {
     const newErrors: MovieFormErrors = {};
 
-    // Basic validation
+    // Chỉ validate những trường bắt buộc theo backend
     if (!formData.title.trim()) {
       newErrors.title = 'Tên phim không được để trống';
     }
 
-    if (!formData.originalName.trim()) {
-      newErrors.originalName = 'Tên gốc không được để trống';
+    // Slug validation
+    if (!formData.slug.trim()) {
+      newErrors.slug = 'Slug không được để trống';
+    } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
+      newErrors.slug = 'Slug chỉ được chứa chữ thường, số và dấu gạch ngang';
     }
 
-    if (!formData.description.trim()) {
-      newErrors.description = 'Mô tả không được để trống';
-    }
+    // Tên gốc không bắt buộc
+    // Description không bắt buộc
+    // Director không bắt buộc 
+    // Duration không bắt buộc
 
-    if (!formData.director.trim()) {
-      newErrors.director = 'Đạo diễn không được để trống';
-    }
+    // Genres và Countries không bắt buộc - có thể thêm sau
+    // if (formData.selectedGenres.length === 0) {
+    //   newErrors.selectedGenres = 'Phải chọn ít nhất 1 thể loại';
+    // }
 
-    if (!formData.duration.trim()) {
-      newErrors.duration = 'Thời lượng không được để trống';
-    }
-
-    if (formData.selectedGenres.length === 0) {
-      newErrors.selectedGenres = 'Phải chọn ít nhất 1 thể loại';
-    }
-
-    if (formData.selectedCountries.length === 0) {
-      newErrors.selectedCountries = 'Phải chọn ít nhất 1 quốc gia';
-    }
+    // if (formData.selectedCountries.length === 0) {
+    //   newErrors.selectedCountries = 'Phải chọn ít nhất 1 quốc gia';
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -506,9 +563,16 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
     actorSearchQuery,
     setActorSearchQuery,
     filteredActors,
+    paginatedActors,
     handleAddActor,
     handleRemoveActor,
     handleUpdateCharacterName,
+
+    // Actor pagination
+    actorCurrentPage,
+    actorItemsPerPage,
+    totalActorPages,
+    handleActorPageChange,
 
     // Episode management
     handleAddEpisode,

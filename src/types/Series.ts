@@ -16,4 +16,5 @@ export interface Series {
     releaseYear: string;
     posterUrl: string;
     seriesMovies?: SeriesMovie[]; // Relationship data
+    movies?: Movie[]; // Direct movie list for the series
 }

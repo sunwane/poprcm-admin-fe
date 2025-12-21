@@ -93,9 +93,13 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
   const [countrySearchQuery, setCountrySearchQuery] = useState('');
   const [actorSearchQuery, setActorSearchQuery] = useState('');
 
-  // Actor pagination states
+  // Actor search and pagination states
+  const [searchedActors, setSearchedActors] = useState<Actor[]>([]);
   const [actorCurrentPage, setActorCurrentPage] = useState(1);
   const [actorItemsPerPage] = useState(20);
+  const [totalActorPages, setTotalActorPages] = useState(0);
+  const [totalActorElements, setTotalActorElements] = useState(0);
+  const [isSearchingActors, setIsSearchingActors] = useState(false);
 
   // Episode drag state
   const [draggedEpisodeIndex, setDraggedEpisodeIndex] = useState<number | null>(null);
@@ -273,32 +277,58 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
     }));
   };
 
+  // Actor search function using API
+  const searchActors = async (query: string, page: number = 0) => {
+    try {
+      setIsSearchingActors(true);
+      
+      // Luôn gọi API với query (có thể là rỗng)
+      const result = await ActorService.getActorsPaginated(page, actorItemsPerPage, query);
+      setSearchedActors(result.content);
+      setTotalActorPages(result.totalPages);
+      setTotalActorElements(result.totalElements);
+    } catch (error) {
+      console.error('Error searching actors:', error);
+      setSearchedActors([]);
+      setTotalActorPages(0);
+      setTotalActorElements(0);
+    } finally {
+      setIsSearchingActors(false);
+    }
+  };
+
   // Actor search and management
   const filteredActors = useMemo(() => {
-    if (!actorSearchQuery.trim()) return actors;
-    return actors.filter(actor => 
-      actor.originName.toLowerCase().includes(actorSearchQuery.toLowerCase()) &&
+    // Filter out already selected actors from search results
+    return searchedActors.filter(actor => 
       !formData.selectedActors.some(selected => selected.actor?.id === actor.id)
     );
-  }, [actors, actorSearchQuery, formData.selectedActors]);
+  }, [searchedActors, formData.selectedActors]);
 
-  // Actor pagination logic
-  const paginatedActors = useMemo(() => {
-    const startIndex = (actorCurrentPage - 1) * actorItemsPerPage;
-    const endIndex = startIndex + actorItemsPerPage;
-    return filteredActors.slice(startIndex, endIndex);
-  }, [filteredActors, actorCurrentPage, actorItemsPerPage]);
-
-  const totalActorPages = Math.ceil(filteredActors.length / actorItemsPerPage);
+  // Use filtered actors directly (no additional pagination needed)
+  const paginatedActors = filteredActors;
 
   const handleActorPageChange = (page: number) => {
     setActorCurrentPage(page);
+    searchActors(actorSearchQuery, page - 1); // API is 0-indexed
   };
 
-  // Reset pagination when search query changes
+  // Search actors when query changes với debounce 500ms
   useEffect(() => {
-    setActorCurrentPage(1);
+    const timeoutId = setTimeout(() => {
+      setActorCurrentPage(1);
+      searchActors(actorSearchQuery, 0);
+    }, 500); // Debounce search - tăng từ 300ms lên 500ms
+
+    return () => clearTimeout(timeoutId);
   }, [actorSearchQuery]);
+
+  // Initial search on mount
+  useEffect(() => {
+    if (isOpen) {
+      searchActors('', 0);
+    }
+  }, [isOpen]);
 
   const handleAddActor = (actor: Actor) => {
     if (!formData.selectedActors.some(ma => ma.actor?.id === actor.id)) {
@@ -567,11 +597,13 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
     handleAddActor,
     handleRemoveActor,
     handleUpdateCharacterName,
+    isSearchingActors,
 
     // Actor pagination
     actorCurrentPage,
     actorItemsPerPage,
     totalActorPages,
+    totalActorElements,
     handleActorPageChange,
 
     // Episode management

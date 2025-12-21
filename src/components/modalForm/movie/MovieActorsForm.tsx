@@ -11,6 +11,7 @@ interface MovieActorsFormProps {
   selectedActors: MovieActor[];
   actorSearchTerm: string;
   isProcessing: boolean;
+  isSearchingActors?: boolean;
   onActorSearchChange: (value: string) => void;
   onAddActor: (actorId: string) => void;
   onRemoveActor: (actorId: string) => void;
@@ -29,6 +30,7 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
   selectedActors,
   actorSearchTerm,
   isProcessing,
+  isSearchingActors = false,
   onActorSearchChange,
   onAddActor,
   onRemoveActor,
@@ -51,8 +53,14 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
       {/* Left Column - Search & Available Actors */}
       <div>
         <div className="bg-gray-50 rounded-xl p-6">
-          <h4 className="text-lg font-semibold text-blue-800 mb-4">
+          <h4 className="text-lg font-semibold text-blue-800 mb-4 flex items-center">
             Tìm kiếm diễn viên ({totalItems})
+            {isSearchingActors && (
+              <svg className="animate-spin ml-2 h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle>
+                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path>
+              </svg>
+            )}
           </h4>
           
           {/* Search Bar */}
@@ -66,7 +74,17 @@ const MovieActorsForm: React.FC<MovieActorsFormProps> = ({
 
           {/* Available Actors List */}
           <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-            {availableActors.length > 0 ? (
+            {isSearchingActors ? (
+              <div className="text-center py-8">
+                <div className="flex items-center justify-center space-x-2">
+                  <svg className="animate-spin h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle>
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path>
+                  </svg>
+                  <span className="text-gray-600">Đang tìm kiếm...</span>
+                </div>
+              </div>
+            ) : availableActors.length > 0 ? (
               availableActors.map((actor) => (
                 <div
                   key={actor.id}

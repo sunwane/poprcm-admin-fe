@@ -249,12 +249,20 @@ export class ActorService {
 
       // API call with search and gender filter
       const authToken = localStorage.getItem('authToken');
-      let url = `${this.API_BASE_URL}?page=${page}&size=${size}`;
+      let url;
+      
       if (search && search.trim()) {
-        url += `&search=${encodeURIComponent(search)}`;
-      }
-      if (gender && gender !== 'ALL') {
-        url += `&gender=${encodeURIComponent(gender.toUpperCase())}`;
+        // Use search endpoint when there's a search query
+        url = `${this.API_BASE_URL}/search?keyword=${encodeURIComponent(search)}&page=${page}&size=${size}`;
+        if (gender && gender !== 'ALL') {
+          url += `&gender=${encodeURIComponent(gender.toUpperCase())}`;
+        }
+      } else {
+        // Use regular pagination endpoint
+        url = `${this.API_BASE_URL}?page=${page}&size=${size}`;
+        if (gender && gender !== 'ALL') {
+          url += `&gender=${encodeURIComponent(gender.toUpperCase())}`;
+        }
       }
 
       const response = await fetch(url, {

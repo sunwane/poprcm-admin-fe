@@ -59,11 +59,13 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
     handleAddActor,
     handleRemoveActor,
     handleUpdateCharacterName,
+    isSearchingActors,
 
     // Actor pagination
     actorCurrentPage,
     actorItemsPerPage,
     totalActorPages,
+    totalActorElements,
     handleActorPageChange,
 
     // Options
@@ -327,6 +329,7 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                     selectedActors={formData.selectedActors}
                     actorSearchTerm={actorSearchQuery}
                     isProcessing={isSubmitting}
+                    isSearchingActors={isSearchingActors}
                     onActorSearchChange={setActorSearchQuery}
                     onAddActor={(actorId) => {
                       const actor = filteredActors.find(a => a.id === actorId);
@@ -339,7 +342,7 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
                     currentPage={actorCurrentPage}
                     itemsPerPage={actorItemsPerPage}
                     totalPages={totalActorPages}
-                    totalItems={filteredActors.length}
+                    totalItems={totalActorElements}
                     onPageChange={handleActorPageChange}
                   />
                 )}

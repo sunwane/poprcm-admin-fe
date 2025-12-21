@@ -234,9 +234,12 @@ const MovieInfoForm: React.FC<MovieInfoFormProps> = ({
                 name="posterUrl"
                 value={formData.posterUrl}
                 onChange={(e) => onInputChange('posterUrl', e.target.value)}
-                placeholder="https://example.com/poster.jpg"
+                placeholder="vd: poster-image.jpg (không cần https://img.ophim.live/uploads/movies/)"
                 disabled={isProcessing}
               />
+              <p className="text-xs text-blue-600 mt-1">
+                (Tự động thêm prefix: https://img.ophim.live/uploads/movies/)
+              </p>
               </div>
 
               {/* Thumbnail URL */}
@@ -248,9 +251,12 @@ const MovieInfoForm: React.FC<MovieInfoFormProps> = ({
                   name="thumbnailUrl"
                   value={formData.thumbnailUrl}
                   onChange={(e) => onInputChange('thumbnailUrl', e.target.value)}
-                  placeholder="https://example.com/thumbnail.jpg"
+                  placeholder="vd: thumbnail-image.jpg (không cần https://img.ophim.live/uploads/movies/)"
                   disabled={isProcessing}
                 />
+                <p className="text-xs text-blue-600 mt-1">
+                  (Tự động thêm prefix: https://img.ophim.live/uploads/movies/)
+                </p>
               </div>
 
               {/* Trailer URL */}

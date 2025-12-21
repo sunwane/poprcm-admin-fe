@@ -13,6 +13,7 @@ export const useActors = () => {
   const [editingActor, setEditingActor] = useState<Actor | null>(null);
   const [filterGender, setFilterGender] = useState<FilterGender>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   
   // Stats states 
   const [stats, setStats] = useState({
@@ -35,8 +36,8 @@ export const useActors = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
-  // Debounced search
-  const debouncedSearchQuery = useDebounce(searchQuery, 10000);
+  // Debounced search - 500ms debounce thay vì 10s
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   // Confirm modal
   const confirmModal = useConfirmModal();
@@ -44,7 +45,13 @@ export const useActors = () => {
   // Load actors function with pagination
   const loadActors = async (page: number = 0, search?: string, gender?: string) => {
     try {
-      setLoading(true);
+      // Chỉ show loading spinner khi không phải search (trang đầu hoặc thay đổi trang)
+      if (!search || page === 0) {
+        setLoading(true);
+      } else {
+        setIsSearching(true);
+      }
+      
       const response = await ActorService.getActorsPaginated(page, itemsPerPage, search, gender);
       setActors(response.content);
       setTotalPages(response.totalPages);
@@ -60,6 +67,7 @@ export const useActors = () => {
       console.error('Error loading actors:', error);
     } finally {
       setLoading(false);
+      setIsSearching(false);
     }
   };
 
@@ -113,10 +121,19 @@ export const useActors = () => {
     }
   };
 
-  // Initial load
+  // Initial load và reset page khi filter thay đổi
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      loadActors(0, debouncedSearchQuery, filterGender);
+    }
+  }, [debouncedSearchQuery, filterGender]);
+
+  // Load khi pagination thay đổi (không phải filter)
   useEffect(() => {
     loadActors(currentPage - 1, debouncedSearchQuery, filterGender);
-  }, [currentPage, itemsPerPage, debouncedSearchQuery, filterGender]);
+  }, [currentPage, itemsPerPage]);
 
   // Load real stats after actors are loaded
   useEffect(() => {
@@ -124,13 +141,6 @@ export const useActors = () => {
       loadRealActorStats();
     }
   }, [loading, actors, movieCounts, totalElements]);
-
-  // Reset to first page when search or filter changes
-  useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
-  }, [debouncedSearchQuery, filterGender]);
 
   // Update filtered count in stats when totalElements changes
   useEffect(() => {
@@ -293,6 +303,7 @@ export const useActors = () => {
     movieCounts,
     loading,
     loadingStats,
+    isSearching,
     showModal,
     editingActor,
     filterGender,

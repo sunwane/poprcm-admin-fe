@@ -14,6 +14,7 @@ export default function Actors() {
   const {
     loading,
     loadingStats,
+    isSearching,
     showModal,
     editingActor,
     filterGender,
@@ -130,15 +131,13 @@ export default function Actors() {
       {/* Actors Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="text-xl font-bold text-gray-800">
+          <h2 className="text-xl font-bold text-gray-800 flex items-center">
             Danh sách Diễn viên ({debouncedSearchQuery ? `${totalElements} / ${stats.total}` : stats.total})
-            {loadingStats && (
-              <span className="ml-2 text-sm text-blue-600">
-                <svg className="inline animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle>
-                  <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path>
-                </svg>
-              </span>
+            {(loadingStats || isSearching) && (
+              <svg className="animate-spin ml-2 h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle>
+                <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path>
+              </svg>
             )}
           </h2>
           

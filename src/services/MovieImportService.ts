@@ -9,6 +9,38 @@ class MovieImportService {
   private baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8088/api';
   private static movies: Movie[] = [...mockMovies];
   private static isDataLoaded = false;
+  
+  // Image URL prefix for posterUrl and thumbnailUrl
+  private static readonly IMAGE_URL_PREFIX = 'https://img.ophim.live/uploads/movies/';
+  
+  // Helper method to add image prefix
+  private static addImagePrefix(url: string | undefined): string | undefined {
+    if (!url || !url.trim()) return undefined;
+    const cleanUrl = url.trim();
+    // If already has prefix, return as is
+    if (cleanUrl.startsWith(this.IMAGE_URL_PREFIX)) {
+      console.log('🔍 Image URL already has prefix:', cleanUrl);
+      return cleanUrl;
+    }
+    // Add prefix
+    const fullUrl = this.IMAGE_URL_PREFIX + cleanUrl;
+    console.log('🔍 Adding image prefix:', cleanUrl, '->', fullUrl);
+    return fullUrl;
+  }
+  
+  // Helper method to remove image prefix for display
+  private static removeImagePrefix(url: string | undefined): string | undefined {
+    if (!url || !url.trim()) return undefined;
+    const cleanUrl = url.trim();
+    // If has prefix, remove it
+    if (cleanUrl.startsWith(this.IMAGE_URL_PREFIX)) {
+      const shortUrl = cleanUrl.substring(this.IMAGE_URL_PREFIX.length);
+      console.log('🔍 Removing image prefix for display:', cleanUrl, '->', shortUrl);
+      return shortUrl;
+    }
+    console.log('🔍 No prefix to remove:', cleanUrl);
+    return cleanUrl;
+  }
 
   async autoImportMovies(slug: string, count: number = 10): Promise<any> {
     try {
@@ -92,6 +124,7 @@ class MovieImportService {
     console.log('🔍 movieData.genres:', movieData.genres);
     console.log('🔍 movieData.country:', movieData.country);
     console.log('🔍 movieData.director (input):', movieData.director, 'Type:', typeof movieData.director);
+    console.log('🔍 Input URLs - posterUrl:', movieData.posterUrl, 'thumbnailUrl:', movieData.thumbnailUrl);
     
     const result = {
       title: movieData.title,
@@ -101,8 +134,8 @@ class MovieImportService {
       releaseYear: movieData.releaseYear,
       type: movieData.type,
       duration: movieData.duration,
-      thumbUrl: movieData.thumbnailUrl,
-      posterUrl: movieData.posterUrl,
+      thumbUrl: MovieImportService.addImagePrefix(movieData.thumbnailUrl),
+      posterUrl: MovieImportService.addImagePrefix(movieData.posterUrl),
       trailerUrl: movieData.trailerUrl,
       totalEpisodes: movieData.totalEpisodes?.toString(),
       director: (() => {
@@ -254,6 +287,7 @@ class MovieImportService {
     console.log('🔍 movieData.genres:', movieData.genres);
     console.log('🔍 movieData.country:', movieData.country);
     console.log('🔍 movieData.director (UPDATE input):', movieData.director, 'Type:', typeof movieData.director);
+    console.log('🔍 UPDATE Input URLs - posterUrl:', movieData.posterUrl, 'thumbnailUrl:', movieData.thumbnailUrl);
     
     const result = {
       title: movieData.title,
@@ -261,8 +295,8 @@ class MovieImportService {
       duration: movieData.duration,
       releaseYear: movieData.releaseYear,
       type: movieData.type,
-      thumbUrl: movieData.thumbnailUrl,
-      posterUrl: movieData.posterUrl,
+      thumbUrl: MovieImportService.addImagePrefix(movieData.thumbnailUrl),
+      posterUrl: MovieImportService.addImagePrefix(movieData.posterUrl),
       trailerUrl: movieData.trailerUrl,
       director: (() => {
         // Xử lý director để luôn trả về array (UPDATE method)
@@ -365,8 +399,8 @@ class MovieImportService {
       releaseYear: apiData.releaseYear,
       type: apiData.type,
       duration: apiData.duration || '',
-      posterUrl: apiData.posterUrl,
-      thumbnailUrl: apiData.thumbUrl,
+      posterUrl: MovieImportService.removeImagePrefix(apiData.posterUrl),
+      thumbnailUrl: MovieImportService.removeImagePrefix(apiData.thumbUrl),
       trailerUrl: apiData.trailerUrl,
       totalEpisodes: apiData.totalEpisodes ? parseInt(apiData.totalEpisodes) : undefined,
       currentEpisodeCount: apiData.currentEpisodeCount,

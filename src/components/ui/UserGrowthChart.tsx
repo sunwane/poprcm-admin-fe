@@ -24,13 +24,33 @@ ChartJS.register(
   Legend
 );
 
-interface UserGrowthChartProps {
-  type?: 'line' | 'bar';
+interface DailyUserStat {
+  date: string;
+  newUsers: number;
 }
 
-export default function UserGrowthChart({ type = 'bar' }: UserGrowthChartProps) {
-  // Mock data cho số user mới theo ngày trong tháng
-  const generateDailyUserData = () => {
+interface UserGrowthChartProps {
+  type?: 'line' | 'bar';
+  userDailyStats?: DailyUserStat[];
+}
+
+export default function UserGrowthChart({ 
+  type = 'line', // Changed default to line for smooth curve
+  userDailyStats = [] 
+}: UserGrowthChartProps) {
+  // Xử lý dữ liệu từ API hoặc fallback về mock data
+  const processUserData = () => {
+    if (userDailyStats && userDailyStats.length > 0) {
+      // Sử dụng dữ liệu thật từ API
+      const days = userDailyStats.map(stat => {
+        const date = new Date(stat.date);
+        return date.getDate().toString();
+      });
+      const userData = userDailyStats.map(stat => stat.newUsers);
+      return { days, userData };
+    }
+    
+    // Fallback về mock data nếu không có dữ liệu từ API
     const days = [];
     const userData = [];
     
@@ -51,7 +71,7 @@ export default function UserGrowthChart({ type = 'bar' }: UserGrowthChartProps) 
     return { days, userData };
   };
 
-  const { days, userData } = generateDailyUserData();
+  const { days, userData } = processUserData();
 
   const data = {
     labels: days,
@@ -59,20 +79,38 @@ export default function UserGrowthChart({ type = 'bar' }: UserGrowthChartProps) 
       {
         label: 'Người dùng mới',
         data: userData,
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: type === 'bar' ? 'rgba(59, 130, 246, 0.8)' : 'rgba(59, 130, 246, 0.1)',
-        borderWidth: 2,
-        fill: type === 'line',
+        borderColor: 'rgb(34, 197, 94)', // Emerald green
+        backgroundColor: 'rgba(34, 197, 94, 0.8)', // Semi-transparent emerald
+        borderWidth: 3,
+        fill: true,
         tension: 0.4,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        pointBorderWidth: 2,
+        pointBorderColor: '#ffffff',
+        pointBackgroundColor: 'rgb(34, 197, 94)',
+        pointHoverBackgroundColor: 'rgb(34, 197, 94)',
+        pointHoverBorderColor: '#ffffff',
+        pointHoverBorderWidth: 3,
+        // Gradient fill
+        gradient: true,
       },
     ],
   };
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: 'top' as const,
+        labels: {
+          color: '#374151',
+          font: {
+            size: 12,
+            weight: '500' as const,
+          },
+        },
       },
       title: {
         display: true,
@@ -82,6 +120,7 @@ export default function UserGrowthChart({ type = 'bar' }: UserGrowthChartProps) 
           weight: 'bold' as const,
         },
         color: '#1e40af',
+        padding: 20,
       },
     },
     scales: {
@@ -90,18 +129,42 @@ export default function UserGrowthChart({ type = 'bar' }: UserGrowthChartProps) 
         title: {
           display: true,
           text: 'Số người dùng',
+          font: {
+            size: 12,
+            weight: '500' as const,
+          },
+          color: '#6b7280',
         },
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: 'rgba(0, 0, 0, 0.05)',
+          drawBorder: false,
+        },
+        ticks: {
+          color: '#6b7280',
+          font: {
+            size: 11,
+          },
         },
       },
       x: {
         title: {
           display: true,
           text: 'Ngày trong tháng',
+          font: {
+            size: 12,
+            weight: '500' as const,
+          },
+          color: '#6b7280',
         },
         grid: {
-          color: 'rgba(0, 0, 0, 0.1)',
+          color: 'rgba(0, 0, 0, 0.05)',
+          drawBorder: false,
+        },
+        ticks: {
+          color: '#6b7280',
+          font: {
+            size: 11,
+          },
         },
       },
     },
@@ -109,9 +172,18 @@ export default function UserGrowthChart({ type = 'bar' }: UserGrowthChartProps) 
       intersect: false,
       mode: 'index' as const,
     },
+    elements: {
+      line: {
+        borderJoinStyle: 'round' as const,
+        borderCapStyle: 'round' as const,
+      },
+      point: {
+        hoverBorderWidth: 4,
+      },
+    },
   };
 
-  const ChartComponent = type === 'line' ? Line : Bar;
+  const ChartComponent = Line; // Always use Line chart for smooth curve
 
   const totalNewUsers = userData.reduce((sum, users) => sum + users, 0);
   const averageDaily = Math.round(totalNewUsers / userData.length);
@@ -121,28 +193,28 @@ export default function UserGrowthChart({ type = 'bar' }: UserGrowthChartProps) 
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <div className="mb-4 flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold text-blue-800">Tăng trưởng người dùng</h3>
+          <h3 className="text-lg font-semibold text-emerald-800">Tăng trưởng người dùng</h3>
           <p className="text-sm text-gray-600">Thống kê người dùng mới đăng ký</p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-blue-600">{totalNewUsers}</div>
+          <div className="text-2xl font-bold text-emerald-600">{totalNewUsers}</div>
           <div className="text-xs text-gray-500">Tổng trong tháng</div>
         </div>
       </div>
       
       <div className="mb-4 grid grid-cols-2 gap-4">
-        <div className="bg-blue-50 rounded-lg p-3 text-center">
-          <div className="text-lg font-semibold text-blue-700">{averageDaily}</div>
-          <div className="text-xs text-blue-600">Trung bình/ngày</div>
+        <div className="bg-emerald-50 rounded-lg p-3 text-center border border-emerald-100">
+          <div className="text-lg font-semibold text-emerald-700">{averageDaily}</div>
+          <div className="text-xs text-emerald-600">Trung bình/ngày</div>
         </div>
-        <div className="bg-green-50 rounded-lg p-3 text-center">
+        <div className="bg-green-50 rounded-lg p-3 text-center border border-green-100">
           <div className="text-lg font-semibold text-green-700">{maxDaily}</div>
           <div className="text-xs text-green-600">Cao nhất/ngày</div>
         </div>
       </div>
       
       <div className="h-80">
-        <ChartComponent data={data} options={options} />
+        <ChartComponent data={data}/>
       </div>
     </div>
   );

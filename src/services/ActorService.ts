@@ -22,7 +22,8 @@ export class ActorService {
       originName: actorResponse.originName,
       profilePath: actorResponse.profilePath,
       gender: actorResponse.genderDisplay ? actorResponse.genderDisplay.toUpperCase() : 'UNKNOWN',
-      alsoKnownAs: actorResponse.alsoKnownAs || []
+      alsoKnownAs: actorResponse.alsoKnownAs || [],
+      movieCount: actorResponse.movieCount || 0
     };
   }
 
@@ -63,6 +64,7 @@ export class ActorService {
       }
 
       const apiResponse = await response.json();
+      console.log('Loaded actors from API:', apiResponse);
       
       // Handle paginated response
       if (apiResponse.result && apiResponse.result.content && Array.isArray(apiResponse.result.content)) {
@@ -316,21 +318,7 @@ export class ActorService {
         return stats.total;
       }
 
-      // Fallback to direct API call
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`${this.API_BASE_URL}/count`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        }
-      });
-
-      if (response.ok) {
-        const countResponse = await response.json();
-        return countResponse.result || 0;
-      }
-
       // If count endpoint doesn't exist, get first page to get total
       const firstPageResponse = await fetch(`${this.API_BASE_URL}?page=0&size=1`, {
         method: 'GET',
@@ -702,6 +690,7 @@ export class ActorService {
     total: number;
     male: number;
     female: number;
+    other: number;
     unknown: number;
     totalMovies: number;
     avgMoviesPerActor: number;
@@ -711,6 +700,7 @@ export class ActorService {
     const total = this.actors.length;
     const male = this.actors.filter(a => a.gender.toUpperCase() === 'MALE').length;
     const female = this.actors.filter(a => a.gender.toUpperCase() === 'FEMALE').length;
+    const other = this.actors.filter(a => a.gender.toUpperCase() === 'OTHER').length;
     const unknown = this.actors.filter(a => a.gender.toUpperCase() === 'UNKNOWN').length;
     
     // Calculate total movies (mock)
@@ -721,6 +711,7 @@ export class ActorService {
       total,
       male,
       female,
+      other,
       unknown,
       totalMovies,
       avgMoviesPerActor

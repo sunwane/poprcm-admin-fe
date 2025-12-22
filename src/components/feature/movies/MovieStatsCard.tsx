@@ -1,8 +1,9 @@
 import React from 'react';
 import { useMovieStatsCard } from '@/hooks/useMovieStatsCard';
+import { useDashboard } from '@/hooks/useDashboard';
 
 interface MovieStatsCardProps {
-  stats: {
+  stats?: {
     total: number;
     totalMovies: number;
     totalSeries: number;
@@ -18,7 +19,12 @@ interface MovieStatsCardProps {
   };
 }
 
-const MovieStatsCard: React.FC<MovieStatsCardProps> = ({ stats }) => {
+const MovieStatsCard: React.FC<MovieStatsCardProps> = ({ stats: propStats }) => {
+  const { movieStats } = useDashboard();
+  
+  // Use dashboard stats if prop stats not provided
+  const stats = propStats || movieStats;
+  
   const {
     currentIndex,
     isAutoPlaying,

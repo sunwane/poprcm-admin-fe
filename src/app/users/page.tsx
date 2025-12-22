@@ -1,6 +1,7 @@
 'use client';
 
 import { useUsers } from '@/hooks/useUsers';
+import { useDashboard } from '@/hooks/useDashboard';
 import { getGenderColor, getGenderDisplayName, getRoleColor, formatDate, getInitials } from '@/utils/userUtils';
 import GradientAvatar from '@/components/ui/GradientAvatar';
 import GradientButton from '@/components/ui/GradientButton';
@@ -10,6 +11,9 @@ import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
 
 export default function Users() {
+  // Get dashboard stats
+  const { userStats } = useDashboard();
+  
   const {
     loading,
     showModal,
@@ -67,19 +71,19 @@ export default function Users() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-blue-900 mb-1">{stats.total}</div>
+          <div className="text-2xl font-bold text-blue-900 mb-1">{userStats.total}</div>
           <div className="text-gray-600 text-sm">Tổng người dùng</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-red-600 mb-1">{stats.admin}</div>
+          <div className="text-2xl font-bold text-red-600 mb-1">{userStats.admin}</div>
           <div className="text-gray-600 text-sm">Admin</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-green-600 mb-1">{stats.users}</div>
+          <div className="text-2xl font-bold text-green-600 mb-1">{userStats.users}</div>
           <div className="text-gray-600 text-sm">User</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-blue-600 mb-1">{stats.thisMonth}</div>
+          <div className="text-2xl font-bold text-blue-600 mb-1">{userStats.thisMonth}</div>
           <div className="text-gray-600 text-sm">Tháng này</div>
         </div>
       </div>

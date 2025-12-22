@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useMovies } from '@/hooks/useMovies';
+import { useDashboard } from '@/hooks/useDashboard';
 import { 
   getStatusColor, 
   getStatusText, 
@@ -28,6 +29,9 @@ export default function Movies() {
   // Auto import modal state
   const [isAutoImportModalOpen, setIsAutoImportModalOpen] = useState(false);
   const [autoImportMode, setAutoImportMode] = useState<'import' | 'update'>('import');
+
+  // Get dashboard stats for MovieStatsCard
+  const { movieStats } = useDashboard();
 
   const {
     loading,
@@ -116,7 +120,7 @@ export default function Movies() {
       </div>
 
       {/* Stats Cards */}
-      <MovieStatsCard stats={stats} />
+      <MovieStatsCard stats={movieStats} />
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">

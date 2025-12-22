@@ -262,12 +262,15 @@ export const getLangColor = (lang: string | null | undefined): string => {
 
   switch (lang) {
     case 'vietsub':
+    case 'Vietsub':
       return 'text-green-700 bg-green-100';
     case 'thuyết minh':
     case 'thuyet minh':
+    case 'Thuyết Minh':
       return 'text-blue-700 bg-blue-100';
     case 'lồng tiếng':
     case 'long tieng':
+    case 'Lồng Tiếng':
       return 'text-orange-700 bg-orange-100';
     default:
       return 'text-gray-700 bg-gray-100';

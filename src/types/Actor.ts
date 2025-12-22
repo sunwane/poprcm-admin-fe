@@ -7,6 +7,7 @@ export interface Actor {
     profilePath?: string;
     gender: string;
     alsoKnownAs?: string[];
+    movieCount?: number;
 }
 
 export interface MovieActor {

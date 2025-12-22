@@ -1,6 +1,7 @@
 'use client';
 
 import { useActors } from '@/hooks/useActors';
+import { useDashboard } from '@/hooks/useDashboard';
 import { getGenderColor, getGenderDisplayName, getInitials, getMovieCountColor } from '@/utils/actorUtils';
 import GradientAvatar from '@/components/ui/GradientAvatar';
 import GradientButton from '@/components/ui/GradientButton';
@@ -11,6 +12,9 @@ import Pagination from '@/components/ui/Pagination';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 
 export default function Actors() {
+  // Get dashboard stats
+  const { actorStats } = useDashboard();
+  
   const {
     loading,
     loadingStats,
@@ -74,19 +78,19 @@ export default function Actors() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-4">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-blue-900 mb-1">{stats.total}</div>
+          <div className="text-2xl font-bold text-blue-900 mb-1">{actorStats.total}</div>
           <div className="text-gray-600 text-sm">Tổng diễn viên</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-blue-600 mb-1">{stats.male}</div>
+          <div className="text-2xl font-bold text-blue-600 mb-1">{actorStats.male}</div>
           <div className="text-gray-600 text-sm">Nam</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-pink-600 mb-1">{stats.female}</div>
+          <div className="text-2xl font-bold text-pink-600 mb-1">{actorStats.female}</div>
           <div className="text-gray-600 text-sm">Nữ</div>
         </div>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <div className="text-2xl font-bold text-orange-600 mb-1">{stats.avgMoviesPerActor}</div>
+          <div className="text-2xl font-bold text-orange-600 mb-1">{actorStats.avgMoviesPerActor.toFixed(1)}</div>
           <div className="text-gray-600 text-sm">TB phim/diễn viên</div>
         </div>
       </div>
@@ -246,8 +250,8 @@ export default function Actors() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-sm font-medium ${getMovieCountColor(movieCounts[actor.id] || 0)}`}>
-                      {movieCounts[actor.id] || 0}
+                    <span className={`px-2 py-1 rounded-full text-sm font-medium ${getMovieCountColor(actor.movieCount || movieCounts[actor.id] || 0)}`}>
+                      {actor.movieCount || movieCounts[actor.id] || 0}
                     </span>
                   </td>
                   <td className="px-6 py-4">

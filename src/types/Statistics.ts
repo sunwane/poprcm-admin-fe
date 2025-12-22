@@ -53,11 +53,14 @@ export interface UserDailyStats {
 }
 
 export interface RecentActivity {
-  id: string;
-  type: string;
-  description: string;
+  type: string; // WATCH, FAVORITE, COMMENT
+  userName?: string;
+  userAvatar?: string;
+  movieTitle?: string;
+  movieId?: string;
+  episodeTitle?: string;
+  content?: string; // Nội dung comment nếu có
   timestamp: string;
-  user?: string;
 }
 
 // Entity Stats Response

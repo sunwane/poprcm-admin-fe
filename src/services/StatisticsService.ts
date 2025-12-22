@@ -5,6 +5,7 @@ import {
   GenreStatsDetail,
   ApiResponse,
 } from '../types/Statistics';
+import HttpInterceptor from './HttpInterceptor';
 
 export class StatisticsService {
   private static readonly API_BASE_URL = 'http://localhost:8088/api/statistics';
@@ -54,20 +55,14 @@ export class StatisticsService {
     }
 
     try {
-      const authToken = this.getAuthToken();
-      if (!authToken) {
-        throw new Error('No auth token available');
-      }
-
       const url = month 
         ? `${this.API_BASE_URL}/dashboard?month=${month}`
         : `${this.API_BASE_URL}/dashboard`;
 
-      const response = await fetch(url, {
+      const response = await HttpInterceptor.fetchWithAuth(url, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
         }
       });
 
@@ -116,16 +111,10 @@ export class StatisticsService {
     }
 
     try {
-      const authToken = this.getAuthToken();
-      if (!authToken) {
-        throw new Error('No auth token available');
-      }
-
-      const response = await fetch(`${this.API_BASE_URL}/details/${entityType}`, {
+      const response = await HttpInterceptor.fetchWithAuth(`${this.API_BASE_URL}/details/${entityType}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
         }
       });
 

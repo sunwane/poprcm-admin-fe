@@ -4,6 +4,7 @@ export const getGenderColor = (gender: string): string => {
   switch (gender.toUpperCase()) {
     case 'MALE': return 'bg-blue-100 text-blue-800';
     case 'FEMALE': return 'bg-pink-100 text-pink-800';
+    case 'OTHER': return 'bg-purple-100 text-purple-800';
     case 'UNKNOWN': return 'bg-gray-100 text-gray-800';
     default: return 'bg-gray-100 text-gray-800';
   }
@@ -13,6 +14,7 @@ export const getGenderDisplayName = (gender: string): string => {
   switch (gender.toUpperCase()) {
     case 'MALE': return 'Nam';
     case 'FEMALE': return 'Nữ';
+    case 'OTHER': return 'Khác';
     case 'UNKNOWN': return 'Không rõ';
     default: return 'Không rõ';
   }

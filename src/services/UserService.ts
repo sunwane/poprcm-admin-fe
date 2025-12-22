@@ -1,5 +1,6 @@
 import { User, UserResponse, ApiResponse, PageResponse, AvatarUploadResponse } from '@/types/User';
 import { mockUsers } from '@/mocksData/mockUser';
+import HttpInterceptor from './HttpInterceptor';
 
 export class UserService {
   private static users: User[] = [];
@@ -90,7 +91,7 @@ export class UserService {
   /**
    * Lấy thông tin user hiện tại (GET /api/users/me)
    */
-  static async getCurrentUser(token: string): Promise<User | null> {
+  static async getCurrentUser(token?: string): Promise<User | null> {
     if (!this.isServiceAvailable()) {
       console.log('Using mock data for getCurrentUser');
       // Fallback về mock data
@@ -99,13 +100,26 @@ export class UserService {
 
     try {
       console.log('Attempting to call real API for getCurrentUser...');
-      const response = await fetch(`${this.API_BASE_URL}/me`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-      });
+      
+      let response;
+      if (token) {
+        // Nếu có token parameter, sử dụng nó (for login)
+        response = await fetch(`${this.API_BASE_URL}/me`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+        });
+      } else {
+        // Otherwise use interceptor
+        response = await HttpInterceptor.fetchWithAuth(`${this.API_BASE_URL}/me`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+      }
 
       if (!response.ok) {
         throw new Error(`API call failed: ${response.statusText}`);
@@ -129,9 +143,9 @@ export class UserService {
   /**
    * Mock implementation cho getCurrentUser
    */
-  private static getCurrentUserFromMock(token: string): User | null {
+  private static getCurrentUserFromMock(token?: string): User | null {
     // Trong mock, chúng ta sẽ extract userId từ token hoặc dùng admin user mặc định
-    if (token.startsWith('mock-jwt-token-')) {
+    if (token && token.startsWith('mock-jwt-token-')) {
       const adminUser = mockUsers.find(user => user.userName === 'admin');
       return adminUser || null;
     }
@@ -197,12 +211,10 @@ export class UserService {
     }
 
     try {
-      const authToken = localStorage.getItem('authToken');
-      const response = await fetch('http://localhost:8088/api/users/change-password', {
+      const response = await HttpInterceptor.fetchWithAuth('http://localhost:8088/api/users/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
           oldPassword,
@@ -247,7 +259,6 @@ export class UserService {
     }
 
     try {
-      const authToken = localStorage.getItem('authToken');
       console.log('Attempting to call real API for updateProfile...');
       
       // Convert User data to API format
@@ -257,11 +268,10 @@ export class UserService {
         gender: updatedData.gender?.toUpperCase()
       };
 
-      const response = await fetch(`${this.API_BASE_URL}/${userId}`, {
+      const response = await HttpInterceptor.fetchWithAuth(`${this.API_BASE_URL}/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify(apiData),
       });

@@ -47,7 +47,7 @@ export const useAuth = () => {
         throw new Error('Chỉ quản trị viên mới có thể đăng nhập!');
       }
       
-      AuthService.setAuth(response.token, user);
+      AuthService.setAuth(response.token, user, response.refreshToken);
       setUser(user || null);
       setIsAuthenticated(true);
       
@@ -74,7 +74,24 @@ export const useAuth = () => {
     router.push('/login');
   };
 
-
+  // Thêm method để manual refresh token
+  const refreshAuthToken = async () => {
+    try {
+      const newToken = await AuthService.refreshToken();
+      if (newToken) {
+        console.log('✅ Token refreshed in useAuth');
+        return true;
+      } else {
+        console.log('❌ Token refresh failed in useAuth');
+        logout();
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Token refresh error:', error);
+      logout();
+      return false;
+    }
+  };
 
   // Login form handlers
   const updateLoginForm = (field: 'email' | 'password', value: string) => {
@@ -118,6 +135,7 @@ export const useAuth = () => {
     // Auth methods
     login,
     logout,
+    refreshAuthToken,
     isAdmin: () => AuthService.isAdmin(),
     
     // Login form methods

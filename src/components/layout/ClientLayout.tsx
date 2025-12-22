@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import NavigationBar from './NavigationBar';
 import ProtectedRoute from '@/components/feature/auth/ProtectedRoute';
+import TokenRefreshProvider from '@/components/providers/TokenRefreshProvider';
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -40,13 +41,15 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
   // Bên trong sau khi đăng nhập thành công, 
   // ProtectedRoute dùng bao bọc các thông tin không được truy cập khi chưa xác thực
   return (
-    <ProtectedRoute>
-      <div className="flex min-h-screen bg-gray-50">
-        <NavigationBar />
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
-      </div>
-    </ProtectedRoute>
+    <TokenRefreshProvider>
+      <ProtectedRoute>
+        <div className="flex min-h-screen bg-gray-50">
+          <NavigationBar />
+          <main className="flex-1 overflow-auto">
+            {children}
+          </main>
+        </div>
+      </ProtectedRoute>
+    </TokenRefreshProvider>
   );
 }

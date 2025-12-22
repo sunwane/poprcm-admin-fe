@@ -7,6 +7,7 @@ import { Episode } from '@/types/Movies';
 import { GenresService } from '@/services/GenresService';
 import { CountryService } from '@/services/CountryService';
 import { ActorService } from '@/services/ActorService';
+import MovieImportServiceInstance from '@/services/MovieImportService';
 
 export interface MovieFormData {
   title: string;
@@ -158,8 +159,8 @@ export const useMovieModal = (editingMovie: Movie | null, isOpen: boolean) => {
           releaseYear: editingMovie.releaseYear,
           type: editingMovie.type,
           duration: editingMovie.duration,
-          posterUrl: editingMovie.posterUrl || '',
-          thumbnailUrl: editingMovie.thumbnailUrl || '',
+          posterUrl: (MovieImportServiceInstance.constructor as any).removeImagePrefixForDisplay(editingMovie.posterUrl) || '',
+          thumbnailUrl: (MovieImportServiceInstance.constructor as any).removeImagePrefixForDisplay(editingMovie.thumbnailUrl) || '',
           trailerUrl: editingMovie.trailerUrl || '',
           totalEpisodes: editingMovie.totalEpisodes,
           director: Array.isArray(editingMovie.director) ? editingMovie.director.join(', ') : editingMovie.director,

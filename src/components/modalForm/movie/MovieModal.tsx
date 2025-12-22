@@ -7,6 +7,7 @@ import MovieCountriesForm from '@/components/modalForm/movie/MovieCountriesForm'
 import MovieActorsForm from '@/components/modalForm/movie/MovieActorsForm';
 import MovieGenresForm from '@/components/modalForm/movie/MovieGenresForm';
 import MovieEpisodesForm from '@/components/modalForm/movie/MovieEpisodesForm';
+import MovieImportServiceInstance from '@/services/MovieImportService';
 
 interface MovieModalProps {
   isOpen: boolean;
@@ -136,8 +137,8 @@ export default function MovieModal({ isOpen, editingMovie, onClose, onSave }: Mo
         releaseYear: formData.releaseYear,
         type: formData.type,
         duration: formData.duration.trim(),
-        posterUrl: formData.posterUrl.trim() || undefined,
-        thumbnailUrl: formData.thumbnailUrl.trim() || undefined,
+        posterUrl: (MovieImportServiceInstance.constructor as any).addImagePrefixForAPI(formData.posterUrl.trim()) || undefined,
+        thumbnailUrl: (MovieImportServiceInstance.constructor as any).addImagePrefixForAPI(formData.thumbnailUrl.trim()) || undefined,
         trailerUrl: formData.trailerUrl.trim() || undefined,
         totalEpisodes: formData.totalEpisodes,
         director: formData.director.trim(),

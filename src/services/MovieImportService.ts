@@ -27,6 +27,36 @@ class MovieImportService {
     return cleanUrl;
   }
 
+  // Helper method to add image prefix for API requests
+  private static addImagePrefix(url: string | undefined): string | undefined {
+    if (!url || !url.trim()) return undefined;
+    const cleanUrl = url.trim();
+    // If already has prefix, return as-is
+    if (cleanUrl.startsWith(this.IMAGE_URL_PREFIX)) {
+      console.log('🔍 URL already has prefix:', cleanUrl);
+      return cleanUrl;
+    }
+    // If starts with http or https, assume it's a full URL, return as-is
+    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
+      console.log('🔍 Full URL detected, keeping as-is:', cleanUrl);
+      return cleanUrl;
+    }
+    // Add prefix to relative path
+    const fullUrl = this.IMAGE_URL_PREFIX + cleanUrl;
+    console.log('🔍 Adding image prefix:', cleanUrl, '->', fullUrl);
+    return fullUrl;
+  }
+
+  // Public method to remove image prefix for display in forms
+  static removeImagePrefixForDisplay(url: string | undefined): string | undefined {
+    return this.removeImagePrefix(url);
+  }
+
+  // Public method to add image prefix for complete URL
+  static addImagePrefixForAPI(url: string | undefined): string | undefined {
+    return this.addImagePrefix(url);
+  }
+
   async autoImportMovies(slug: string, count: number = 10): Promise<any> {
     try {
       const authToken = localStorage.getItem('authToken');
@@ -256,22 +286,10 @@ class MovieImportService {
       console.warn('⚠️ Invalid releaseYear:', cleanedResult.releaseYear);
       cleanedResult.releaseYear = new Date().getFullYear();
     }
-  
-    console.log('🚀 Final CREATE request data:', cleanedResult);
-    console.log('🔍 CREATE actorIds only (NO characterName):', cleanedResult.actorIds);
     return cleanedResult;
   }
 
-  // Prepare movie data for UPDATE (matching MovieUpdateRequest from backend)
-  // WARNING: characterName is NOT supported by backend for UPDATE operations
-  private prepareMovieDataForUpdate(movieData: Partial<Movie>) {
-    console.log('🔍 prepareMovieDataForUpdate called with:', movieData);
-    console.log('🔍 movieData.actors:', movieData.actors);
-    console.log('🔍 movieData.genres:', movieData.genres);
-    console.log('🔍 movieData.country:', movieData.country);
-    console.log('🔍 movieData.director (UPDATE input):', movieData.director, 'Type:', typeof movieData.director);
-    console.log('🔍 UPDATE Input URLs - posterUrl:', movieData.posterUrl, 'thumbnailUrl:', movieData.thumbnailUrl);
-    
+  private prepareMovieDataForUpdate(movieData: Partial<Movie>) {    
     const result = {
       title: movieData.title,
       description: movieData.description,
@@ -282,20 +300,16 @@ class MovieImportService {
       posterUrl: movieData.posterUrl,
       trailerUrl: movieData.trailerUrl,
       director: (() => {
-        // Xử lý director để luôn trả về array (UPDATE method)
+        // Backend expects director as STRING for UPDATE (not array like CREATE)
         if (Array.isArray(movieData.director)) {
-          return movieData.director.filter(Boolean); // Loại bỏ các giá trị falsy
+          return movieData.director.filter(Boolean).join(', '); // Join array to string
         }
         
         if (typeof movieData.director === 'string' && movieData.director.trim()) {
-          // Tách chuỗi theo dấu phẩy và làm sạch
-          return movieData.director
-            .split(',')
-            .map(d => d.trim())
-            .filter(Boolean); // Loại bỏ các string rỗng
+          return movieData.director.trim(); // Return string as-is
         }
         
-        return []; // Trả về array rỗng nếu không có director
+        return ''; // Return empty string if no director
       })(),
       status: movieData.status,
       totalEpisodes: movieData.totalEpisodes?.toString(),
@@ -306,24 +320,12 @@ class MovieImportService {
       genreIds: movieData.genres?.map(g => typeof g.id === 'string' ? g.id : String(g.id)).filter(Boolean) || [],
       countryIds: movieData.country?.map(c => typeof c.id === 'string' ? c.id : String(c.id)).filter(Boolean) || [],
       actorIds: movieData.actors?.map(a => {
-        console.log('🔍 Processing actor for UPDATE:', a);
-        
-        // Backend expects TMDB IDs (integers) not database IDs (strings)
-        // NOTE: characterName is NOT supported by backend for UPDATE requests
         let tmdbId = null;
         
         if (a.actor?.tmdbId) {
           // TMDB ID from nested actor object
           tmdbId = typeof a.actor.tmdbId === 'string' ? parseInt(a.actor.tmdbId) : a.actor.tmdbId;
           console.log('🔍 Using actor.tmdbId:', a.actor.tmdbId, '-> parsed:', tmdbId);
-        } else if (a.actorId && !isNaN(parseInt(a.actorId))) {
-          // Fallback: if actorId is numeric, treat as TMDB ID
-          tmdbId = parseInt(a.actorId);
-          console.log('🔍 Fallback: treating actorId as tmdbId:', a.actorId, '-> parsed:', tmdbId);
-        } else if (a.actor?.id && !isNaN(parseInt(a.actor.id))) {
-          // Fallback: if actor.id is numeric, treat as TMDB ID
-          tmdbId = parseInt(a.actor.id);
-          console.log('🔍 Fallback: treating actor.id as tmdbId:', a.actor.id, '-> parsed:', tmdbId);
         } else {
           console.warn('⚠️ No valid TMDB ID found for actor:', a);
         }
@@ -347,7 +349,7 @@ class MovieImportService {
       originName: result.originName?.trim() || undefined,
       description: result.description?.trim() || undefined,
       duration: result.duration?.trim() || undefined,
-      director: Array.isArray(result.director) ? result.director.filter(Boolean) : [],
+      director: typeof result.director === 'string' ? result.director.trim() : '',
       genreIds: Array.isArray(result.genreIds) ? result.genreIds.filter(id => id && typeof id === 'string') : [],
       countryIds: Array.isArray(result.countryIds) ? result.countryIds.filter(id => id && typeof id === 'string') : [],
       actorIds: Array.isArray(result.actorIds) ? result.actorIds.filter(id => typeof id === 'number' && !isNaN(id)) : [],
@@ -364,11 +366,7 @@ class MovieImportService {
       cleanedResult.imdbScore = 10;
       console.warn('⚠️ UPDATE - imdbScore > 10 - capped at 10');
     }
-    
-    console.log('✅ prepareMovieDataForUpdate final result:', result);
-    console.log('🔍 Final director (UPDATE):', result.director, 'Type:', typeof result.director, 'IsArray:', Array.isArray(result.director));
-    console.log('🧹 prepareMovieDataForUpdate cleaned result:', cleanedResult);
-    console.log('🔍 UPDATE actorIds only (NO characterName):', cleanedResult.actorIds);
+
     
     return cleanedResult;
   }
@@ -376,9 +374,7 @@ class MovieImportService {
 
 
   // Convert API response to Movie format
-  private apiResponseToMovie(apiData: any): Movie {
-    console.log('🔍 apiResponseToMovie input:', apiData);
-    
+  private apiResponseToMovie(apiData: any): Movie {    
     return {
       id: apiData.id,
       title: apiData.title,
@@ -387,8 +383,8 @@ class MovieImportService {
       releaseYear: apiData.releaseYear,
       type: apiData.type,
       duration: apiData.duration || '',
-      posterUrl: apiData.posterUrl, // Keep full URL as-is
-      thumbnailUrl: apiData.thumbUrl, // Keep full URL as-is  
+      posterUrl: MovieImportService.addImagePrefix(apiData.posterUrl), // Add prefix if needed
+      thumbnailUrl: MovieImportService.addImagePrefix(apiData.thumbUrl), // Add prefix if needed  
       trailerUrl: apiData.trailerUrl,
       totalEpisodes: apiData.totalEpisodes ? parseInt(apiData.totalEpisodes) : undefined,
       currentEpisodeCount: apiData.currentEpisodeCount,
@@ -479,7 +475,6 @@ class MovieImportService {
 
   // Update movie
   async updateMovie(id: string, movieData: Partial<Movie>): Promise<Movie | null> {
-    console.log('🔍 updateMovie method called with:', { id, movieData });
     if (!this.isServiceAvailable()) {
       // Mock data fallback
       const index = MovieImportService.movies.findIndex(movie => movie.id === id);
@@ -506,16 +501,6 @@ class MovieImportService {
       const authToken = localStorage.getItem('authToken');
       const apiData = this.prepareMovieDataForUpdate(movieData);
 
-      console.log('🔍 UPDATE Movie API Request:', {
-        url: `${this.baseURL}/movies/${id}`,
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': authToken ? `Bearer ${authToken.substring(0, 10)}...` : 'No token'
-        },
-        body: apiData
-      });
-
       const response = await fetch(`${this.baseURL}/movies/${id}`, {
         method: 'PUT',
         headers: {
@@ -525,41 +510,10 @@ class MovieImportService {
         body: JSON.stringify(apiData)
       });
 
-      console.log('🔍 UPDATE Movie API Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
-      });
-
-      // Read response text once
-      const responseText = await response.text();
-      console.log('✅ UPDATE Movie Raw Response:', responseText);
-
-      if (!response.ok) {
-        console.error('❌ UPDATE Movie API Error Response:', responseText);
-        
-        let errorData;
-        try {
-          errorData = JSON.parse(responseText);
-        } catch {
-          errorData = { message: responseText };
-        }
-        
-        console.error('❌ Parsed error data:', errorData);
-        throw new Error(errorData.message || `API Error: ${response.status} ${response.statusText}`);
-      }
-      
-      let apiResponse;
-      try {
-        apiResponse = JSON.parse(responseText);
-      } catch (e) {
-        console.error('❌ Failed to parse response JSON:', e);
-        throw new Error('Invalid JSON response from server');
-      }
-      
-      console.log('✅ UPDATE Movie Parsed Response:', apiResponse);
+      const apiResponse = await response.json();
       
       if (apiResponse.result) {
+        console.log('✅ UPDATE Movie Success:', apiResponse.result);
         return this.apiResponseToMovie(apiResponse.result);
       }
       
@@ -567,7 +521,6 @@ class MovieImportService {
       
     } catch (error) {
       console.error('❌ Failed to update movie via API:', error);
-      console.error('🔍 Movie Data being sent:', JSON.stringify(movieData, null, 2));
       throw new Error(error instanceof Error ? error.message : 'Failed to update movie');
     }
   }
@@ -724,4 +677,5 @@ class MovieImportService {
   }
 }
 
+export { MovieImportService };
 export default new MovieImportService();

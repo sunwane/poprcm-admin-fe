@@ -121,7 +121,7 @@ export class MoviesService {
       director: Array.isArray(director) ? director.join(', ') : director,
       status: Array.isArray(status) ? status[0] || '' : status,
       createdAt: new Date(createdAt),
-      modifiedAt: new Date(modifiedAt),
+      modifiedAt: (modifiedAt) ? new Date(modifiedAt) : new Date(createdAt),
       view: views,
       slug,
       tmdbScore,

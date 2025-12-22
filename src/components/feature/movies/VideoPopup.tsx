@@ -1,33 +1,51 @@
+import React, { useState, useEffect } from 'react';
+
 interface VideoPopupProps {
   isOpen: boolean;
   videoUrl: string;
+  embeddedUrl?: string; // Optional embedded URL as fallback
   title: string;
   onClose: () => void;
 }
 
-const VideoPopup: React.FC<VideoPopupProps> = ({ isOpen, videoUrl, title, onClose }) => {
+const VideoPopup: React.FC<VideoPopupProps> = ({ 
+  isOpen, 
+  videoUrl, 
+  embeddedUrl, 
+  title, 
+  onClose 
+}) => {
+  const [currentVideoUrl, setCurrentVideoUrl] = useState(videoUrl);
+  const [hasError, setHasError] = useState(false);
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
+
+  // Reset state when popup opens/closes or URLs change
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentVideoUrl(videoUrl);
+      setHasError(false);
+      setIsUsingFallback(false);
+    }
+  }, [isOpen, videoUrl]);
+
   if (!isOpen) return null;
 
-  const getEmbedUrl = (url: string) => {
-    // YouTube
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const videoId = url.includes('youtu.be') 
-        ? url.split('/').pop()?.split('?')[0]
-        : url.split('v=')[1]?.split('&')[0];
-      return `https://www.youtube.com/embed/${videoId}`;
-    }
+  const handleVideoError = () => {
+    console.warn('Primary video failed to load:', currentVideoUrl);
+    setHasError(true);
     
-    // Direct video files
-    if (url.includes('.mp4') || url.includes('.webm') || url.includes('.ogg')) {
-      return url;
+    // Try fallback to embedded URL if available
+    if (embeddedUrl && !isUsingFallback) {
+      console.log('Switching to embedded URL fallback:', embeddedUrl);
+      setCurrentVideoUrl(embeddedUrl);
+      setIsUsingFallback(true);
+      setHasError(false);
     }
-    
-    // Default fallback
-    return url;
   };
-  
-  const embedUrl = getEmbedUrl(videoUrl);
-  const isDirectVideo = videoUrl.includes('.mp4') || videoUrl.includes('.webm') || videoUrl.includes('.ogg');
+
+  const isDirectVideo = (url: string) => {
+    return url.includes('.mp4') || url.includes('.webm') || url.includes('.ogg') || url.includes('.m3u8');
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60 p-4">
@@ -44,24 +62,41 @@ const VideoPopup: React.FC<VideoPopupProps> = ({ isOpen, videoUrl, title, onClos
           </button>
         </div>
         
-        <div className="aspect-video bg-black">
-          {isDirectVideo ? (
+        <div className="aspect-video bg-black relative">
+          {hasError && !embeddedUrl ? (
+            <div className="flex items-center justify-center h-full text-white">
+              <div className="text-center">
+                <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p>Không thể tải video</p>
+              </div>
+            </div>
+          ) : isDirectVideo(currentVideoUrl) ? (
             <video 
-              src={embedUrl} 
+              src={currentVideoUrl} 
               controls 
               className="w-full h-full"
               preload="metadata"
+              onError={handleVideoError}
             >
               Trình duyệt không hỗ trợ video này.
             </video>
           ) : (
             <iframe
-              src={embedUrl}
+              src={currentVideoUrl}
               className="w-full h-full"
               frameBorder="0"
               allowFullScreen
               title={title}
+              onError={handleVideoError}
             />
+          )}
+          
+          {isUsingFallback && (
+            <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded text-sm">
+              Sử dụng video dự phòng
+            </div>
           )}
         </div>
       </div>

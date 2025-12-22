@@ -14,20 +14,21 @@ interface MovieDetailModalProps {
 
 const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onClose }) => {
   const [activeTab, setActiveTab] = useState<'info' | 'countries' | 'genres'>('info');
-  const [videoPopup, setVideoPopup] = useState<{ isOpen: boolean; url: string; title: string }>({
+  const [videoPopup, setVideoPopup] = useState<{ isOpen: boolean; url: string; embeddedUrl?: string; title: string }>({
     isOpen: false,
     url: '',
+    embeddedUrl: undefined,
     title: ''
   });
 
   if (!isOpen || !movie) return null;
 
-  const openVideoPopup = (url: string, title: string) => {
-    setVideoPopup({ isOpen: true, url, title });
+  const openVideoPopup = (url: string, embeddedUrl: string | undefined, title: string) => {
+    setVideoPopup({ isOpen: true, url, embeddedUrl, title });
   };
 
   const closeVideoPopup = () => {
-    setVideoPopup({ isOpen: false, url: '', title: '' });
+    setVideoPopup({ isOpen: false, url: '', embeddedUrl: undefined, title: '' });
   };
 
   const tabs = [
@@ -76,7 +77,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                 {/* Trailer Button */}
                 {movie.trailerUrl && (
                   <button
-                    onClick={() => openVideoPopup(movie.trailerUrl!, 'Trailer - ' + movie.title)}
+                    onClick={() => openVideoPopup(movie.trailerUrl!, undefined, 'Trailer - ' + movie.title)}
                     className="absolute bottom-18 right-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors flex items-center space-x-2"
                   >
                     <svg className="w-6 h-6" fill="currentColor" viewBox="2 4 20 16">
@@ -231,7 +232,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                   </div>
                   <div className="mt-4">
                     <label className="text-sm font-medium text-gray-500">Mô tả</label>
-                    <p className="text-gray-800 leading-relaxed">{movie.description}</p>
+                    <div className="text-gray-800 leading-relaxed" dangerouslySetInnerHTML={{ __html: movie.description || "Không có thông tin" }}></div>
                   </div>
                 </div>
                 </div>
@@ -301,6 +302,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
       <VideoPopup
         isOpen={videoPopup.isOpen}
         videoUrl={videoPopup.url}
+        embeddedUrl={videoPopup.embeddedUrl}
         title={videoPopup.title}
         onClose={closeVideoPopup}
       />

@@ -5,7 +5,7 @@ import { EpisodesService } from '@/services/EpisodesService';
 interface EpisodesSectionProps {
   episodes: Episode[];
   movieId?: string;
-  onEpisodeClick: (videoUrl: string, title: string) => void;
+  onEpisodeClick: (videoUrl: string, embeddedUrl: string | undefined, title: string) => void;
   onEpisodeEdit?: (episode: Episode) => void;
 }
 
@@ -77,7 +77,7 @@ const EpisodesSection: React.FC<EpisodesSectionProps> = ({
         {episodesByServer[activeServer]?.map((episode) => (
           <div key={episode.id} className="relative group">
             <button
-              onClick={() => onEpisodeClick(episode.videoUrl, `Tập ${episode.episodeNumber}: ${episode.title}`)}
+              onClick={() => onEpisodeClick(episode.videoUrl, episode.m3u8Url, `Tập ${episode.episodeNumber}: ${episode.title}`)}
               className="w-full bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-3 text-center transition-colors"
               disabled={loading}
             >

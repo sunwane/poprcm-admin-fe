@@ -103,14 +103,8 @@ class MovieImportService {
   }
 
   // Prepare movie data for CREATE (matching MovieCreateRequest from backend)
+  // WARNING: characterName is NOT supported by backend for CREATE operations
   private prepareMovieDataForCreate(movieData: Partial<Movie>) {
-    console.log('🔍 prepareMovieDataForCreate called with:', movieData);
-    console.log('🔍 movieData.actors:', movieData.actors);
-    console.log('🔍 movieData.genres:', movieData.genres);
-    console.log('🔍 movieData.country:', movieData.country);
-    console.log('🔍 movieData.director (input):', movieData.director, 'Type:', typeof movieData.director);
-    console.log('🔍 Input URLs - posterUrl:', movieData.posterUrl, 'thumbnailUrl:', movieData.thumbnailUrl);
-    
     const result = {
       title: movieData.title,
       slug: movieData.slug || (movieData.title ? MovieImportService.generateSlug(movieData.title) : undefined),
@@ -149,6 +143,7 @@ class MovieImportService {
         console.log('🔍 Processing actor for CREATE:', a);
         
         // Backend expects TMDB IDs (integers) not database IDs (strings)
+        // NOTE: characterName is NOT supported by backend for CREATE requests
         let tmdbId = null;
         
         if (a.actor?.tmdbId) {
@@ -167,6 +162,7 @@ class MovieImportService {
           console.warn('⚠️ No valid TMDB ID found for actor:', a);
         }
         
+        // Only return TMDB ID - characterName is ignored for backend compatibility
         return tmdbId && !isNaN(tmdbId) ? tmdbId : null;
       }).filter((id): id is number => id !== null) || [],
       episodes: movieData.episodes?.map(ep => ({
@@ -262,10 +258,12 @@ class MovieImportService {
     }
   
     console.log('🚀 Final CREATE request data:', cleanedResult);
+    console.log('🔍 CREATE actorIds only (NO characterName):', cleanedResult.actorIds);
     return cleanedResult;
   }
 
   // Prepare movie data for UPDATE (matching MovieUpdateRequest from backend)
+  // WARNING: characterName is NOT supported by backend for UPDATE operations
   private prepareMovieDataForUpdate(movieData: Partial<Movie>) {
     console.log('🔍 prepareMovieDataForUpdate called with:', movieData);
     console.log('🔍 movieData.actors:', movieData.actors);
@@ -311,6 +309,7 @@ class MovieImportService {
         console.log('🔍 Processing actor for UPDATE:', a);
         
         // Backend expects TMDB IDs (integers) not database IDs (strings)
+        // NOTE: characterName is NOT supported by backend for UPDATE requests
         let tmdbId = null;
         
         if (a.actor?.tmdbId) {
@@ -329,6 +328,7 @@ class MovieImportService {
           console.warn('⚠️ No valid TMDB ID found for actor:', a);
         }
         
+        // Only return TMDB ID - characterName is ignored for backend compatibility
         return tmdbId && !isNaN(tmdbId) ? tmdbId : null;
       }).filter((id): id is number => id !== null) || [],
       episodes: movieData.episodes?.map(ep => ({
@@ -368,6 +368,7 @@ class MovieImportService {
     console.log('✅ prepareMovieDataForUpdate final result:', result);
     console.log('🔍 Final director (UPDATE):', result.director, 'Type:', typeof result.director, 'IsArray:', Array.isArray(result.director));
     console.log('🧹 prepareMovieDataForUpdate cleaned result:', cleanedResult);
+    console.log('🔍 UPDATE actorIds only (NO characterName):', cleanedResult.actorIds);
     
     return cleanedResult;
   }
@@ -421,7 +422,7 @@ class MovieImportService {
   }
 
   // Add new movie
-  async addMovie(movieData: Omit<Movie, 'id' | 'createdAt' | 'modifiedAt' | 'slug'>): Promise<Movie> {
+  async addMovie(movieData: Omit<Movie, 'id' | 'createdAt' | 'modifiedAt' | 'slug'>): Promise<Movie | null> {
     console.log('🔍 addMovie method called with:', movieData);
     if (!this.isServiceAvailable()) {
       // Mock data fallback
@@ -462,45 +463,13 @@ class MovieImportService {
         body: JSON.stringify(apiData)
       });
 
-      console.log('🔍 CREATE Movie API Response:', {
-        status: response.status,
-        statusText: response.statusText,
-        ok: response.ok
-      });
-
-      // Read response text once
-      const responseText = await response.text();
-      console.log('✅ CREATE Movie Raw Response:', responseText);
-
-      if (!response.ok) {
-        console.error('❌ CREATE Movie API Error Response:', responseText);
-        
-        let errorData;
-        try {
-          errorData = JSON.parse(responseText);
-        } catch {
-          errorData = { message: responseText };
-        }
-        
-        console.error('❌ Parsed error data:', errorData);
-        throw new Error(errorData.message || `API Error: ${response.status} ${response.statusText}`);
-      }
-      
-      let apiResponse;
-      try {
-        apiResponse = JSON.parse(responseText);
-      } catch (e) {
-        console.error('❌ Failed to parse response JSON:', e);
-        throw new Error('Invalid JSON response from server');
-      }
-      
-      console.log('✅ CREATE Movie Parsed Response:', apiResponse);
+      const apiResponse = await response.json();
       
       if (apiResponse.result) {
         return this.apiResponseToMovie(apiResponse.result);
       }
       
-      throw new Error('Invalid API response structure');
+      return null;
       
     } catch (error) {
       console.error('Failed to add movie via API:', error);

@@ -403,7 +403,7 @@ export class MoviesService {
   }
 
   // Add new movie
-  static async addMovie(movieData: Omit<Movie, 'id' | 'createdAt' | 'modifiedAt' | 'slug'>): Promise<Movie> {
+  static async addMovie(movieData: Omit<Movie, 'id' | 'createdAt' | 'modifiedAt' | 'slug'>): Promise<Movie | null> {
     const result = await MovieImportService.addMovie(movieData);
     // Refresh cached data
     this.refreshData();

@@ -150,8 +150,8 @@ export default function Settings() {
                   <RadioButton
                     name="gender"
                     options={[
-                      { value: 'MALE', label: 'Nam' },
-                      { value: 'FEMALE', label: 'Nữ' }
+                      { value: 'male', label: 'Nam' },
+                      { value: 'female', label: 'Nữ' }
                     ]}
                     selectedValue={settings.profile.gender}
                     onChange={(value) => updateProfileField('gender', value)}
@@ -163,7 +163,7 @@ export default function Settings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tên hiển thị
+                    Tên đăng nhập
                   </label>
                   <FormInput
                     name="username"
@@ -173,6 +173,7 @@ export default function Settings() {
                     placeholder="Username"
                     disabled={!isEditingProfile}
                     readonly={!isEditingProfile}
+                    className={!isEditingProfile ? 'bg-gray-50 text-gray-700' : ''}
                   />
                 </div>
                 
@@ -202,7 +203,8 @@ export default function Settings() {
                     value={settings.profile.email}
                     disabled={true}
                     readonly={true}
-                    className={!isEditingProfile ? 'bg-gray-50 text-gray-700' : ''}
+                    className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                    placeholder="Email không thể thay đổi"
                   />
                 </div> 
                 

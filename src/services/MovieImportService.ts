@@ -13,21 +13,6 @@ class MovieImportService {
   // Image URL prefix for posterUrl and thumbnailUrl
   private static readonly IMAGE_URL_PREFIX = 'https://img.ophim.live/uploads/movies/';
   
-  // Helper method to add image prefix
-  private static addImagePrefix(url: string | undefined): string | undefined {
-    if (!url || !url.trim()) return undefined;
-    const cleanUrl = url.trim();
-    // If already has prefix, return as is
-    if (cleanUrl.startsWith(this.IMAGE_URL_PREFIX)) {
-      console.log('🔍 Image URL already has prefix:', cleanUrl);
-      return cleanUrl;
-    }
-    // Add prefix
-    const fullUrl = this.IMAGE_URL_PREFIX + cleanUrl;
-    console.log('🔍 Adding image prefix:', cleanUrl, '->', fullUrl);
-    return fullUrl;
-  }
-  
   // Helper method to remove image prefix for display
   private static removeImagePrefix(url: string | undefined): string | undefined {
     if (!url || !url.trim()) return undefined;
@@ -134,8 +119,8 @@ class MovieImportService {
       releaseYear: movieData.releaseYear,
       type: movieData.type,
       duration: movieData.duration,
-      thumbUrl: MovieImportService.addImagePrefix(movieData.thumbnailUrl),
-      posterUrl: MovieImportService.addImagePrefix(movieData.posterUrl),
+      thumbUrl: movieData.thumbnailUrl,
+      posterUrl: movieData.posterUrl,
       trailerUrl: movieData.trailerUrl,
       totalEpisodes: movieData.totalEpisodes?.toString(),
       director: (() => {
@@ -295,8 +280,8 @@ class MovieImportService {
       duration: movieData.duration,
       releaseYear: movieData.releaseYear,
       type: movieData.type,
-      thumbUrl: MovieImportService.addImagePrefix(movieData.thumbnailUrl),
-      posterUrl: MovieImportService.addImagePrefix(movieData.posterUrl),
+      thumbUrl: movieData.thumbnailUrl,
+      posterUrl: movieData.posterUrl,
       trailerUrl: movieData.trailerUrl,
       director: (() => {
         // Xử lý director để luôn trả về array (UPDATE method)
@@ -391,6 +376,8 @@ class MovieImportService {
 
   // Convert API response to Movie format
   private apiResponseToMovie(apiData: any): Movie {
+    console.log('🔍 apiResponseToMovie input:', apiData);
+    
     return {
       id: apiData.id,
       title: apiData.title,
@@ -399,8 +386,8 @@ class MovieImportService {
       releaseYear: apiData.releaseYear,
       type: apiData.type,
       duration: apiData.duration || '',
-      posterUrl: MovieImportService.removeImagePrefix(apiData.posterUrl),
-      thumbnailUrl: MovieImportService.removeImagePrefix(apiData.thumbUrl),
+      posterUrl: apiData.posterUrl, // Keep full URL as-is
+      thumbnailUrl: apiData.thumbUrl, // Keep full URL as-is  
       trailerUrl: apiData.trailerUrl,
       totalEpisodes: apiData.totalEpisodes ? parseInt(apiData.totalEpisodes) : undefined,
       currentEpisodeCount: apiData.currentEpisodeCount,
@@ -481,23 +468,23 @@ class MovieImportService {
         ok: response.ok
       });
 
+      // Read response text once
+      const responseText = await response.text();
+      console.log('✅ CREATE Movie Raw Response:', responseText);
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ CREATE Movie API Error Response:', errorText);
+        console.error('❌ CREATE Movie API Error Response:', responseText);
         
         let errorData;
         try {
-          errorData = JSON.parse(errorText);
+          errorData = JSON.parse(responseText);
         } catch {
-          errorData = { message: errorText };
+          errorData = { message: responseText };
         }
         
         console.error('❌ Parsed error data:', errorData);
         throw new Error(errorData.message || `API Error: ${response.status} ${response.statusText}`);
       }
-
-      const responseText = await response.text();
-      console.log('✅ CREATE Movie Raw Response:', responseText);
       
       let apiResponse;
       try {
@@ -575,23 +562,23 @@ class MovieImportService {
         ok: response.ok
       });
 
+      // Read response text once
+      const responseText = await response.text();
+      console.log('✅ UPDATE Movie Raw Response:', responseText);
+
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ UPDATE Movie API Error Response:', errorText);
+        console.error('❌ UPDATE Movie API Error Response:', responseText);
         
         let errorData;
         try {
-          errorData = JSON.parse(errorText);
+          errorData = JSON.parse(responseText);
         } catch {
-          errorData = { message: errorText };
+          errorData = { message: responseText };
         }
         
         console.error('❌ Parsed error data:', errorData);
         throw new Error(errorData.message || `API Error: ${response.status} ${response.statusText}`);
       }
-
-      const responseText = await response.text();
-      console.log('✅ UPDATE Movie Raw Response:', responseText);
       
       let apiResponse;
       try {

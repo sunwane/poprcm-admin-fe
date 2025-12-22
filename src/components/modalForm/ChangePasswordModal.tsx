@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useState } from 'react';
+import { useSettings } from '@/hooks/useSettings';
 import FormInput from '@/components/ui/FormInput';
 import GradientButton from '@/components/ui/GradientButton';
 
@@ -11,44 +11,20 @@ interface ChangePasswordModalProps {
 }
 
 export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProps) {
-  const { changePassword, sendVerificationCode } = useAuth();
+  const { changePassword } = useSettings();
   
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
-    confirmPassword: '',
-    verificationCode: ''
+    confirmPassword: ''
   });
   
   const [loading, setLoading] = useState(false);
-  const [sendingCode, setSendingCode] = useState(false);
-  const [codeSent, setCodeSent] = useState(false);
-  const [countdown, setCountdown] = useState(0);
   const [error, setError] = useState('');
 
   // Countdown timer effect
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (countdown > 0) {
-      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-    }
-    return () => clearTimeout(timer);
-  }, [countdown]);
-
   const handleSendVerificationCode = async () => {
-    setSendingCode(true);
-    setError('');
-    
-    try {
-      await sendVerificationCode();
-      setCodeSent(true);
-      setCountdown(60); // 60 seconds countdown
-      alert('Mã xác nhận đã được gửi qua email của bạn!');
-    } catch (error: any) {
-      setError(error.message || 'Gửi mã xác nhận thất bại!');
-    } finally {
-      setSendingCode(false);
-    }
+    // Remove this function - no longer needed
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,11 +48,6 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
       return;
     }
 
-    if (!passwordForm.verificationCode) {
-      setError('Vui lòng nhập mã xác nhận!');
-      return;
-    }
-
     setLoading(true);
     try {
       await changePassword(passwordForm.currentPassword, passwordForm.newPassword);
@@ -85,8 +56,7 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
       setPasswordForm({
         currentPassword: '',
         newPassword: '',
-        confirmPassword: '',
-        verificationCode: ''
+        confirmPassword: ''
       });
       onClose();
       
@@ -103,12 +73,9 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
     setPasswordForm({
       currentPassword: '',
       newPassword: '',
-      confirmPassword: '',
-      verificationCode: ''
+      confirmPassword: ''
     });
     setError('');
-    setCodeSent(false);
-    setCountdown(0);
     onClose();
   };
 
@@ -184,61 +151,6 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
                 required
                 disabled={loading}
               />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mã xác nhận
-              </label>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <FormInput
-                    name="verificationCode"
-                    type="text"
-                    value={passwordForm.verificationCode}
-                    onChange={handleInputChange}
-                    placeholder="Nhập mã xác nhận"
-                    required
-                    disabled={loading}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={handleSendVerificationCode}
-                  disabled={sendingCode || countdown > 0 || loading}
-                  className={`px-4 py-3 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
-                    sendingCode || countdown > 0 || loading
-                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
-                  {sendingCode ? (
-                    <div className="flex items-center">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-1"></div>
-                      Gửi...
-                    </div>
-                  ) : countdown > 0 ? (
-                    `${countdown}s`
-                  ) : (
-                    'Gửi mã'
-                  )}
-                </button>
-              </div>
-              {codeSent && countdown === 0 && (
-                <p className="text-xs text-green-600 mt-1">
-                  ✓ Mã xác nhận đã được gửi thành công
-                </p>
-              )}
-              {countdown > 0 && (
-                <p className="text-xs text-blue-600 mt-1">
-                  Bạn có thể gửi lại mã sau {countdown} giây
-                </p>
-              )}
-              {!codeSent && countdown === 0 && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Nhấn "Gửi mã" để nhận mã xác nhận qua email
-                </p>
-              )}
             </div>
           </div>
 

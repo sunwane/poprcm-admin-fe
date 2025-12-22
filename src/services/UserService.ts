@@ -183,8 +183,43 @@ export class UserService {
       return true;
       
     } catch (error) {
-      console.error('Delete user error:', error);
+      console.error('Delete avatar error:', error);
       return false;
+    }
+  }
+
+  // Change password (POST /api/users/change-password)
+  static async changePassword(oldPassword: string, newPassword: string): Promise<boolean> {
+    if (!this.isServiceAvailable()) {
+      console.info('API not available, simulating password change');
+      // Mock thành công cho development
+      return true;
+    }
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch('http://localhost:8088/api/users/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          oldPassword,
+          newPassword
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Change password failed: ${response.statusText}`);
+      }
+
+      console.log('✅ Password change successful');
+      return true;
+      
+    } catch (error) {
+      console.error('Change password error:', error);
+      throw error;
     }
   }
 
@@ -217,6 +252,7 @@ export class UserService {
       
       // Convert User data to API format
       const apiData = {
+        userName: updatedData.userName,
         fullName: updatedData.fullName,
         gender: updatedData.gender?.toUpperCase()
       };

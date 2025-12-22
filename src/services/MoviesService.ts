@@ -92,6 +92,19 @@ export class MoviesService {
       countries = [], episodes = []
     } = res;
 
+    // Helper function to handle image URLs
+    const processImageUrl = (url: string | undefined): string | undefined => {
+      if (!url) return undefined;
+      
+      // If URL already has full path, use it as-is
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        return url;
+      }
+      
+      // Otherwise, add prefix
+      return `https://img.ophim.live/uploads/movies/${url}`;
+    };
+
     return {
       id,
       title,
@@ -100,8 +113,8 @@ export class MoviesService {
       releaseYear,
       type: Array.isArray(type) ? type[0] || '' : type,
       duration,
-      posterUrl: `https://img.ophim.live/uploads/movies/${thumbUrl}`,
-      thumbnailUrl: `https://img.ophim.live/uploads/movies/${posterUrl}`,
+      posterUrl: processImageUrl(posterUrl),
+      thumbnailUrl: processImageUrl(thumbUrl),
       trailerUrl,
       totalEpisodes: totalEpisodes ? parseInt(totalEpisodes) : undefined,
       currentEpisodeCount: currentEpisodeCount || undefined,

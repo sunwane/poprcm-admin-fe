@@ -160,14 +160,14 @@ export const useUsers = () => {
       //   // Update existing user
       //   const updatedUser = await UserService.updateUser(editingUser.id, userData);
       //   if (updatedUser) {
-      //     setUsers(users.map(user => 
-      //       user.id === editingUser.id ? updatedUser : user
-      //     ));
+      //     // Reload data to ensure consistency
+      //     await loadUsers();
       //   }
       // } else {
         // Add new user
-        const newUser = await UserService.addUser(userData as Omit<User, 'id' | 'createdAt'>);
-        setUsers([...users, newUser]);
+        await UserService.addUser(userData as Omit<User, 'id' | 'createdAt'>);
+        // Reload data to ensure consistency
+        await loadUsers();
       // }
       handleCloseModal();
     } catch (error) {

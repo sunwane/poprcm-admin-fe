@@ -2,6 +2,7 @@ import React from 'react';
 import { SeriesMovie } from '@/types/Series';
 import { Movie } from '@/types/Movies';
 import FormInput from '@/components/ui/FormInput';
+import { getStatusText } from '@/utils/movieUtils';
 
 interface SeriesMovieFormProps {
   seriesMovies: SeriesMovie[];
@@ -190,17 +191,15 @@ const SeriesMovieForm: React.FC<SeriesMovieFormProps> = ({
                   <p className="font-medium text-gray-800 truncate text-sm">
                     {seriesMovie.movie?.title || `Movie ID: ${seriesMovie.movieId}`}
                   </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {seriesMovie.movie?.originalName && seriesMovie.movie.originalName !== seriesMovie.movie.title 
-                      ? seriesMovie.movie.originalName 
-                      : `Type: ${seriesMovie.movie?.type || 'Movie'}`}
+                  <p className="text-xs text-blue-500 truncate mb-1">
+                    {seriesMovie.movie?.originalName}
                   </p>
                   <p className="text-xs text-gray-400">
                     {seriesMovie.movie?.releaseYear || 'N/A'}
                     {seriesMovie.movie?.duration && seriesMovie.movie.duration.trim() !== '' && seriesMovie.movie.duration !== 'N/A'
                       ? ` • Duration: ${seriesMovie.movie.duration}` 
                       : ''}
-                    {seriesMovie.movie?.status ? ` • ${seriesMovie.movie.status}` : ''}
+                    {seriesMovie.movie?.status ? ` • ${getStatusText(seriesMovie.movie.status)}` : ''}
                   </p>
                 </div>
 

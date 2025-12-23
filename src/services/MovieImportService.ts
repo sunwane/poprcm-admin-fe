@@ -9,53 +9,6 @@ class MovieImportService {
   private baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8088/api';
   private static movies: Movie[] = [...mockMovies];
   private static isDataLoaded = false;
-  
-  // Image URL prefix for posterUrl and thumbnailUrl
-  private static readonly IMAGE_URL_PREFIX = 'https://img.ophim.live/uploads/movies/';
-  
-  // Helper method to remove image prefix for display
-  private static removeImagePrefix(url: string | undefined): string | undefined {
-    if (!url || !url.trim()) return undefined;
-    const cleanUrl = url.trim();
-    // If has prefix, remove it
-    if (cleanUrl.startsWith(this.IMAGE_URL_PREFIX)) {
-      const shortUrl = cleanUrl.substring(this.IMAGE_URL_PREFIX.length);
-      console.log('🔍 Removing image prefix for display:', cleanUrl, '->', shortUrl);
-      return shortUrl;
-    }
-    console.log('🔍 No prefix to remove:', cleanUrl);
-    return cleanUrl;
-  }
-
-  // Helper method to add image prefix for API requests
-  private static addImagePrefix(url: string | undefined): string | undefined {
-    if (!url || !url.trim()) return undefined;
-    const cleanUrl = url.trim();
-    // If already has prefix, return as-is
-    if (cleanUrl.startsWith(this.IMAGE_URL_PREFIX)) {
-      console.log('🔍 URL already has prefix:', cleanUrl);
-      return cleanUrl;
-    }
-    // If starts with http or https, assume it's a full URL, return as-is
-    if (cleanUrl.startsWith('http://') || cleanUrl.startsWith('https://')) {
-      console.log('🔍 Full URL detected, keeping as-is:', cleanUrl);
-      return cleanUrl;
-    }
-    // Add prefix to relative path
-    const fullUrl = this.IMAGE_URL_PREFIX + cleanUrl;
-    console.log('🔍 Adding image prefix:', cleanUrl, '->', fullUrl);
-    return fullUrl;
-  }
-
-  // Public method to remove image prefix for display in forms
-  static removeImagePrefixForDisplay(url: string | undefined): string | undefined {
-    return this.removeImagePrefix(url);
-  }
-
-  // Public method to add image prefix for complete URL
-  static addImagePrefixForAPI(url: string | undefined): string | undefined {
-    return this.addImagePrefix(url);
-  }
 
   async autoImportMovies(slug: string, count: number = 10): Promise<any> {
     try {
@@ -143,8 +96,8 @@ class MovieImportService {
       releaseYear: movieData.releaseYear,
       type: movieData.type,
       duration: movieData.duration,
-      thumbUrl: movieData.thumbnailUrl,
-      posterUrl: movieData.posterUrl,
+      thumbUrl: movieData.posterUrl,
+      posterUrl: movieData.thumbnailUrl,
       trailerUrl: movieData.trailerUrl,
       totalEpisodes: movieData.totalEpisodes?.toString(),
       director: (() => {
@@ -296,8 +249,8 @@ class MovieImportService {
       duration: movieData.duration,
       releaseYear: movieData.releaseYear,
       type: movieData.type,
-      thumbUrl: movieData.thumbnailUrl,
-      posterUrl: movieData.posterUrl,
+      thumbUrl: movieData.posterUrl,
+      posterUrl: movieData.thumbnailUrl,
       trailerUrl: movieData.trailerUrl,
       director: (() => {
         // Backend expects director as STRING for UPDATE (not array like CREATE)
@@ -383,8 +336,8 @@ class MovieImportService {
       releaseYear: apiData.releaseYear,
       type: apiData.type,
       duration: apiData.duration || '',
-      posterUrl: MovieImportService.addImagePrefix(apiData.posterUrl), // Add prefix if needed
-      thumbnailUrl: MovieImportService.addImagePrefix(apiData.thumbUrl), // Add prefix if needed  
+      posterUrl: apiData.thumbUrl, // Use URL directly from backend
+      thumbnailUrl: apiData.posterUrl, // Use URL directly from backend
       trailerUrl: apiData.trailerUrl,
       totalEpisodes: apiData.totalEpisodes ? parseInt(apiData.totalEpisodes) : undefined,
       currentEpisodeCount: apiData.currentEpisodeCount,

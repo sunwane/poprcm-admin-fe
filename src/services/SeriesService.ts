@@ -347,16 +347,27 @@ export class SeriesService {
       });
       
       if (!response.ok) {
-        if (response.status === 404) return false;
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (response.status === 404) {
+          throw new Error('Series không tồn tại');
+        }
+        if (response.status === 403) {
+          throw new Error('Bạn không có quyền xóa series này');
+        }
+        throw new Error(`Lỗi xóa series: ${response.status}`);
+      }
+
+      // Check API response structure
+      const apiResponse = await response.json();
+      if (apiResponse.message && apiResponse.message.includes('successfully')) {
+        return true;
       }
 
       return true;
       
     } catch (error) {
       console.error('Failed to delete series via API:', error);
-      // Fallback to mock data
-      return MockSeriesService.deleteSeries(id);
+      // Re-throw the error to handle in UI
+      throw error;
     }
   }
 

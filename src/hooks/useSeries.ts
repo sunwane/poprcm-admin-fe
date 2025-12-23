@@ -163,10 +163,15 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
     
     try {
       confirmModal.setLoadingState(true);
-      await SeriesService.deleteSeries(id);
-      await loadSeries(); // Reload data
+      const success = await SeriesService.deleteSeries(id);
+      if (success) {
+        await loadSeries(); // Reload data  
+        setError(null); // Clear any previous errors
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi xóa series');
+      const errorMessage = err instanceof Error ? err.message : 'Đã xảy ra lỗi khi xóa series';
+      setError(errorMessage);
+      console.error('Error deleting series:', err);
     } finally {
       confirmModal.setLoadingState(false);
     }
@@ -254,38 +259,6 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
     setStatusFilter('all');
     setSortBy('id');
     setSortOrder('asc');
-  };
-
-  // Bulk operations
-  const handleBulkDelete = async (ids: string[]) => {
-    const confirmed = await confirmModal.openConfirm({
-      title: 'Xóa nhiều series',
-      message: `Bạn có chắc chắn muốn xóa ${ids.length} series đã chọn? Hành động này không thể hoàn tác.`,
-      confirmText: 'Xóa tất cả',
-      cancelText: 'Hủy bỏ',
-      confirmButtonType: 'danger'
-    });
-
-    if (!confirmed) return;
-    
-    try {
-      confirmModal.setLoadingState(true);
-      await SeriesService.bulkDeleteSeries(ids);
-      await loadSeries();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi xóa series');
-    } finally {
-      confirmModal.setLoadingState(false);
-    }
-  };
-
-  const handleBulkUpdateStatus = async (ids: string[], status: string) => {
-    try {
-      await SeriesService.bulkUpdateStatus(ids, status);
-      await loadSeries();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi khi cập nhật trạng thái');
-    }
   };
 
   // Helper function to calculate movie changes
@@ -384,10 +357,6 @@ export const useSeries = (options: UseSeriesOptions = {}) => {
     handleItemsPerPageChange,
     handleSort,
     handleClearFilters,
-    
-    // Bulk operations
-    handleBulkDelete,
-    handleBulkUpdateStatus,
     
     // Filter setters
     setSearchQuery,

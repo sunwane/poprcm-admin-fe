@@ -186,19 +186,32 @@ export class UserService {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        if (response.status === 404) {
+          throw new Error('Người dùng không tồn tại');
+        }
+        if (response.status === 403) {
+          throw new Error('Bạn không có quyền xóa người dùng này');
+        }
+        throw new Error(`Lỗi xóa người dùng: ${response.status}`);
       }
 
-      // Update local cache
-      const index = this.users.findIndex(u => u.id === id);
-      if (index !== -1) {
-        this.users.splice(index, 1);
+      // Check API response structure
+      const apiResponse = await response.json();
+      if (apiResponse.message && apiResponse.message.includes('successfully')) {
+        // Update local cache
+        const index = this.users.findIndex(u => u.id === id);
+        if (index !== -1) {
+          this.users.splice(index, 1);
+        }
+        return true;
       }
+
       return true;
       
     } catch (error) {
-      console.error('Delete avatar error:', error);
-      return false;
+      console.error('Delete user error:', error);
+      // Re-throw the error to handle in UI
+      throw error;
     }
   }
 

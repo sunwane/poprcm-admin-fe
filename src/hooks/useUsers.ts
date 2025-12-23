@@ -6,6 +6,7 @@ import { useConfirmModal } from './useConfirmModal';
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   // const [editingUser, setEditingUser] = useState<User | null>(null);
   const [filterGender, setFilterGender] = useState<FilterGender>('ALL');
@@ -131,12 +132,13 @@ export const useUsers = () => {
     if (confirmed) {
       try {
         confirmModal.setLoadingState(true);
-        const success = await UserService.deleteUser(id);
-        if (success) {
-          // Reload data
-          await loadUsers();
-        }
+        await UserService.deleteUser(id);
+        // Reload data
+        await loadUsers();
+        setError(null); // Clear any previous errors
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Đã xảy ra lỗi khi xóa người dùng';
+        setError(errorMessage);
         console.error('Error deleting user:', error);
       } finally {
         confirmModal.setLoadingState(false);
@@ -205,6 +207,7 @@ export const useUsers = () => {
     // State
     users,
     loading,
+    error,
     showModal,
     // editingUser,
     filterGender,

@@ -79,8 +79,8 @@ export default function UserGrowthChart({
       {
         label: 'Người dùng mới',
         data: userData,
-        borderColor: 'rgb(34, 197, 94)', // Emerald green
-        backgroundColor: 'rgba(34, 197, 94, 0.8)', // Semi-transparent emerald
+        borderColor: 'rgb(59, 130, 246)', // blue-500
+        backgroundColor: 'rgba(59, 130, 246, 0.7)', // blue-500, nhạt hơn
         borderWidth: 3,
         fill: true,
         tension: 0.4,
@@ -88,12 +88,10 @@ export default function UserGrowthChart({
         pointHoverRadius: 8,
         pointBorderWidth: 2,
         pointBorderColor: '#ffffff',
-        pointBackgroundColor: 'rgb(34, 197, 94)',
-        pointHoverBackgroundColor: 'rgb(34, 197, 94)',
+        pointBackgroundColor: 'rgb(59, 130, 246)', // blue-500
+        pointHoverBackgroundColor: 'rgb(59, 130, 246)',
         pointHoverBorderColor: '#ffffff',
         pointHoverBorderWidth: 3,
-        // Gradient fill
-        gradient: true,
       },
     ],
   };
@@ -105,7 +103,7 @@ export default function UserGrowthChart({
       legend: {
         position: 'top' as const,
         labels: {
-          color: '#374151',
+          color: '#233458',
           font: {
             size: 12,
             weight: '500' as const,
@@ -119,7 +117,7 @@ export default function UserGrowthChart({
           size: 16,
           weight: 'bold' as const,
         },
-        color: '#1e40af',
+        color: '#003CFF',
         padding: 20,
       },
     },
@@ -133,14 +131,14 @@ export default function UserGrowthChart({
             size: 12,
             weight: '500' as const,
           },
-          color: '#6b7280',
+          color: '#3080FF',
         },
         grid: {
           color: 'rgba(0, 0, 0, 0.05)',
           drawBorder: false,
         },
         ticks: {
-          color: '#6b7280',
+          color: '#3080FF',
           font: {
             size: 11,
           },
@@ -161,7 +159,7 @@ export default function UserGrowthChart({
           drawBorder: false,
         },
         ticks: {
-          color: '#6b7280',
+          color: '#3080FF',
           font: {
             size: 11,
           },
@@ -193,23 +191,23 @@ export default function UserGrowthChart({
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <div className="mb-4 flex justify-between items-center">
         <div>
-          <h3 className="text-lg font-semibold text-emerald-800">Tăng trưởng người dùng</h3>
+          <h3 className="text-lg font-semibold text-blue-800">Tăng trưởng người dùng</h3>
           <p className="text-sm text-gray-600">Thống kê người dùng mới đăng ký</p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-emerald-600">{totalNewUsers}</div>
+          <div className="text-2xl font-bold text-blue-600">{totalNewUsers}</div>
           <div className="text-xs text-gray-500">Tổng trong tháng</div>
         </div>
       </div>
       
       <div className="mb-4 grid grid-cols-2 gap-4">
-        <div className="bg-emerald-50 rounded-lg p-3 text-center border border-emerald-100">
-          <div className="text-lg font-semibold text-emerald-700">{averageDaily}</div>
-          <div className="text-xs text-emerald-600">Trung bình/ngày</div>
+        <div className="bg-blue-50 rounded-lg p-3 text-center border border-blue-100">
+          <div className="text-lg font-semibold text-blue-700">{averageDaily}</div>
+          <div className="text-xs text-blue-600">Trung bình/ngày</div>
         </div>
-        <div className="bg-green-50 rounded-lg p-3 text-center border border-green-100">
-          <div className="text-lg font-semibold text-green-700">{maxDaily}</div>
-          <div className="text-xs text-green-600">Cao nhất/ngày</div>
+        <div className="bg-sky-50 rounded-lg p-3 text-center border border-sky-100">
+          <div className="text-lg font-semibold text-sky-700">{maxDaily}</div>
+          <div className="text-xs text-sky-600">Cao nhất/ngày</div>
         </div>
       </div>
       

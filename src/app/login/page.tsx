@@ -5,7 +5,6 @@ import FormInput from '@/components/ui/FormInput';
 import ServiceStatus from '@/components/ui/ServiceStatus';
 import { useEffect } from 'react';
 import ServiceChecker from '@/services/ServiceChecker';
-import { useRouter } from 'next/navigation';
 
 export default function Login() {
   const { 
@@ -112,9 +111,6 @@ export default function Login() {
           </div>
 
           <div className="text-center space-y-2">
-            <p className="text-sm text-gray-500">
-              Demo: admin@poprcm.com / admin123
-            </p>
             <ServiceStatus className="justify-center" showRefresh />
           </div>
         </form>

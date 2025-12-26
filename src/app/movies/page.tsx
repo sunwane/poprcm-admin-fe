@@ -16,6 +16,7 @@ import {
 import GradientButton from '@/components/ui/GradientButton';
 import MovieModal from '@/components/modalForm/movie/MovieModal';
 import AutoImportModal from '@/components/modalForm/AutoImportModal';
+import AIModal from '@/components/modalForm/AIModal';
 import SearchBar from '@/components/ui/SearchBar';
 import FormSelect from '@/components/ui/FormSelect';
 import Pagination from '@/components/ui/Pagination';
@@ -29,6 +30,9 @@ export default function Movies() {
   // Auto import modal state
   const [isAutoImportModalOpen, setIsAutoImportModalOpen] = useState(false);
   const [autoImportMode, setAutoImportMode] = useState<'import' | 'update'>('import');
+
+  // AI modal state
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   // Get dashboard stats for MovieStatsCard
   const { movieStats } = useDashboard();
@@ -115,6 +119,11 @@ export default function Movies() {
             onClick={() => handleOpenAutoImport('update')}
             className='bg-linear-to-br from-gray-400 to-gray-700 rounded-lg text-white text-nowrap px-6 py-3 hover:from-gray-400 hover:to-gray-800 transition-all flex items-center space-x-2'>
             <span>Cập nhật</span>
+          </button>
+          <button 
+            onClick={() => setIsAIModalOpen(true)}
+            className='bg-linear-to-br from-red-400 to-purple-700 rounded-lg text-white text-nowrap px-6 py-3 hover:from-red-500 hover:to-blue-700 transition-all flex items-center space-x-2'>
+            <span>Quản lý AI</span>
           </button>
         </div>
       </div>
@@ -357,7 +366,7 @@ export default function Movies() {
                       {getCountryNames(movie)}
                     </td>
                     <td className="px-3 py-4 text-sm text-gray-600">
-                      {formatDate(movie.modifiedAt || movie.createdAt)}
+                      {formatDate(movie.modifiedAt? movie.modifiedAt : movie.createdAt)}
                     </td>
                     <td className="px-3 py-4">
                       <div className="flex space-x-1">
@@ -501,6 +510,12 @@ export default function Movies() {
         onConfirm={confirmModal.handleConfirm}
         onCancel={confirmModal.handleCancel}
         isLoading={confirmModal.isLoading}
+      />
+
+      {/* AI Management Modal */}
+      <AIModal
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
       />
     </div>
   );

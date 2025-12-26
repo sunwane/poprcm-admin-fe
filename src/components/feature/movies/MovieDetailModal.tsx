@@ -218,7 +218,7 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                     </div>
                   )}
                 </div>
-                  <div className='grid grid-cols-2 align-center mt-5 border-t pt-4 gap-x-4 border-gray-200'>
+                  <div className='grid grid-cols-2 align-center mt-5 border-t pt-4 gap-x-4 gap-y-2 border-gray-200'>
                     <div>
                       <label className="text-sm font-medium text-gray-500">Từ khóa (Slug)</label>
                       <p className="text-gray-800 font-medium">{movie.slug}</p>
@@ -228,6 +228,10 @@ const MovieDetailModal: React.FC<MovieDetailModalProps> = ({ isOpen, movie, onCl
                       <p className="text-gray-800 font-medium">
                         {Array.isArray(movie.director) ? movie.director.join(', ') : (movie.director || "Không có thông tin")}
                       </p>
+                    </div>
+                    <div className=''>
+                      <label className="text-sm font-medium text-gray-500">ID: </label>
+                      <p className="text-gray-800 font-medium">{movie.id}</p>
                     </div>
                   </div>
                   <div className="mt-4">

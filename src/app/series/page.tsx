@@ -268,7 +268,8 @@ export default function Series() {
                           </div>
                           <div>
                             <div className="font-semibold text-blue-950 mb-1">{series.name}</div>
-                            <div className="text-[13px] text-gray-500 line-clamp-2 mb-2">{series.description}</div>
+                            <div className="text-[13px] text-gray-500 line-clamp-2 mb-2"
+                              dangerouslySetInnerHTML={{ __html: series.description }}></div>
                             <div className="text-xs text-gray-400 font-mono">ID: {series.id}</div>
                           </div>
                         </div>

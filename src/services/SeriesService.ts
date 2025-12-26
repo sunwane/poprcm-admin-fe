@@ -2,7 +2,7 @@ import { Series, SeriesMovie } from '@/types/Series';
 import { MockSeriesService } from './MockSeriesService';
 
 export class SeriesService {
-  private static readonly API_BASE_URL = 'http://localhost:8088/api/series';
+  private static readonly API_BASE_URL = 'https://poprcm-be.onrender.com/api/series';
 
   // Kiểm tra service availability từ localStorage
   private static isServiceAvailable(): boolean {

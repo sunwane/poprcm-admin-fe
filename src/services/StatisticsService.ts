@@ -8,7 +8,7 @@ import {
 import HttpInterceptor from './HttpInterceptor';
 
 export class StatisticsService {
-  private static readonly API_BASE_URL = 'http://localhost:8088/api/statistics';
+  private static readonly API_BASE_URL = 'https://poprcm-be.onrender.com/api/statistics';
   private static dashboardStatsCache: DashboardStats | null = null;
   private static entityStatsCache: Map<string, EntityStatsResponse> = new Map();
   private static cacheExpiry: Map<string, number> = new Map();

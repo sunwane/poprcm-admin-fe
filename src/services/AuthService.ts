@@ -7,7 +7,7 @@ import { mockUsers } from '@/mocksData/mockUser';
 import { UserService } from './UserService';
 
 class AuthService {
-  private baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8088/api/auth';
+  private baseURL = 'https://poprcm-be.onrender.com/api/auth';
 
   async login(request: LoginRequest): Promise<AuthResponse> {
 

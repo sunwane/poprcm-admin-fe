@@ -6,7 +6,7 @@ import { mockActors } from '@/mocksData/mockActors';
 import { mockMovieActors } from '@/mocksData/mockMovieActors';
 
 class MovieImportService {
-  private baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8088/api';
+  private baseURL = 'https://poprcm-be.onrender.com/api';
   private static movies: Movie[] = [...mockMovies];
   private static isDataLoaded = false;
 

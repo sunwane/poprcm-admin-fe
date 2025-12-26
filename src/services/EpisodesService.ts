@@ -4,7 +4,7 @@ import { mockEpisodes } from '@/mocksData/mockEpisodes';
 export class EpisodesService {
   private static episodes: Episode[] = [...mockEpisodes];
   private static isDataLoaded = false;
-  private static readonly API_BASE_URL = 'http://localhost:8088/api/episodes';
+  private static readonly API_BASE_URL = 'https://poprcm-be.onrender.com/api/episodes';
 
   // Kiểm tra service availability từ localStorage
   private static isServiceAvailable(): boolean {

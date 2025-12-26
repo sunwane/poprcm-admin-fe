@@ -38,7 +38,7 @@ export interface AIResponse {
 }
 
 export class AIService {
-  private static readonly API_BASE_URL = 'http://localhost:8088/api/ai';
+  private static readonly API_BASE_URL = 'https://poprcm-be.onrender.com/api/ai';
 
   // Kiểm tra service availability từ localStorage
   private static isServiceAvailable(): boolean {

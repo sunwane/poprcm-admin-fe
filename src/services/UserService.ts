@@ -5,7 +5,7 @@ import HttpInterceptor from './HttpInterceptor';
 export class UserService {
   private static users: User[] = [];
   private static isDataLoaded = false;
-  private static readonly API_BASE_URL = 'http://localhost:8088/api/users';
+  private static readonly API_BASE_URL = 'https://poprcm-be.onrender.com/api/users';
 
   // Kiểm tra service availability từ localStorage (giống AuthService)
   private static isServiceAvailable(): boolean {
@@ -224,7 +224,7 @@ export class UserService {
     }
 
     try {
-      const response = await HttpInterceptor.fetchWithAuth('http://localhost:8088/api/users/change-password', {
+      const response = await HttpInterceptor.fetchWithAuth('https://poprcm-be.onrender.com/api/users/change-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

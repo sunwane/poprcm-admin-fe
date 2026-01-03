@@ -192,8 +192,8 @@ export default function Dashboard() {
                     {activity.user.charAt(0)}
                   </span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-900">
+                <div className="flex-1 min-w-0 w-fit">
+                  <p className="text-sm text-gray-900 line-clamp-2 max-w-full">
                     <span className="font-semibold text-blue-700">{activity.user}</span>{' '}
                     {activity.action}
                   </p>

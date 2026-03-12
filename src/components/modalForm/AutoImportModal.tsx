@@ -15,6 +15,7 @@ interface AutoImportModalProps {
 export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportModalProps) {
   const [slug, setSlug] = useState('phim-moi');
   const [movieCount, setMovieCount] = useState<number>(10);
+  const [pageNumber, setPageNumber] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,7 +23,8 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
   const getDefaultValues = (currentMode: 'import' | 'update') => {
     return {
       slug: 'phim-moi',
-      movieCount: currentMode === 'import' ? 10 : 1
+      movieCount: currentMode === 'import' ? 10 : 1,
+      pageNumber: 1
     };
   };
 
@@ -36,6 +38,7 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
       const defaults = getDefaultValues(mode);
       setSlug(defaults.slug);
       setMovieCount(defaults.movieCount);
+      setPageNumber(defaults.pageNumber);
     }
   }, [isOpen, mode]);
 
@@ -60,10 +63,15 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
         return;
       }
 
+      if (mode === 'import' && pageNumber <= 0) {
+        setError('Số trang phải lớn hơn 0');
+        return;
+      }
+
       // Gọi service thực tế
       let result;
       if (mode === 'import') {
-        result = await MovieImportService.autoImportMovies(slug, movieCount);
+        result = await MovieImportService.autoImportMovies(slug, pageNumber, movieCount);
       } else {
         result = await MovieImportService.updateMovies(slug, movieCount);
       }
@@ -141,6 +149,26 @@ export default function AutoImportModal({ isOpen, onClose, mode }: AutoImportMod
                 Slug để import phim từ nguồn dữ liệu
               </p>
             </div>
+
+            {mode === 'import' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Số trang *
+                </label>
+                <FormInput
+                  name="pageNumber"
+                  type="number"
+                  value={pageNumber.toString()}
+                  onChange={(e) => setPageNumber(parseInt(e.target.value) || 1)}
+                  placeholder="1"
+                  required
+                  disabled={loading}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Trang bắt đầu để import (mặc định là 1)
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">

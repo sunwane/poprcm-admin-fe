@@ -47,6 +47,9 @@ const VideoPopup: React.FC<VideoPopupProps> = ({
     return url.includes('.mp4') || url.includes('.webm') || url.includes('.ogg') || url.includes('.m3u8');
   };
 
+  // Check if current URL is valid
+  const hasValidUrl = currentVideoUrl && currentVideoUrl.trim() !== '';
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-60 p-4">
       <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
@@ -63,13 +66,13 @@ const VideoPopup: React.FC<VideoPopupProps> = ({
         </div>
         
         <div className="aspect-video bg-black relative">
-          {hasError && !embeddedUrl ? (
+          {!hasValidUrl || hasError ? (
             <div className="flex items-center justify-center h-full text-white">
               <div className="text-center">
                 <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p>Không thể tải video</p>
+                <p>{!hasValidUrl ? 'URL video không hợp lệ' : 'Không thể tải video'}</p>
               </div>
             </div>
           ) : isDirectVideo(currentVideoUrl) ? (
@@ -93,7 +96,7 @@ const VideoPopup: React.FC<VideoPopupProps> = ({
             />
           )}
           
-          {isUsingFallback && (
+          {isUsingFallback && hasValidUrl && (
             <div className="absolute top-2 right-2 bg-yellow-500 text-white px-2 py-1 rounded text-sm">
               Sử dụng video dự phòng
             </div>

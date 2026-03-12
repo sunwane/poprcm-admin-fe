@@ -10,10 +10,10 @@ class MovieImportService {
   private static movies: Movie[] = [...mockMovies];
   private static isDataLoaded = false;
 
-  async autoImportMovies(slug: string, count: number = 10): Promise<any> {
+  async autoImportMovies(slug: string, page: number = 1, limit: number = 10): Promise<any> {
     try {
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`${this.baseURL}/movies/add-new?slug=${slug}&moviesToAdd=${count}`, {
+      const response = await fetch(`${this.baseURL}/movies/add-new?slug=${slug}&page=${page}&limit=${limit}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
